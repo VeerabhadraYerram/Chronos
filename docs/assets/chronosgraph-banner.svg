@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="300" viewBox="0 0 1280 300" role="img" aria-labelledby="title desc">
+  <title id="title">ChronosGraph</title>
+  <desc id="desc">Company decision memory. Connected context, traceable decisions, and knowledge through time.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#17202c"/><stop offset="1" stop-color="#24344a"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#b17c53" stop-opacity=".18"/><stop offset="1" stop-color="#b17c53" stop-opacity="0"/></radialGradient>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".7" fill="#c7d2e2" opacity=".12"/></pattern>
+  </defs>
+  <rect width="1280" height="300" rx="14" fill="url(#bg)"/>
+  <rect width="1280" height="300" rx="14" fill="url(#dots)"/>
+  <ellipse cx="1040" cy="150" rx="280" ry="240" fill="url(#glow)"/>
+  <g fill="none" stroke="#d5a16f" stroke-width="2.5" stroke-linejoin="round">
+    <rect x="54" y="48" width="16" height="16" rx="3"/><rect x="36" y="84" width="16" height="16" rx="3"/><rect x="72" y="84" width="16" height="16" rx="3"/><path d="M62 64v12H44v8m18-8h18v8"/>
+  </g>
+  <text x="110" y="69" font-family="Arial, sans-serif" font-size="12" fill="#c5a887" letter-spacing="2.3">COMPANY DECISION MEMORY</text>
+  <text x="52" y="163" font-family="Arial, sans-serif" font-size="62" font-weight="700" letter-spacing="-2" fill="#f5f7fb">Chronos<tspan font-weight="400" fill="#b9c9dc">Graph</tspan></text>
+  <text x="55" y="205" font-family="Arial, sans-serif" font-size="19" fill="#aabbd0">Connected context. Decisions with a history.</text>
+  <text x="55" y="257" font-family="Arial, sans-serif" font-size="11" fill="#899db7" letter-spacing="1.4">FALKORDB  /  GEMINI  /  TEMPORAL KNOWLEDGE</text>
+  <g stroke="#62778f" stroke-width="1.4" fill="none"><path d="M866 80h95v67h85"/><path d="M866 219h95v-72h85"/><path d="M1096 147h87"/></g>
+  <g font-family="Arial, sans-serif" font-size="12">
+    <rect x="783" y="58" width="119" height="45" rx="8" fill="#26394d" stroke="#455e78"/><circle cx="802" cy="80" r="4" fill="#91accd"/><text x="816" y="85" fill="#c4d3e5">People</text>
+    <rect x="783" y="196" width="119" height="45" rx="8" fill="#26394d" stroke="#455e78"/><circle cx="802" cy="219" r="4" fill="#8ebaa9"/><text x="816" y="224" fill="#c4d3e5">Sources</text>
+    <rect x="1007" y="117" width="143" height="61" rx="9" fill="#3d3b38" stroke="#b08b65"/><circle cx="1027" cy="147" r="4" fill="#d8ac7b"/><text x="1041" y="152" fill="#e5d0b6">Decisions</text>
+    <circle cx="1200" cy="147" r="17" fill="#26394d" stroke="#62778f"/><path d="M1200 137v10l6 4" fill="none" stroke="#b4c3d6" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+</svg>

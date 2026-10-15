@@ -1,21 +1,59 @@
-# Validation record
+# Validation and audit evidence
 
-Development validation on October 15, 2026, macOS ARM64, Python 3.13, Node 20.19.6.
+[Run the evaluation](EVALUATION.md) · [CI workflow](../.github/workflows/ci.yml) · [Live GitHub runs](https://github.com/VeerabhadraYerram/Chronos/actions/workflows/ci.yml)
 
-- Real FalkorDB v4.22.1 container, image digest pinned in compose.yaml.
-- Corrected persistence to use the image's supported REDIS_ARGS environment variable and /var/lib/falkordb/data mount. Compared graph content hashes and all 12 saved receipt IDs before/after a real database restart; all matched, with append-only storage enabled.
-- Sixteen integration checks passed with independent disposable graphs. See backend/tests/test_company_brain.py.
-- TypeScript check and Vite production build passed.
-- Browser verified: a real graph investigation, partner migration result, documentation conflict, source-backed repair draft. Desktop and mobile layouts inspected during implementation.
-- Gemini API authentication and account model listing succeeded. A real `gemini-3.1-flash-lite` investigation selected inspect_constraints, inspect_owners, and inspect_conflicts and returned a source ID validated against the graph. One observed run took approximately 16 seconds; this is a single observation, not a benchmark or latency promise.
-- A model endpoint that timed out was replaced after checking account availability. Provider failures are shown without exposing raw provider errors or keys.
+Local verification date: **October 15, 2026**. Environment: macOS ARM64, Python 3.13, Node.js 20.19.6, real FalkorDB v4.22.1. The image digest is pinned in Compose and CI. The live Actions run is the source for remote CI status; local results do not imply a remote run passed.
 
-Remaining limitations: synthetic fixture only; no live ingestion connectors; no external action publishing; no production authentication or source ACLs; no deployment; no final submission video; no robust benchmark against alternative retrieval methods. Time-aware facts do not imply fully time-aware ownership or topology.
+## Reproduce all checks
 
-The API key is in an ignored local environment file and is never included in the repository. Rotate any key that was posted in chat.
+```sh
+./scripts/check.sh
+```
 
-## Interface refresh
+The script requires installed dependencies and a reachable real database. It uses disposable graphs, does not call Gemini, and does not reset the configured demo graph.
 
-October 15: replaced the green interface with a charcoal navigation rail, light workspace, consistent panel treatments, more readable supporting text, and restrained copper accents. Added an expanded evidence-map view and a clearly labeled display-only filter between decision context and all company knowledge. The investigator still uses the same backend checks and database tools.
+| Check | Command | Local result |
+| --- | --- | --- |
+| Integration suite | `PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q` | 16 passed |
+| Business scenario | `PYTHONPATH=backend .venv/bin/python scripts/evaluate.py` | 12 expected outcomes checked |
+| Frontend | `npm --prefix frontend run build` | TypeScript check and production build passed |
+| Documentation | `.venv/bin/python scripts/check_docs.py` | Local links, heading anchors, and image targets checked |
 
-Verified the updated production build and all 16 real FalkorDB integration checks. Browser checks covered opening saved receipts, inspecting source evidence with mouse and keyboard, Escape dismissal, map expansion, and mobile layout at 390 px without horizontal overflow. Existing demo knowledge and receipts were preserved.
+CI runs the same integration suite and business scenario against a real FalkorDB service, builds the client in a separate job, and checks documentation in a third job. Actions are pinned by commit SHA and the workflow has read-only repository permission. CI deliberately uses an empty Gemini key.
+
+## Automated coverage
+
+Source: [test_company_brain.py](../backend/tests/test_company_brain.py). Each test creates its own uniquely named graph.
+
+| Test | Business invariant |
+| --- | --- |
+| `test_original_global_removal_conflicts` | 0 ms violates both original minima and has source-backed graph context. |
+| `test_preserving_minimum_has_no_modeled_conflict` | Preserving 250 ms meets the modeled constraint. |
+| `test_migration_only_changes_partner_b` | B's migration cannot erase A's requirement. |
+| `test_effective_time_before_migration_keeps_original_requirement` | Earlier effective dates retain the old minimum. |
+| `test_late_evidence_does_not_rewrite_what_was_known` | Historical belief differs from retrospective knowledge. |
+| `test_half_open_valid_interval_boundary` | The new requirement applies at the exact effective boundary. |
+| `test_document_conflict_is_scoped_to_migrated_partner` | Runbook disagreement is attributed to B. |
+| `test_chat_proposal_cannot_override_accepted_policy` | A proposal cannot silently become policy. |
+| `test_withdrawn_evidence_forces_abstention` | Unsupported original requirements do not produce confident assessments. |
+| `test_event_replay_is_idempotent` | Duplicate migration does not increment revision again. |
+| `test_receipt_survives_new_client_and_is_invalidated` | Saved context survives reconnection and becomes stale after change. |
+| `test_graph_copy_is_independent` | Updating a copy does not change base graph behavior. |
+| `test_unknown_time_and_missing_relationship_abstain` | Missing temporal/relationship evidence is surfaced. |
+| `test_api_approval_idempotency_and_stale_block` | Duplicate approval reuses the action; changed evidence blocks it. |
+| `test_api_rehearsal_preserves_base` | API rehearsal preserves the base revision and checks the scoped proposal. |
+| `test_validation_rejects_invalid_scope_and_unzoned_date` | Unsupported partner scope, negative delay, and unzoned dates are rejected. |
+
+The [business evaluator](../scripts/evaluate.py) independently walks the documented story, including clone isolation, scoped migration, both time axes, stale receipts, proposal handling, and source withdrawal. It prints pass/fail results from live queries; they are not canned application verdicts.
+
+## Separate manual verification
+
+- **Persistence:** compared graph content hashes and all 12 existing receipt IDs before and after a real database restart. Both matched. Append-only storage was enabled and the mount matched the official image's data directory. This is not a power-loss or disaster-recovery test.
+- **Gemini:** performed a real model invocation that selected the constraint, owner, and conflict tools and returned accepted source IDs. The interface was also checked with a saved successful Gemini receipt. No automated adversarial or broad semantic-quality benchmark is claimed.
+- **Interface:** inspected desktop and 390 px mobile layouts; checked source drawers, saved receipts, expanded graph, graph-scope switching, keyboard source activation, and Escape dismissal. No horizontal page overflow was observed at the tested mobile width. This is not a complete accessibility conformance audit.
+
+The [workspace image](assets/workspace.png) is an actual captured UI state with fictional data. It shows B after migration. A screenshot alone is not evidence of backend correctness; use the executable checks above.
+
+## Unverified or intentionally absent
+
+Production deployment, general source ingestion, live connectors, expertise scoring, fully temporal ownership/topology/source access, external publishing, multi-user authorization, multi-worker operation, crash-atomic ingestion, and a fair retrieval-baseline benchmark remain outside current verification. Recorded timings are per-run observations, not performance guarantees.

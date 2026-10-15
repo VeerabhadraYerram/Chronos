@@ -1,20 +1,25 @@
-# Competition fit
+# Company Brain fit
 
-Public page checked October 15, 2026: https://www.wemakedevs.org/hackathons/falkordb
+The [official Graph Hacks brief](https://www.wemakedevs.org/hackathons/falkordb#tracks) was rechecked **October 15, 2026**. ChronosGraph targets Company Brain. The project connects company requirements, people, evidence, and follow-up work; a proposed code change is its concrete trigger.
 
-Target: Track 03, Company Brain. The page lists the M6 Mac Mini for that track. No result is guaranteed.
+## Focus-to-evidence map
 
-| Public requirement/focus | Implementation evidence |
-|---|---|
-| FalkorDB must support a central part of the product | Core knowledge, relationships, temporal facts, receipts, and actions are in FalkorDB; both checks and model tools read it. |
-| Connected company knowledge | Documents, chat excerpts, incident ticket, decisions, partner commitments, project, team, and owners are linked in the fictional seed. |
-| Ownership and source tracing | Owner lookup follows OWNS; sources and graph paths appear with the receipt. |
-| Keeping knowledge current | Migration replay, scoped documentation conflict, stale receipts, and accepted/proposed decision distinction. |
-| Working agent | Gemini selects tools and produces a validated cited explanation when enabled. Graph-only mode is explicitly labeled. |
-| New event work | This implementation began October 15, 2026; dependencies are reused libraries. |
+| Organizer focus | Current implementation | How to inspect it | Boundary |
+| --- | --- | --- | --- |
+| Docs, tickets, and chats connected | Fictional runbook, incident ticket, and chat excerpts share a graph with decisions and partner requirements. | [Seed](../backend/chronos/seed.py), all-company graph, source inspector. | Seed and predefined replay; no live ingestion. |
+| Ownership and knowledge | `OWNS` traversal recommends the recorded system owner. | [Store.owners](../backend/chronos/store.py), repair reviewer. | Expertise discovery, contribution ranking, and availability are not implemented. |
+| Decision provenance | Applicable facts link to original excerpts; receipts preserve the context used. | [Engine](../backend/chronos/engine.py), source buttons, evidence graph. | Source-ID checks are not semantic proof or document authenticity. |
+| Knowledge stays current | Scoped migration changes the applicable minimum, flags the runbook, and invalidates old receipts. | [Evaluation steps 2–3](EVALUATION.md#three-minute-interface-walkthrough), temporal tests. | Replay is not continuous synchronization; only supported facts are temporal. |
+| Clear sources | Receipt source list and optional Gemini citations are bounded to the investigation's evidence. | [Agent validation](../backend/chronos/agent.py), source inspector. | Model explanations require review. |
 
-Public FAQ: event October 15–18; deadline October 18, 11:59 PM IST; teams up to four; coding assistants allowed with builder responsibility; deployment preferred, otherwise setup instructions plus working video.
+## Mandatory technology and agent behavior
 
-The public page inspected does not expose numerical judging weights. The authenticated registration/submission panel was not accessed. Confirm registration, full rules, exact deliverables, and any panel-only requirements before final submission. Do not infer that satisfying a checklist establishes a winning submission.
+FalkorDB is the primary store for knowledge, relationships, temporal assertions, receipts, and actions. Both the checks and Gemini read tools query it. Rehearsal uses a real graph copy. The [architecture](ARCHITECTURE.md) shows those responsibilities and the [tests](VALIDATION.md#automated-coverage) demonstrate behavior changes when facts or relationships change.
 
-Defer secondary track claims until independently demonstrated. Three agents or MCP are not required by the public Company Brain brief. The current product is a scoped local prototype, not a production company-wide integration platform.
+When enabled, Gemini selects read tools and produces an explanation. Graph-only mode is labeled separately. A configured key or a precomputed receipt is not presented as a fresh agent run. Secondary-track qualification and multi-agent capabilities are not claimed.
+
+## Public rules and submission boundary
+
+The public page requires central FalkorDB use and new submission/main implementation work during the event; general libraries and infrastructure may be reused. It permits coding assistants with builder responsibility. The event runs October 15–18, 2026; submissions close October 18 at 11:59 PM IST. Deployment is preferred; local projects need complete setup instructions and a working demo video. Teams may have up to four members.
+
+Implementation began October 15, 2026. The repository supplies setup and evaluation instructions. A deployment, final video, and authenticated submission are still separate work. The public text inspected exposes no numerical judging rubric; none is invented here. Confirm any panel-only requirements and registration before submitting.

@@ -1,115 +1,117 @@
-# ChronosGraph
+<p align="center">
+  <img src="docs/assets/chronosgraph-banner.svg" alt="ChronosGraph — company decision memory" width="1200" />
+</p>
 
-**Company decision memory. Understand why a requirement exists, what still depends on it, and what must change before you can move on.**
+<p align="center">
+  <a href="https://github.com/VeerabhadraYerram/Chronos/actions/workflows/ci.yml">CI checks</a>
+  &nbsp; <a href="LICENSE">MIT License</a>
+  &nbsp; · &nbsp; Company Brain prototype
+</p>
 
-Built for the Company Brain track of [WeMakeDevs x FalkorDB Graph Hacks](https://www.wemakedevs.org/hackathons/falkordb). Implementation started October 15, 2026. NovaPay and every included source are fictional.
+**Understand why a company requirement exists, when it applies, and what work is needed before changing it.** ChronosGraph connects decisions, people, commitments, and source evidence in FalkorDB. A Gemini investigator can explore that context through bounded read tools; explicit constraint checks determine the assessment.
 
-## What works
+**[Evaluate the demo](docs/EVALUATION.md)** · **[Architecture](docs/ARCHITECTURE.md)** · **[Graph model](docs/DATA_MODEL.md)** · **[API](docs/API.md)** · **[Validation](docs/VALIDATION.md)**
 
-- Real FalkorDB storage for company knowledge, relationships, accepted fact versions, source excerpts, receipts, and in-app actions. There is no in-memory graph substitute.
-- An optional Gemini investigator selects read tools, inspects the graph, and returns an explanation. Deterministic constraint checks remain authoritative; the model cannot approve a conflicting change.
-- Explicit partner scope and separate effective/knowledge timestamps, including late-arriving evidence.
-- A clickable evidence graph and source inspector, history view, documentation conflicts, and persistent receipts.
-- Sample event replay for an approved partner migration, an unapproved suggestion, and withdrawn evidence. Replay is idempotent and invalidates old receipts.
-- FalkorDB graph-copy rehearsal that evaluates a partner-scoped alternative and removes the temporary scenario afterward.
-- Repair drafts, downloadable Markdown, and idempotent in-app approval. No external messages, PRs, tickets, or production changes are published.
+## The problem
 
-This first prototype checks **the payment worker's minimum retry delay**. Free text supplies investigation context; the explicit partner/delay/date controls define the assessed change. It does not parse arbitrary diffs, predict outages, or guarantee production safety. “No known conflict” means only that the proposed delay meets the supported, modeled requirement.
+A payment delay looks like an easy performance improvement. Its reason lives elsewhere: an incident review, a team decision, and a partner requirement. Later, one partner migrates and the old runbook becomes misleading.
 
-## Quick start
+ChronosGraph answers: **Which requirement applies to this change, what supports it, and who should review the next step?** It preserves the distinction between when a requirement applied and when the company learned about it.
 
-Requirements: Python 3.11+ (tested with 3.13), Node.js 20.19+, npm, and a running Docker engine. Ports: 6389 for FalkorDB, 8000 for the API, 5173 for the interface. All bind to loopback.
+<details>
+  <summary><strong>View the actual investigation workspace</strong></summary>
+  <br />
+  <img src="docs/assets/workspace.png" alt="Actual ChronosGraph workspace showing Partner B's updated requirement, its evidence graph, a cited Gemini explanation, and a conflicting runbook" width="1200" />
+  <p>The local prototype using fictional NovaPay data. This screenshot shows a saved Partner B investigation after migration; it is not a live company integration.</p>
+</details>
+
+## What you can audit
+
+| Capability | Observable behavior |
+| --- | --- |
+| Decision receipts | Inspect the accepted requirement, supporting excerpts, owner, relationship map, and measured tool trace. |
+| Two timelines | Compare “what applied then” with “what we knew then,” including late-arriving migration evidence. |
+| Knowledge conflicts | Detect a runbook claim that disagrees with an accepted requirement in the same partner scope. |
+| Change rehearsal | Copy the real FalkorDB graph, evaluate a narrower proposal, and leave base knowledge untouched. |
+| Work preparation | Generate a source-linked repair draft, download Markdown, and record in-app approval. |
+| Persistent memory | Reopen saved receipts; changing company knowledge marks prior receipts stale. |
+
+**Current scope:** one fictional payment worker, two partners, and a modeled minimum retry delay. Free text supplies context; the explicit partner, delay, and date controls define the assessed change. Data enters through the seed and labeled sample-event replay. Live ingestion, expertise discovery, and external action publishing remain planned.
+
+## Run locally
+
+Requirements: **Python 3.13**, **Node.js 20.19+**, **npm**, and **Docker with Compose**. Development was verified on macOS ARM64; CI is configured for Ubuntu. The image supports AMD64 and ARM64.
+
+The repository is currently private. Cloning and reviewing CI require an authorized GitHub account until it is made public for submission.
 
 ```sh
-docker compose up -d
+git clone https://github.com/VeerabhadraYerram/Chronos.git ChronosGraph
+cd ChronosGraph
+docker compose up -d --wait
 python3 -m venv .venv
 .venv/bin/python -m pip install -r backend/requirements.lock.txt
 npm --prefix frontend ci
-cp .env.example .env
-chmod 600 .env
-```
-
-Edit `.env` locally and add `GEMINI_API_KEY`. The default model, `gemini-3.1-flash-lite`, was verified against the development key's available models and a real tool-loop invocation. Model access, quota, and availability depend on your account. You can change `GEMINI_MODEL`. Never commit the environment file or put an API key in browser code.
-
-Start both development servers:
-
-```sh
 ./scripts/dev.sh
 ```
 
-Open [http://127.0.0.1:5173](http://127.0.0.1:5173). The company seed is loaded on first use. The checkbox **Investigate with Gemini** enables model calls; unchecked, the app honestly labels the result **Verified graph checks**. If Gemini fails, its error is surfaced and independently computed graph results remain available. Merely configuring a key does not trigger a generation request.
+Open **[http://127.0.0.1:5173](http://127.0.0.1:5173)**. No Gemini key is needed for graph checks, history, rehearsal, or repair drafts. Startup seeds the configured graph once; it does not reset an existing workspace.
 
-Manual startup in two terminals:
+To enable the **Gemini agent**, copy `.env.example` to `.env` only if you do not already have one, add your own `GEMINI_API_KEY`, and restart the API. Then enable **Investigate with Gemini** in the interface. Keep the key server-side; `.env` is ignored. Model availability and quota depend on your account.
 
-```sh
-PYTHONPATH=backend .venv/bin/uvicorn chronos.app:app --host 127.0.0.1 --port 8000
-```
+| Service | Local address |
+| --- | --- |
+| Interface | `http://127.0.0.1:5173` |
+| API / interactive reference | `http://127.0.0.1:8000/docs` |
+| FalkorDB | `127.0.0.1:6389` |
 
-```sh
-npm --prefix frontend run dev
-```
+Stop development servers with `Ctrl+C`. `docker compose stop` preserves database data. Deleting the named volume deletes the local demo knowledge and receipts. [Setup, fresh workspaces, and troubleshooting →](docs/EVALUATION.md#setup-and-troubleshooting)
 
-Stop dev servers with Ctrl+C. The database volume persists after container shutdown. Never run `docker compose down -v` unless you intend to delete local demo knowledge and receipts.
+## Reproduce the result
 
-## Demo in three minutes
+On a fresh fixture, propose **0 ms for both partners**. Both requirements are initially 250 ms. Replay **Partner B migration** and investigate again: A still conflicts; B now meets its accepted minimum. The old runbook is flagged for B.
 
-1. Start with both partners, 0 ms, effective/known October 15. Run the investigation: both modeled requirements are 250 ms.
-2. Replay **Partner B migration**, then rerun. Partner A remains in conflict; Partner B's accepted minimum becomes 0 ms. The global runbook now conflicts with the Partner B decision.
-3. Open **Time machine**. Choose October 11 as known then and investigate Partner B: 250 ms. Choose October 11 with hindsight: 0 ms. The migration applied October 10 but became known October 12.
-4. Open **Rehearse change**, restore the current dates, and run rehearsal. It checks preserving Partner A's applicable minimum while applying the proposal to B, inside a copied graph. This is not a change to the accepted policy or base graph.
-5. Prepare a repair plan, inspect sources, download it, and approve it in the workspace. Refresh and reopen a saved receipt to show persistence.
-6. Optional challenge: replay the unapproved suggestion; it cannot replace policy. Withdraw incident evidence; Partner A becomes unassessable until authoritative evidence is restored.
+Then compare October 11 **as known on October 11** against the same date **using knowledge from October 15**. The migration took effect October 10 but was recorded October 12. [Full walkthrough and expected outcomes →](docs/EVALUATION.md)
 
-Events are deliberately one-shot per fixture. For a completely clean recording, choose a fresh unused `FALKOR_GRAPH=chronos_demo_<name>` in `.env` and restart the API. This preserves previous graphs and receipts; it does not erase or reset another workspace. New fixture creation is limited to the server's configured `chronos_` namespace, not a user-supplied browser graph name.
-
-## Architecture
-
-```text
-React / TypeScript / Vite interface
-               |
-          FastAPI API
-          /         \
-Verified checks    Gemini tool loop
-          \         /
-       Read-only Cypher tools
-               |
-          Real FalkorDB
-company graph / temporal fact versions / source provenance
-receipts / in-app actions / temporary scenario copies
-```
-
-The audited plan originally suggested Next.js. This implementation uses Vite because the application already has a dedicated FastAPI backend; an additional server-rendering layer would not improve this milestone. React Flow provides the inspectable graph. The PDF's multi-agent design and MCP packaging are intentionally deferred until the primary Company Brain workflow is reliable.
-
-Source layout:
-
-```text
-backend/chronos/store.py    Parameterized graph queries, fixture replay, persistence
-backend/chronos/engine.py   Scoped constraint checks and repair drafting
-backend/chronos/agent.py    Bounded Gemini tool loop and citation validation
-backend/chronos/app.py      Local HTTP API and action approval
-backend/chronos/seed.py     Fictional company and late-arriving migration
-backend/tests/             Real FalkorDB integration checks
-frontend/src/              Responsive investigation workspace
-docs/                      Product plan, competition fit, validation notes
-```
-
-Fact versions have half-open `valid_from`/`valid_to` and `recorded_from`/`recorded_to` intervals. Empty ends are open-ended. UTC timestamp strings use one normalized format so parameterized comparisons are consistent. Historical support currently covers retry constraint facts; ownership and topology are static fixture knowledge, not a fully temporal organization model.
-
-The migration preserves the original “as known then” assertion and appends corrected historical/current versions. Receipts identify the application dataset revision and are conservatively marked stale after accepted fixture changes. This application revision is not FalkorDB's schema version.
-
-Read tools use `GRAPH.RO_QUERY` with timeouts. Model calls receive typed tool results and synthetic source data, never database credentials. Graph writes happen only through server handlers. A process-local lock serializes fixture updates; the prototype is a single-process, trusted local application. Crash-atomic ingestion, authentication, source-level ACLs, multiple API workers, and untrusted multi-user hosting are not implemented.
-
-## Verification
+For a repeatable audit without opening the UI or calling Gemini:
 
 ```sh
-PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q
-npm --prefix frontend run build
+./scripts/check.sh
 ```
 
-Tests require the real running FalkorDB. Each test uses a disposable uniquely named graph and deletes only that graph afterward. They cover original constraints, partner migration, both time axes, boundary dates, document contradictions, unapproved proposals, withdrawn evidence, idempotent replay, persistence, stale receipts, graph copying, missing links, input validation, and approval behavior.
+This runs the real FalkorDB integration suite, an isolated business-scenario evaluation, the production frontend build, and local documentation-link checks. Each evaluation creates and removes its own disposable graph. Your demo graph is preserved. [Individual commands and recorded evidence →](docs/VALIDATION.md)
 
-See [validation notes](docs/VALIDATION.md) for what was actually run, and [competition fit](docs/COMPETITION_FIT.md) for rules and remaining submission work. No benchmark numbers or prize guarantees are claimed.
+## How FalkorDB shapes the answer
 
-## Before submission
+```mermaid
+flowchart LR
+    UI[Investigation workspace] --> API[FastAPI]
+    API --> Checks[Scoped constraint checks]
+    API --> Agent[Optional Gemini investigator]
+    Agent --> Tools[Bounded read tools]
+    Checks --> Graph[(FalkorDB)]
+    Tools --> Graph
+    API --> Records[Receipts and approved drafts]
+    Records --> Graph
+    API --> Scenario[(Temporary graph copy)]
+```
 
-The core prototype runs locally. Still needed: a deployment decision, final polished demo recording, authenticated submission-panel requirements, broader ingestion, and further evaluation beyond the fictional fixture. The public event page prefers deployment; local-only entries need complete setup instructions and a working demo video. Check the organizer's authenticated panel for any additional requirements before submitting.
+Accepted facts are selected by partner, effective time, and recorded time through parameterized graph queries. Sources and owners come from relationships. Receipts and in-app actions are written back to FalkorDB. The frontend's graph filter changes presentation only; it does not compute verdicts. [Follow the implementation →](docs/ARCHITECTURE.md#code-map)
+
+## Scope and limitations
+
+- **“No known conflict” is limited to the modeled retry requirement.** It does not establish deployment safety or inspect arbitrary code.
+- **Source-ID validation is not semantic proof.** Gemini explanations still need review; they cannot override the deterministic assessment.
+- **Ownership is implemented; expertise ranking is not.** Historical ownership and topology are not versioned.
+- **Updates are replayed sample events.** There are no live Slack, GitHub, Jira, or Notion connectors.
+- **Approval is local to the app.** No PR, message, ticket, merge gate, or production change is published.
+- **This is a trusted local prototype.** Authentication, source-level permissions, crash-atomic ingestion, and multi-worker coordination are not implemented. [Security model →](SECURITY.md)
+
+## Project and development
+
+Built for the **Company Brain** track of [WeMakeDevs × FalkorDB Graph Hacks](https://www.wemakedevs.org/hackathons/falkordb). [Competition fit](docs/COMPETITION_FIT.md) maps the brief to code, evidence, and remaining work. NovaPay and its sources are synthetic. Implementation began October 15, 2026, using public libraries and AI coding assistance; the builder remains responsible for understanding and explaining the code.
+
+Start with [contributing guidance](CONTRIBUTING.md), [architecture](docs/ARCHITECTURE.md), and [the implementation roadmap](docs/ROADMAP.md). The [original planning blueprint](docs/planning/MASTER_PLAN.md) is retained as design history, separate from implemented capabilities.
+
+## License
+
+ChronosGraph source and documentation are available under the [MIT License](LICENSE). Third-party packages, FalkorDB, and external model services retain their respective licenses and terms.
