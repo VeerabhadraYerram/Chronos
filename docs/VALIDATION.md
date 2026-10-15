@@ -13,3 +13,9 @@ Development validation on October 15, 2026, macOS ARM64, Python 3.13, Node 20.19
 Remaining limitations: synthetic fixture only; no live ingestion connectors; no external action publishing; no production authentication or source ACLs; no deployment; no final submission video; no robust benchmark against alternative retrieval methods. Time-aware facts do not imply fully time-aware ownership or topology.
 
 The API key is in an ignored local environment file and is never included in the repository. Rotate any key that was posted in chat.
+
+## Interface refresh
+
+October 15: replaced the green interface with a charcoal navigation rail, light workspace, consistent panel treatments, more readable supporting text, and restrained copper accents. Added an expanded evidence-map view and a clearly labeled display-only filter between decision context and all company knowledge. The investigator still uses the same backend checks and database tools.
+
+Verified the updated production build and all 16 real FalkorDB integration checks. Browser checks covered opening saved receipts, inspecting source evidence with mouse and keyboard, Escape dismissal, map expansion, and mobile layout at 390 px without horizontal overflow. Existing demo knowledge and receipts were preserved.

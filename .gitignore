@@ -12,3 +12,4 @@ work/
 data/
 *.log
 *.tsbuildinfo
+outputs/

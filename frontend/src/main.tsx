@@ -35,6 +35,7 @@ import {
   Link2,
   LoaderCircle,
   MessageSquare,
+  Maximize2,
   Network,
   Play,
   Plus,
@@ -49,7 +50,7 @@ import {
   Zap,
 } from "lucide-react";
 import "@xyflow/react/dist/style.css";
-import "./style.css";
+import "./design-system.css";
 import { api } from "./api";
 import type {
   Action,
@@ -61,17 +62,17 @@ import type {
 } from "./types";
 
 const KIND_COLORS: Record<string, string> = {
-  System: "#8ba8fd",
-  File: "#a9b6c7",
-  Decision: "#eaaa63",
-  FactVersion: "#eaaa63",
-  Source: "#81bea6",
-  Commitment: "#c6a0df",
-  Person: "#a6b9df",
-  Document: "#81bea6",
-  Team: "#a6b9df",
-  Project: "#c6a0df",
-  Ticket: "#e18e83",
+  System: "#5277c4",
+  File: "#68798c",
+  Decision: "#c7813f",
+  FactVersion: "#c7813f",
+  Source: "#3a8d7b",
+  Commitment: "#9271b9",
+  Person: "#5277c4",
+  Document: "#3a8d7b",
+  Team: "#5277c4",
+  Project: "#9271b9",
+  Ticket: "#b66a61",
 };
 const icons: Record<string, typeof Box> = {
   System: Box,
@@ -108,12 +109,27 @@ function GraphNode({ data }: NodeProps) {
   const color = KIND_COLORS[entity.kind] || "#9aa89e";
   return (
     <div
-      className={"graph-node " + (data.highlight ? "highlight" : "")}
+      className={
+        "graph-node " +
+        (data.highlight ? "highlight " : "") +
+        (entity.enabled === false ? "is-withdrawn" : "")
+      }
       style={{ "--node-color": color } as React.CSSProperties}
+      role="button"
+      tabIndex={0}
+      aria-label={`${entity.kind}: ${entity.title}`}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          event.currentTarget.click();
+        }
+      }}
     >
       <Handle type="target" position={Position.Left} />
       <div className="node-type">
-        <Icon size={12} />
+        <span className="node-icon">
+          <Icon size={15} />
+        </span>
         {entity.kind === "FactVersion"
           ? "CONSTRAINT"
           : entity.kind.toUpperCase()}
@@ -121,7 +137,9 @@ function GraphNode({ data }: NodeProps) {
       <strong>{entity.title}</strong>
       <span>
         {entity.kind === "Source"
-          ? entity.source_type
+          ? entity.enabled === false
+            ? "Withdrawn evidence"
+            : entity.source_type
           : entity.kind === "Person"
             ? entity.role
             : entity.kind === "FactVersion"
@@ -212,16 +230,16 @@ function EvidenceGraph({
         target: e.target,
         label: e.relation.replaceAll("_", " ").toLowerCase(),
         type: "smoothstep",
-        markerEnd: { type: MarkerType.ArrowClosed, color: "#586152" },
+        markerEnd: { type: MarkerType.ArrowClosed, color: "#abb4c0" },
         style: {
           stroke:
             highlight && (e.source === highlight || e.target === highlight)
-              ? "#dca66b"
-              : "#454f44",
-          strokeWidth: 1.25,
+              ? "#cc7c42"
+              : "#b8c1cc",
+          strokeWidth: 1.5,
         },
-        labelStyle: { fill: "#a1aa9d", fontSize: 9 },
-        labelBgStyle: { fill: "#171c17" },
+        labelStyle: { fill: "#697789", fontSize: 10 },
+        labelBgStyle: { fill: "#f7f9fc" },
         labelBgPadding: [5, 3] as [number, number],
       }));
     return { nodes, edges };
@@ -234,14 +252,14 @@ function EvidenceGraph({
       nodeTypes={nodeTypes}
       onNodeClick={(_, n) => onSelect(n.data.entity)}
       fitView
-      fitViewOptions={{ padding: 0.13 }}
+      fitViewOptions={{ padding: 0.16 }}
       minZoom={0.25}
       maxZoom={1.4}
       nodesConnectable={false}
-      colorMode="dark"
+      colorMode="light"
       proOptions={{ hideAttribution: false }}
     >
-      <Background color="#30392e" gap={20} size={1} />
+      <Background color="#d7dee7" gap={22} size={1} />
       <Controls showInteractive={false} />
     </ReactFlow>
   );
@@ -300,6 +318,17 @@ function App() {
   const [history, setHistory] = useState<Receipt[]>([]);
   const [action, setAction] = useState<Action | null>(null);
   const [rehearsal, setRehearsal] = useState<Rehearsal | null>(null);
+  const [graphScope, setGraphScope] = useState("decision");
+  useEffect(() => {
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        if (selected) setSelected(null);
+        else setModal("");
+      }
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [selected]);
   const request = {
     question,
     partner,
@@ -370,8 +399,47 @@ function App() {
       setModal("repair");
     });
   }
+  const contextGraph = useMemo(() => {
+    // This is a display filter only. Assessments always come from the API.
+    const ids = new Set(
+      graph.nodes
+        .filter(
+          (n) =>
+            n.kind === "FactVersion" &&
+            n.status === "accepted" &&
+            String(n.valid_from) <= request.effective_at &&
+            (!n.valid_to || request.effective_at < String(n.valid_to)) &&
+            String(n.recorded_from) <= request.known_at &&
+            (!n.recorded_to || request.known_at < String(n.recorded_to)),
+        )
+        .map((n) => n.id),
+    );
+    for (const edge of graph.edges) {
+      if (
+        ids.has(edge.source) &&
+        ["SUPPORTED_BY", "GOVERNED_BY"].includes(edge.relation)
+      )
+        ids.add(edge.target);
+      if (ids.has(edge.target) && edge.relation === "HAS_VERSION")
+        ids.add(edge.source);
+    }
+    for (const edge of graph.edges)
+      if (ids.has(edge.source) && edge.relation === "APPLIES_TO")
+        ids.add(edge.target);
+    for (const edge of graph.edges)
+      if (ids.has(edge.target) && ["OWNS", "PART_OF"].includes(edge.relation))
+        ids.add(edge.source);
+    return {
+      nodes: graph.nodes.filter((n) => ids.has(n.id)),
+      edges: graph.edges.filter((e) => ids.has(e.source) && ids.has(e.target)),
+    };
+  }, [graph, request.effective_at, request.known_at]);
   const visibleGraph =
-    tab === "investigate" && receipt && !receipt.stale ? receipt.graph : graph;
+    graphScope === "all"
+      ? graph
+      : tab === "investigate" && receipt && !receipt.stale
+        ? receipt.graph
+        : contextGraph;
   const facts = graph.nodes.filter(
     (n) => n.kind === "FactVersion" && n.status === "accepted",
   );
@@ -420,25 +488,36 @@ function App() {
         <div className="nav-caption">WORKSPACE</div>
         <nav>
           <button
-            className={!modal ? "nav-item active" : "nav-item"}
+            className={
+              !modal && tab !== "rehearse" ? "nav-item active" : "nav-item"
+            }
             onClick={() => {
               setModal("");
               setTab("investigate");
             }}
           >
             <Network size={17} />
-            Investigations<span className="nav-count">01</span>
+            Investigations
           </button>
-          <button className="nav-item" onClick={() => setModal("sources")}>
+          <button
+            className={"nav-item " + (modal === "sources" ? "active" : "")}
+            onClick={() => setModal("sources")}
+          >
             <BookOpen size={17} />
             Knowledge sources<span className="nav-count">{sources.length}</span>
           </button>
-          <button className="nav-item" onClick={openHistory} disabled={!!busy}>
+          <button
+            className={"nav-item " + (modal === "receipts" ? "active" : "")}
+            onClick={openHistory}
+            disabled={!!busy}
+          >
             <History size={17} />
             Decision receipts
           </button>
           <button
-            className="nav-item"
+            className={
+              "nav-item " + (tab === "rehearse" && !modal ? "active" : "")
+            }
             onClick={() => {
               setTab("rehearse");
               setModal("");
@@ -481,7 +560,9 @@ function App() {
             Setup & scope
           </button>
           <div className="profile">
-            <span className="profile-avatar">NY</span>
+            <span className="profile-avatar">
+              <Users size={16} />
+            </span>
             <span>
               NovaPay investigator<small>Local development</small>
             </span>
@@ -514,14 +595,14 @@ function App() {
             <div>
               <div className="eyebrow">
                 <span className="tiny-line" />
-                THE CONTEXT BEHIND THE CHANGE
+                COMPANY INTELLIGENCE / INVESTIGATIONS
               </div>
               <h1>
-                Every decision has a history<span>.</span>
+                Clarity before every change<span>.</span>
               </h1>
               <p>
-                Understand the why. See what changes. Move forward with
-                evidence.
+                Connect the decision. Follow the evidence. Understand what comes
+                next.
               </p>
             </div>
             <button
@@ -540,7 +621,7 @@ function App() {
               </span>
               <span>
                 <strong>{graph.nodes.length || "—"}</strong>
-                <small>Connected entities</small>
+                <small>Company entities</small>
               </span>
             </div>
             <div>
@@ -634,9 +715,7 @@ function App() {
                 <span>01 / PROPOSED CHANGE</span>
                 <FileCode2 size={14} />
               </div>
-              <h2>
-                A small change. <br />A wider context.
-              </h2>
+              <h2>Define your change</h2>
               <label className="input-label" htmlFor="question">
                 What are you changing?
               </label>
@@ -769,11 +848,46 @@ function App() {
                         : "Follow the relationships."}
                   </h3>
                 </div>
-                <span className="live-tag">
-                  <span className="dot green" />
-                  {visibleGraph.nodes.length} nodes
-                </span>
+                <div className="map-heading-actions">
+                  <span className="live-tag">
+                    <span className="dot green" />
+                    FalkorDB
+                  </span>
+                  {tab !== "history" && (
+                    <button
+                      className="map-expand"
+                      onClick={() => setModal("graph")}
+                      aria-label="Expand evidence map"
+                      title="Expand evidence map"
+                    >
+                      <Maximize2 size={15} />
+                    </button>
+                  )}
+                </div>
               </div>
+              {tab !== "history" && (
+                <div className="map-subbar">
+                  <select
+                    aria-label="Graph scope"
+                    value={graphScope}
+                    onChange={(event) => setGraphScope(event.target.value)}
+                  >
+                    <option value="decision">Decision context</option>
+                    <option value="all">All company knowledge</option>
+                  </select>
+                  <span>
+                    {
+                      visibleGraph.nodes.filter(
+                        (n) =>
+                          !["Event", "Team", "Project", "Ticket"].includes(
+                            n.kind,
+                          ),
+                      ).length
+                    }{" "}
+                    entities · {visibleGraph.edges.length} connections
+                  </span>
+                </div>
+              )}
               {tab === "history" ? (
                 <div className="history-view">
                   <div className="context-note">
@@ -1183,7 +1297,14 @@ function App() {
       {modal && (
         <div className="modal-backdrop" onClick={() => setModal("")}>
           <section
-            className={"modal " + (modal === "repair" ? "wide" : "")}
+            className={
+              "modal " +
+              (modal === "repair"
+                ? "wide"
+                : modal === "graph"
+                  ? "map-modal"
+                  : "")
+            }
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -1194,7 +1315,9 @@ function App() {
                   ? "Saved receipts"
                   : modal === "sources"
                     ? "Knowledge sources"
-                    : "Setup and scope"
+                    : modal === "graph"
+                      ? "Expanded evidence map"
+                      : "Setup and scope"
             }
           >
             <button
@@ -1204,6 +1327,26 @@ function App() {
             >
               <X size={20} />
             </button>
+            {modal === "graph" && (
+              <>
+                <span className="eyebrow">CONNECTED COMPANY CONTEXT</span>
+                <h2>The evidence, in focus.</h2>
+                <p className="modal-description">
+                  Explore {visibleGraph.nodes.length} entities and their
+                  relationships. Select a node to inspect its source.
+                </p>
+                <div className="expanded-map">
+                  <EvidenceGraph
+                    graph={visibleGraph}
+                    onSelect={(entity) => {
+                      setModal("");
+                      setSelected(entity);
+                    }}
+                    highlight={selected?.id}
+                  />
+                </div>
+              </>
+            )}
             {modal === "sources" && (
               <>
                 <span className="eyebrow">COMPANY KNOWLEDGE</span>
