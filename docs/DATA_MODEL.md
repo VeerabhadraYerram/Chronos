@@ -1,5 +1,7 @@
 # Graph model and temporal semantics
 
+> This page documents the preserved NovaPay payments prototype. The primary company workspace has its own [reference architecture, graph schema and API](DELHIVERY_REFERENCE.md).
+
 [Architecture](ARCHITECTURE.md) · [Fixture source](../backend/chronos/seed.py) · [Query implementation](../backend/chronos/store.py)
 
 Every application node carries `Entity` plus its domain label, a stable `id`, `kind`, `title`, and a JSON `payload`. Fact fields needed in queries are also mirrored as native properties. `Metadata` is a separate revision record. This design keeps the prototype easy to inspect; it does not yet enforce a full database constraint/index schema.

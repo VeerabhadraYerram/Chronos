@@ -2,6 +2,8 @@
 
 [Repository overview](../README.md) · [Architecture](ARCHITECTURE.md) · [Validation](VALIDATION.md)
 
+Start with the **[Delhivery reference-workspace walkthrough](DELHIVERY_REFERENCE.md#start-and-explore)** for the main UI. The payments walkthrough below remains available at `/?demo=payments`.
+
 This guide distinguishes three things: the deterministic graph checks, the optional Gemini investigator, and manual interface verification. All included NovaPay records are fictional. There is no deployed demo or finished video linked at this milestone.
 
 ## Fastest audit

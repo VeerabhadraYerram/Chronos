@@ -1,5 +1,7 @@
 # Architecture
 
+> This page documents the preserved NovaPay payments prototype. The primary company workspace has its own [reference architecture, graph schema and API](DELHIVERY_REFERENCE.md).
+
 [Repository overview](../README.md) · [Graph model](DATA_MODEL.md) · [API contract](API.md)
 
 ChronosGraph is a single-process local application. The interface presents investigations; FastAPI coordinates graph reads, scoped checks, optional model calls, and durable receipts. FalkorDB is the primary knowledge and state store.

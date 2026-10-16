@@ -1,0 +1,337 @@
+# Database, schema, and data dictionary
+
+[Project overview](../README.md) · [Company walkthrough](DELHIVERY_REFERENCE.md) · [Machine-readable schema](database-schema.json) · [Integration tests](../backend/tests/test_company_reference.py)
+
+## 1. What database do we use?
+
+**FalkorDB is the primary database.** It stores company context, operating records, commitments, source evidence, ownership, saved investigations, and review drafts. The backend reads relationships with parameterized Cypher through `GRAPH.RO_QUERY`; model-selected tools cannot run arbitrary Cypher or obtain credentials.
+
+There is no SQL database behind the main workspace. When this document uses “table equivalent,” it means the familiar relational concept corresponding to a graph label. The implemented objects are **nodes, properties, and directed relationships**.
+
+This document describes an independently designed Delhivery reference prototype. It is **not Delhivery's exact internal database or private schema**. Public business names and logistics concepts are distinguished from synthetic operating records. No private Delhivery agreements, employee records, shipment feeds, warehouse schedules, or client terms were obtained.
+
+## 2. Database topology and persistence
+
+| Graph or component | Purpose | Lifetime / boundary |
+| --- | --- | --- |
+| `chronos_delhivery_reference_v1` | Shared reference seed, plus a demo-session creation registry | Seeded once; operating knowledge is not changed by visitor replay |
+| `chronos_delhivery_demo_<random ID>` | One visitor's company workspace | Persisted; isolated mutations and receipts; opaque capability ID kept in browser local storage |
+| `chronos_company_trial_<random ID>` | Before/after rehearsal | Real `GRAPH.COPY`; removed in `finally` after comparison |
+| `chronos_reference_test_<random ID>` | Integration-test fixture copies | Disposable; never the user's demo graph |
+| `chronos_novapay` or configured legacy name | Preserved payments prototype | Separate from the main company workspace |
+| Docker volume `chronosgraph-data` | FalkorDB persistent storage | Mounted at `/var/lib/falkordb/data`; append-only persistence configured in Compose |
+
+`CHRONOS_COMPANY_GRAPH` can change the reference graph name. `FALKOR_GRAPH` controls the legacy payments graph; it does not redirect visitor sessions into that graph. Host, port, optional password and provider keys remain in the ignored root `.env`. No credential belongs in a database diagram or committed export.
+
+Session creation is capped at **40** per reference registry. No automatic expiry or production identity system is implemented. The registry's `DemoSession` records can be inherited by later copies but are excluded from business-entity counts and model exploration. A new workspace preserves earlier workspaces rather than resetting them.
+
+## 3. Initial dataset size
+
+The deterministic seed contains **6,153 business entities**, **9,775 directed relationships**, and a separate `Metadata` revision record. These are initial fixture counts, not a claim about Delhivery's real scale. Replays, receipts, review packets and session bookkeeping add records.
+
+| Graph label | SQL-table equivalent | Initial rows/nodes | Example ID |
+| --- | --- | ---: | --- |
+| `Company` | companies | 1 | `delhivery` |
+| `Client` | clients | 3 | `havells` |
+| `ClientWarehouse` | client_warehouses | 3 | `warehouse-havells` |
+| `Facility` | processing_facilities | 8 | `facility-bengaluru` |
+| `Team` | departments | 8 | `team-operations` |
+| `Route` | transport_lanes | 24 | `lane-00` |
+| `Manifest` | manifests | 24 | `manifest-00` |
+| `PickupRequest` | pickup_requests | 60 | `pickup-000` |
+| `Shipment` | consignments | 1,200 | `shipment-0000` |
+| `ScanEvent` | tracking_events | 4,800 | `scan-0000-0` |
+| `Rule` | commitment_versions | 3 | `rule-havells-original` |
+| `Source` | source_documents | 15 | `source-havells-agreement` |
+| `Decision` | decisions | 2 | `decision-sunday` |
+| `Policy` | operating_policies | 1 | `policy-schedule` |
+| `Campaign` | campaign_context | 1 | `campaign` |
+| `Receipt` | investigation_receipts | 0 | Created by a question |
+| `Action` | review_packets | 0 | Created from a current receipt |
+| `Event` | applied_demo_events | 0 | Created by replay |
+| `DemoSession` | session_registry | 0 | Created in the reference registry |
+| `Metadata` | dataset_metadata | 1 | `dataset` |
+
+`Metadata` does not carry `Entity`, so it is outside the 6,153 business-node total. Business statistics exclude `Receipt`, `Action`, and `DemoSession`. The relationship counter includes all `Entity` relationships present, including later receipt links; the initial count has no receipt links.
+
+Four sources are curated public references; eleven are synthetic company records. Replaying the amendment adds one source and two rule versions while retaining the original belief.
+
+## 4. Physical storage schema
+
+### Common entity representation
+
+Every business record has the shared label `Entity` and its domain label. A client is `(:Entity:Client)`; a shipment is `(:Entity:Shipment)`.
+
+| Native property | Type | Purpose |
+| --- | --- | --- |
+| `id` | string | Stable application identifier and relationship lookup key |
+| `kind` | string | Allowlisted domain label |
+| `title` | string | Human-readable name and searchable summary |
+| `payload` | JSON-encoded string | Complete domain record, including the common fields |
+
+Most domain-specific properties live **inside `payload`**, not as separate native FalkorDB properties. The backend decodes the payload after retrieval. This is an explicit prototype tradeoff: simple record storage and inspection, with fewer native fields available for direct filtering.
+
+### Additional native properties
+
+| Label | Additional native properties |
+| --- | --- |
+| `Rule` | `client`, `facility`, `field`, `status`, `valid_from`, `valid_to`, `recorded_from`, `recorded_to` |
+| `Receipt` | `stale`, initialized by the ask endpoint and updated by revision invalidation |
+| `DemoSession` | `created`, epoch seconds used as creation metadata |
+| `Metadata` | `id`, `revision`; separate node without a JSON payload |
+
+**`Rule.value` is in the JSON payload, not mirrored natively.** `Source.enabled` and shipment dates/status are also payload properties. Queries should use the actual storage layout rather than assuming every JSON key is a native property.
+
+The current application creates no explicit indexes, foreign-key constraints, or database-enforced uniqueness constraints. `MERGE` on `Entity.id`, server allowlists, validation, and a single-process lock maintain application-level conventions. This is not a fully constrained enterprise schema.
+
+## 5. Domain data dictionary
+
+The fields below are **payload fields unless the previous section identifies them as native**. Optional fields depend on the record type.
+
+| Label | Important fields | Meaning |
+| --- | --- | --- |
+| `Company` | `description`, `synthetic` | Reference-workspace scope; real business name, independently modeled context |
+| `Client` | `sector`, `description`, `synthetic` | Named business identity; private terms and operations remain invented |
+| `ClientWarehouse` | `city`, `description` | Synthetic registered collection location, distinct from a processing facility |
+| `Facility` | `city`, `facility_type`, `current_sunday_open`, `description` | Synthetic network location; scheduling comparison uses the linked operating policy |
+| `Team` | `description` | Department responsibility; no real employee identity or inferred expertise |
+| `Route` | `mode`, `schedule` | A synthetic road lane linked to origin and destination facilities |
+| `Manifest` | `status` | Planned grouping of consignments associated with a route |
+| `PickupRequest` | `status`, `pickup_date` | A collected synthetic pickup request linked to a client warehouse |
+| `Shipment` | `client`, `facility`, `arrival_at`, `status`, `description` | Synthetic Sunday scenario consignment; relationship traversals establish its client and location |
+| `ScanEvent` | `event_at`, `sequence`, `description` | Ordered synthetic event in a consignment's history |
+| `Rule` | `client`, `facility`, `field`, `value`, `status`, four interval bounds | Accepted temporal commitment; current modeled field is `sunday_processing_required`, with a boolean value |
+| `Source` | `excerpt`, `source_type`, `department`, `timestamp`, `enabled`, `content_hash`, optional `classification`, `url` | Inspectable source text, provenance category, current availability and content hash |
+| `Decision` | `description`, `approved` | Accepted decision context or an explicitly unapproved proposal |
+| `Policy` | `sunday_required`, `sunday_clients`, `description` | Current handbook configuration; `sunday_clients` drives the baseline Sunday-processing preview |
+| `Campaign` | `ended_at`, `description` | Historical reason context; ending a campaign does not modify a commitment |
+| `Receipt` | `request`, `summary`, `assessment`, `checks`, `sources`, `graph`, `revision`, `trace`, `mode`, optional provider metadata | Persisted investigation and evidence snapshot |
+| `Action` | `receipt_id`, `revision`, `status`, `markdown`, `reviewer` | Source-linked local review draft; not an externally published ticket |
+| `Event` | `synthetic` | One-shot replay marker, making the demo event idempotent |
+
+The Finance source additionally stores `full_shift_inr` and `restricted_shift_inr`. These are explicit synthetic assumptions. They do not represent measured company costs or guaranteed savings.
+
+## 6. Relationship schema
+
+Each relationship is directed. The `source_ids` property is a list of supporting `Source.id` values. Empty lists identify synthetic operational links without attached document-level provenance. A hash or source ID is not an authenticity guarantee.
+
+| From | Relationship | To | Meaning |
+| --- | --- | --- | --- |
+| Client | `PUBLIC_RELATIONSHIP` | Company | Publicly referenced business relationship, not evidence of demo terms |
+| Client | `HAS_COMMITMENT` | Rule | Client's versioned processing commitment |
+| Rule | `APPLIES_AT` | Facility | Facility scope of a commitment |
+| Rule | `SUPPORTED_BY` | Source | Evidence for an accepted requirement |
+| Rule | `OWNED_BY` | Team | Department responsible for that commitment |
+| Rule | `WHY` | Decision | Recorded rationale context |
+| Decision | `EXPLAINED_BY` | Source | Original explanation in a handover record |
+| Decision | `SUPPORTED_BY` | Source | Supporting record, including a proposal explicitly marked unapproved |
+| Decision | `APPLIES_AT` | Facility | Scope of the proposal |
+| Decision | `OWNED_BY` | Team | Decision owner |
+| Policy | `APPLIES_AT` | Facility | Scope of current operating instructions |
+| Policy | `DOCUMENTED_IN` | Source | Handbook source |
+| Policy | `OWNED_BY` | Team | Department maintaining the instructions |
+| Facility | `OPERATED_BY` | Team | Current department responsibility |
+| Team | `PART_OF` | Company | Organizational membership |
+| ClientWarehouse | `BELONGS_TO` | Client | Ownership of the synthetic pickup location |
+| PickupRequest | `FROM` | ClientWarehouse | Where the pickup occurred |
+| Shipment | `COLLECTED_BY` | PickupRequest | Pickup request associated with the consignment |
+| Shipment | `FOR_CLIENT` | Client | Shipment's client |
+| Shipment | `AT` | Facility | Fixture's current processing location |
+| Shipment | `ON_MANIFEST` | Manifest | Planned movement grouping |
+| Manifest | `USES_ROUTE` | Route | Associated transport lane |
+| Route | `ORIGIN` / `DESTINATION` | Facility | Lane endpoints |
+| Shipment | `HAS_SCAN` | ScanEvent | Tracking history |
+| Campaign | `DOCUMENTED_IN` | Source | Campaign handover |
+| New Rule | `SUPERSEDES` | Original Rule | Visible replacement lineage introduced by amendment |
+| Original Source | `AMENDED_BY` | New Source | Agreement amendment trail |
+| Receipt | `USED` | Source | Source used in the company investigation |
+| Receipt | `PROPOSES` | Action | Prepared human-review packet |
+
+These are seed conventions, not database-enforced cardinalities. In this fixture each shipment has one client, one current facility, one pickup request, one manifest, and four scans. The model does not imply all real logistics systems use those cardinalities.
+
+```mermaid
+flowchart LR
+    C[Client] -->|HAS_COMMITMENT| R[Rule version]
+    R -->|APPLIES_AT| F[Facility]
+    R -->|SUPPORTED_BY| S[Agreement source]
+    R -->|OWNED_BY| T[Department]
+    R -->|WHY| D[Decision]
+    D -->|EXPLAINED_BY| H[Sales handover]
+    SH[Shipment] -->|FOR_CLIENT| C
+    SH -->|AT| F
+    SH -->|COLLECTED_BY| P[Pickup request]
+    P -->|FROM| W[Client warehouse]
+    W -->|BELONGS_TO| C
+    SH -->|ON_MANIFEST| M[Manifest]
+    M -->|USES_ROUTE| L[Route]
+    L -->|ORIGIN / DESTINATION| F
+    SH -->|HAS_SCAN| E[Scan event]
+```
+
+## 7. Example records
+
+These examples show decoded payloads. They are not live customer data.
+
+```json
+{
+  "id": "shipment-0000",
+  "kind": "Shipment",
+  "title": "DEMO-AWB-000000",
+  "synthetic": true,
+  "client": "havells",
+  "facility": "facility-bengaluru",
+  "arrival_at": "2026-11-08T08:00:00Z",
+  "status": "received_at_facility"
+}
+```
+
+```json
+{
+  "id": "rule-havells-original",
+  "kind": "Rule",
+  "client": "havells",
+  "facility": "facility-bengaluru",
+  "field": "sunday_processing_required",
+  "value": true,
+  "status": "accepted",
+  "valid_from": "2026-05-01T00:00:00Z",
+  "valid_to": "",
+  "recorded_from": "2026-05-02T09:00:00Z",
+  "recorded_to": ""
+}
+```
+
+The initial handbook has `sunday_clients: ["havells"]`. Its Sunday configuration is independent from the agreement versions: an amendment changes what is required, but does not silently rewrite operating instructions.
+
+## 8. Two clocks and amendment history
+
+A rule applies only when:
+
+```text
+valid_from <= effective_at < valid_to
+recorded_from <= known_at < recorded_to
+```
+
+An empty end means no upper bound. The intervals are half-open. API timestamps require a timezone and normalize to UTC. Calendar inputs in the UI use 12:00 UTC.
+
+After the synthetic amendment replay:
+
+| Havells version | Sunday required | Effective interval | Recorded interval |
+| --- | --- | --- | --- |
+| Original belief | Yes | May 1 onward | May 2 at 09:00 → October 15 at 09:00 |
+| Corrected historical commitment | Yes | May 1 → November 1 | October 15 at 09:00 onward |
+| Amended commitment | No | November 1 onward | October 15 at 09:00 onward |
+
+Therefore November 8 as known on October 14 still returns the original promise; November 8 as known on October 16 returns the amended requirement. October 25 still requires Sunday processing even after the amendment is recorded.
+
+The query also requires client→rule→facility and rule→source relationships. The engine excludes disabled supporting sources. Missing support or multiple contradictory accepted values yields `insufficient_evidence`. A chat proposal never creates an accepted rule.
+
+Ownership, topology and source availability are not fully versioned. Withdrawing a source affects later historical queries too. The two-clock implementation should not be described as complete historical reconstruction of the company.
+
+## 9. Read-only Cypher examples
+
+These examples match the implemented storage layout. Parameters are supplied separately by the backend; model text is never interpolated into queries.
+
+### Inspect the schema's current population
+
+```cypher
+MATCH (n:Entity)
+RETURN n.kind, count(n)
+ORDER BY n.kind
+```
+
+### Find supported temporal commitments
+
+```cypher
+MATCH (c:Client)-[:HAS_COMMITMENT]->(r:Rule)
+      -[:APPLIES_AT]->(f:Facility {id:'facility-bengaluru'})
+MATCH (r)-[:SUPPORTED_BY]->(s:Source)
+WHERE r.field='sunday_processing_required'
+  AND r.status='accepted'
+  AND ($client='all' OR c.id=$client)
+  AND r.valid_from <= $effective
+  AND (r.valid_to='' OR $effective < r.valid_to)
+  AND r.recorded_from <= $known
+  AND (r.recorded_to='' OR $known < r.recorded_to)
+RETURN c.payload, r.payload, s.payload
+LIMIT 30
+```
+
+The engine decodes `s.payload` to check `enabled`, and `r.payload` to read `value`. The source node's existence alone is not proof that evidence is available.
+
+### Count affected sample consignments through relationships
+
+```cypher
+MATCH (s:Shipment)-[:AT]->(:Facility {id:'facility-bengaluru'})
+MATCH (s)-[:FOR_CLIENT]->(c:Client)
+WHERE $client='all' OR c.id=$client
+RETURN c.id, c.title, count(s)
+ORDER BY c.title
+```
+
+### Inspect one consignment's ordered scan history
+
+```cypher
+MATCH (:Shipment {id:$shipment_id})-[:HAS_SCAN]->(e:ScanEvent)
+RETURN e.id, e.payload
+ORDER BY e.id
+```
+
+The seed's event IDs end in the sequence number. `sequence` and `event_at` are decoded payload fields, not native properties.
+
+### Trace a recorded reason back to its source
+
+```cypher
+MATCH (r:Rule)-[:WHY]->(d:Decision)-[:EXPLAINED_BY]->(s:Source)
+WHERE r.id IN $active_rule_ids
+RETURN d.payload, s.payload
+LIMIT 8
+```
+
+### Inspect relationship provenance
+
+```cypher
+MATCH (a:Entity {id:$record_id})-[r]->(b:Entity)
+RETURN a.id, type(r), b.id, coalesce(r.source_ids, [])
+LIMIT 30
+```
+
+The actual explorer clamps depth to one or two hops, caps returned records and filters high-volume operational labels out of the general evidence view. Shipment inspection has a separate bounded path for scan and operational neighbors.
+
+## 10. Reads, writes, and invalidation
+
+| Operation | Database behavior |
+| --- | --- |
+| New workspace | Seeds the reference if absent, copies the graph, records a session registry entry |
+| Ask / follow-up | Reads applicable commitments and context; optionally runs bounded Gemini/Groq reads; persists a receipt and `USED` links |
+| Expand a node | Reads neighbors and the relationships between returned nodes |
+| Approved amendment replay | Updates the original recorded interval, adds two rule versions and amendment evidence, links lineage, increments revision |
+| Evidence withdrawal replay | Disables the original supporting source; increments revision |
+| Revision change | Marks previous receipts stale conservatively across that workspace |
+| Before/after preview | Copies the graph, adds a scenario policy in the copy, reads sample counts and accepted commitments, then deletes only the temporary copy |
+| Prepare review packet | Requires a current receipt; writes an `Action` draft and a `PROPOSES` link |
+
+The copy operation has a small bounded retry for a transient “could not fork” failure. It never substitutes a frontend or in-memory clone. Replay operations span multiple writes, coordinated by a process lock; they do not claim crash-atomic transactions or multi-worker coordination.
+
+The model cannot accept policies, replay amendments, approve agreements, change a graph name or publish actions through its read tools. Those application operations remain separate from source text and model explanations.
+
+## 11. Source of truth and reproduction
+
+- [Dataset generator](../backend/chronos/company/seed.py): initial records, sample events and public-reference boundaries.
+- [Store](../backend/chronos/company/store.py): labels, native fields, relationships, read templates, graph copies and visitor sessions.
+- [Engine](../backend/chronos/company/engine.py): evidence checks, reason paths, handbook review flags, simulation and review drafts.
+- [API models](../backend/chronos/company/api.py): request schemas, timestamps and allowlisted events.
+- [Investigator](../backend/chronos/company/agent.py): read tools, graph selection and citation bounds.
+- [Integration tests](../backend/tests/test_company_reference.py): real-database checks with disposable graphs.
+
+Run `./scripts/check.sh` after completing the [local setup](../README.md#run-locally). It runs the real FalkorDB suite, the preserved payments evaluator, frontend build, and documentation checks without calling either AI provider. Never reset the user's demo graph to run tests.
+
+The [machine-readable dictionary](database-schema.json) is generated from the initial fixture and includes field names/types, counts, representative records, and relationship endpoint types. It is a schema description, not a live runtime export or database-enforced migration.
+
+Regenerate the dictionary directly from the fixture, without a database connection or provider call:
+
+```sh
+PYTHONPATH=backend .venv/bin/python scripts/export_schema.py
+```
+
+Generator: [export_schema.py](../scripts/export_schema.py).

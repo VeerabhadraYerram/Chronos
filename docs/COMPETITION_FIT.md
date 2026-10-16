@@ -1,8 +1,10 @@
 # Company Brain fit
 
-The [official Graph Hacks brief](https://www.wemakedevs.org/hackathons/falkordb#tracks) was rechecked **October 15, 2026**. ChronosGraph targets Company Brain. The project connects company requirements, people, evidence, and follow-up work; a proposed code change is its concrete trigger.
+The [official Graph Hacks brief](https://www.wemakedevs.org/hackathons/falkordb#tracks) was rechecked **October 16, 2026**. ChronosGraph targets Company Brain. The project connects company requirements, people, evidence, and follow-up work; the main trigger is a cross-department Sunday-processing decision in an independent Delhivery reference workspace. The original code-change demo is preserved separately.
 
-## Focus-to-evidence map
+The main implementation is described in the [reference-workspace guide](DELHIVERY_REFERENCE.md): source-backed commitments, department ownership, approved synthetic updates, two clocks, interactive evidence exploration and isolated scheduling comparisons. All private operational records are synthetic; the schema is independently designed.
+
+## Preserved payments focus-to-evidence map
 
 | Organizer focus | Current implementation | How to inspect it | Boundary |
 | --- | --- | --- | --- |

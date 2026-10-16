@@ -208,3 +208,7 @@ def rehearse(request: Investigation):
             )
         finally:
             scenario.graph.delete()
+
+# The original NovaPay routes stay available; the main UI uses isolated company sessions.
+from .company.api import router as company_router
+app.include_router(company_router)

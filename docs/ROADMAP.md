@@ -4,7 +4,9 @@
 
 This page records scope, not delivery dates or a promise of competition placement.
 
-## Implemented and locally verified
+The [company reference workspace](DELHIVERY_REFERENCE.md) is now the main product: interactive evidence trails, optional Gemini follow-ups, large connected synthetic operational dataset, temporal client commitments, session graph copies and before/after previews. Public facts and synthetic private records are explicitly distinguished.
+
+## Preserved payments capabilities
 
 - Real FalkorDB knowledge/state storage and graph-copy rehearsal.
 - Parameterized accepted-fact selection across partner and two timestamps.

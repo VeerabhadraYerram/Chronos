@@ -1,0 +1,1054 @@
+{
+  "format": "chronosgraph-reference-dictionary-v1",
+  "database": "FalkorDB",
+  "disclosure": "Independent Delhivery reference schema. Public names; synthetic private operations, agreements and roles. Not Delhivery internal data.",
+  "source": "backend/chronos/company/seed.py",
+  "initial_business_entities": 6153,
+  "initial_relationships": 9775,
+  "node_labels": [
+    {
+      "label": "Campaign",
+      "initial_count": 1,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [],
+      "payload_field_types": {
+        "description": [
+          "string"
+        ],
+        "ended_at": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "description",
+        "ended_at",
+        "id",
+        "kind",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "campaign",
+        "kind": "Campaign",
+        "title": "Havells weekend campaign",
+        "synthetic": true,
+        "ended_at": "2026-09-30",
+        "description": "Synthetic campaign; its end does not amend an agreement."
+      }
+    },
+    {
+      "label": "Client",
+      "initial_count": 3,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [],
+      "payload_field_types": {
+        "description": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "sector": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "description",
+        "id",
+        "kind",
+        "sector",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "havells",
+        "kind": "Client",
+        "title": "Havells India",
+        "synthetic": true,
+        "sector": "Electrical goods",
+        "description": "Real company name; agreements and activity in this workspace are synthetic."
+      }
+    },
+    {
+      "label": "ClientWarehouse",
+      "initial_count": 3,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [],
+      "payload_field_types": {
+        "city": [
+          "string"
+        ],
+        "description": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "city",
+        "description",
+        "id",
+        "kind",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "warehouse-havells",
+        "kind": "ClientWarehouse",
+        "title": "Havells India pickup location",
+        "synthetic": true,
+        "city": "Bengaluru",
+        "description": "Synthetic registered pickup location"
+      }
+    },
+    {
+      "label": "Company",
+      "initial_count": 1,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [],
+      "payload_field_types": {
+        "description": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "description",
+        "id",
+        "kind",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "delhivery",
+        "kind": "Company",
+        "title": "Delhivery",
+        "synthetic": true,
+        "description": "Independent reference demo using public business concepts. Not an internal system or affiliated product."
+      }
+    },
+    {
+      "label": "Decision",
+      "initial_count": 2,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [],
+      "payload_field_types": {
+        "approved": [
+          "boolean"
+        ],
+        "description": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "approved",
+        "id",
+        "kind",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "decision-sunday",
+        "kind": "Decision",
+        "title": "Keep Sunday processing for Havells",
+        "synthetic": true,
+        "description": "The recorded client promise outlives the launch campaign.",
+        "approved": true
+      }
+    },
+    {
+      "label": "Facility",
+      "initial_count": 8,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [],
+      "payload_field_types": {
+        "city": [
+          "string"
+        ],
+        "current_sunday_open": [
+          "boolean"
+        ],
+        "description": [
+          "string"
+        ],
+        "facility_type": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "city",
+        "current_sunday_open",
+        "description",
+        "facility_type",
+        "id",
+        "kind",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "facility-bengaluru",
+        "kind": "Facility",
+        "title": "Bengaluru facility",
+        "synthetic": true,
+        "city": "Bengaluru",
+        "facility_type": "Demo processing centre",
+        "current_sunday_open": true,
+        "description": "Synthetic facility; no actual Delhivery warehouse identity or operating schedule is represented."
+      }
+    },
+    {
+      "label": "Manifest",
+      "initial_count": 24,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [],
+      "payload_field_types": {
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "id",
+        "kind",
+        "status",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "manifest-00",
+        "kind": "Manifest",
+        "title": "DEMO-MANIFEST-000",
+        "synthetic": true,
+        "status": "planned"
+      }
+    },
+    {
+      "label": "PickupRequest",
+      "initial_count": 60,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [],
+      "payload_field_types": {
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "pickup_date": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "id",
+        "kind",
+        "pickup_date",
+        "status",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "pickup-000",
+        "kind": "PickupRequest",
+        "title": "DEMO-PICKUP-000",
+        "synthetic": true,
+        "status": "collected",
+        "pickup_date": "2026-11-07"
+      }
+    },
+    {
+      "label": "Policy",
+      "initial_count": 1,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [],
+      "payload_field_types": {
+        "description": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "sunday_clients": [
+          "array"
+        ],
+        "sunday_required": [
+          "boolean"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "description",
+        "id",
+        "kind",
+        "sunday_clients",
+        "sunday_required",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "policy-schedule",
+        "kind": "Policy",
+        "title": "Bengaluru processing handbook",
+        "synthetic": true,
+        "sunday_required": true,
+        "sunday_clients": [
+          "havells"
+        ],
+        "description": "Current demo handbook still tells staff to keep Havells Sunday processing."
+      }
+    },
+    {
+      "label": "Route",
+      "initial_count": 24,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [],
+      "payload_field_types": {
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "mode": [
+          "string"
+        ],
+        "schedule": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "id",
+        "kind",
+        "mode",
+        "schedule",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "lane-00",
+        "kind": "Route",
+        "title": "Bengaluru → Mumbai",
+        "synthetic": true,
+        "mode": "Road",
+        "schedule": "Synthetic lane"
+      }
+    },
+    {
+      "label": "Rule",
+      "initial_count": 3,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [
+        "client",
+        "facility",
+        "field",
+        "status",
+        "valid_from",
+        "valid_to",
+        "recorded_from",
+        "recorded_to"
+      ],
+      "payload_field_types": {
+        "client": [
+          "string"
+        ],
+        "description": [
+          "string"
+        ],
+        "facility": [
+          "string"
+        ],
+        "field": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "recorded_from": [
+          "string"
+        ],
+        "recorded_to": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ],
+        "valid_from": [
+          "string"
+        ],
+        "valid_to": [
+          "string"
+        ],
+        "value": [
+          "boolean"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "client",
+        "description",
+        "facility",
+        "field",
+        "id",
+        "kind",
+        "recorded_from",
+        "recorded_to",
+        "status",
+        "synthetic",
+        "title",
+        "valid_from",
+        "valid_to",
+        "value"
+      ],
+      "representative_record": {
+        "id": "rule-havells-original",
+        "kind": "Rule",
+        "title": "Havells India · Sunday processing required",
+        "synthetic": true,
+        "client": "havells",
+        "facility": "facility-bengaluru",
+        "field": "sunday_processing_required",
+        "value": true,
+        "status": "accepted",
+        "valid_from": "2026-05-01T00:00:00Z",
+        "valid_to": "",
+        "recorded_from": "2026-05-02T09:00:00Z",
+        "recorded_to": "",
+        "description": "Accepted synthetic service commitment"
+      }
+    },
+    {
+      "label": "ScanEvent",
+      "initial_count": 4800,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [],
+      "payload_field_types": {
+        "description": [
+          "string"
+        ],
+        "event_at": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "sequence": [
+          "integer"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "description",
+        "event_at",
+        "id",
+        "kind",
+        "sequence",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "scan-0000-0",
+        "kind": "ScanEvent",
+        "title": "Manifested",
+        "synthetic": true,
+        "event_at": "2026-11-07T20:00:00Z",
+        "sequence": 0,
+        "description": "Synthetic operational event"
+      }
+    },
+    {
+      "label": "Shipment",
+      "initial_count": 1200,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [],
+      "payload_field_types": {
+        "arrival_at": [
+          "string"
+        ],
+        "client": [
+          "string"
+        ],
+        "description": [
+          "string"
+        ],
+        "facility": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "arrival_at",
+        "client",
+        "description",
+        "facility",
+        "id",
+        "kind",
+        "status",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "shipment-0000",
+        "kind": "Shipment",
+        "title": "DEMO-AWB-000000",
+        "synthetic": true,
+        "client": "havells",
+        "facility": "facility-bengaluru",
+        "arrival_at": "2026-11-08T08:00:00Z",
+        "status": "received_at_facility",
+        "description": "Synthetic Sunday scenario consignment; not a live parcel."
+      }
+    },
+    {
+      "label": "Source",
+      "initial_count": 15,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [],
+      "payload_field_types": {
+        "approval_status": [
+          "string"
+        ],
+        "classification": [
+          "string"
+        ],
+        "content_hash": [
+          "string"
+        ],
+        "department": [
+          "string"
+        ],
+        "enabled": [
+          "boolean"
+        ],
+        "excerpt": [
+          "string"
+        ],
+        "full_shift_inr": [
+          "integer"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "restricted_shift_inr": [
+          "integer"
+        ],
+        "source_type": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "timestamp": [
+          "string"
+        ],
+        "title": [
+          "string"
+        ],
+        "url": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "content_hash",
+        "department",
+        "enabled",
+        "excerpt",
+        "id",
+        "kind",
+        "source_type",
+        "synthetic",
+        "timestamp",
+        "title"
+      ],
+      "representative_record": {
+        "id": "public-services",
+        "kind": "Source",
+        "title": "Delhivery · published services",
+        "synthetic": true,
+        "excerpt": "Delhivery publishes express parcel delivery services. This establishes the business context, not the demo's private operating rules.",
+        "department": "Public",
+        "source_type": "Public reference",
+        "enabled": true,
+        "timestamp": "2026-05-01T09:00:00Z",
+        "content_hash": "045a1c1bcb40db4fec910aa48824d01d23a327199ab948979c360b58122b6286",
+        "url": "https://www.delhivery.com/services/express-parcel",
+        "classification": "public_reference"
+      }
+    },
+    {
+      "label": "Team",
+      "initial_count": 8,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string"
+      },
+      "additional_native_properties": [],
+      "payload_field_types": {
+        "description": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "description",
+        "id",
+        "kind",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "team-operations",
+        "kind": "Team",
+        "title": "Operations",
+        "synthetic": true,
+        "description": "Facility scheduling and processing"
+      }
+    }
+  ],
+  "runtime_only_labels": {
+    "Receipt": "Persisted investigation; native stale flag supplements payload",
+    "Action": "Local review packet",
+    "Event": "Replay idempotency marker",
+    "DemoSession": "Creation registry; native created timestamp"
+  },
+  "metadata": {
+    "label": "Metadata",
+    "properties": {
+      "id": "dataset",
+      "revision": "integer"
+    },
+    "carries_Entity_label": false
+  },
+  "relationship_types": [
+    {
+      "type": "APPLIES_AT",
+      "initial_count": 5,
+      "endpoint_label_pairs": [
+        "Decision -> Facility",
+        "Policy -> Facility",
+        "Rule -> Facility"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "AT",
+      "initial_count": 1200,
+      "endpoint_label_pairs": [
+        "Shipment -> Facility"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "BELONGS_TO",
+      "initial_count": 3,
+      "endpoint_label_pairs": [
+        "ClientWarehouse -> Client"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "COLLECTED_BY",
+      "initial_count": 1200,
+      "endpoint_label_pairs": [
+        "Shipment -> PickupRequest"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "DESTINATION",
+      "initial_count": 24,
+      "endpoint_label_pairs": [
+        "Route -> Facility"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "DOCUMENTED_IN",
+      "initial_count": 2,
+      "endpoint_label_pairs": [
+        "Campaign -> Source",
+        "Policy -> Source"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "EXPLAINED_BY",
+      "initial_count": 1,
+      "endpoint_label_pairs": [
+        "Decision -> Source"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "FOR_CLIENT",
+      "initial_count": 1200,
+      "endpoint_label_pairs": [
+        "Shipment -> Client"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "FROM",
+      "initial_count": 60,
+      "endpoint_label_pairs": [
+        "PickupRequest -> ClientWarehouse"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "HAS_COMMITMENT",
+      "initial_count": 3,
+      "endpoint_label_pairs": [
+        "Client -> Rule"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "HAS_SCAN",
+      "initial_count": 4800,
+      "endpoint_label_pairs": [
+        "Shipment -> ScanEvent"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "ON_MANIFEST",
+      "initial_count": 1200,
+      "endpoint_label_pairs": [
+        "Shipment -> Manifest"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "OPERATED_BY",
+      "initial_count": 8,
+      "endpoint_label_pairs": [
+        "Facility -> Team"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "ORIGIN",
+      "initial_count": 24,
+      "endpoint_label_pairs": [
+        "Route -> Facility"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "OWNED_BY",
+      "initial_count": 5,
+      "endpoint_label_pairs": [
+        "Decision -> Team",
+        "Policy -> Team",
+        "Rule -> Team"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "PART_OF",
+      "initial_count": 8,
+      "endpoint_label_pairs": [
+        "Team -> Company"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "PUBLIC_RELATIONSHIP",
+      "initial_count": 3,
+      "endpoint_label_pairs": [
+        "Client -> Company"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "SUPPORTED_BY",
+      "initial_count": 4,
+      "endpoint_label_pairs": [
+        "Decision -> Source",
+        "Rule -> Source"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "USES_ROUTE",
+      "initial_count": 24,
+      "endpoint_label_pairs": [
+        "Manifest -> Route"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "WHY",
+      "initial_count": 1,
+      "endpoint_label_pairs": [
+        "Rule -> Decision"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    }
+  ],
+  "database_enforced_unique_constraints": [],
+  "explicit_indexes": [],
+  "amendment_relationship_types": [
+    "SUPERSEDES",
+    "AMENDED_BY"
+  ],
+  "investigation_relationship_types": [
+    "USED",
+    "PROPOSES"
+  ]
+}

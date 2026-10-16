@@ -23,3 +23,9 @@ Add authentication, source permissions, approved write policies, stronger operat
 ## Reporting
 
 Do not include credentials, private company records, or raw provider requests in public issues. Contact the repository owner through an established private channel before sharing sensitive details. If GitHub private vulnerability reporting is enabled for the repository, its Security tab may be used. No response-time commitment or managed security service is implied.
+
+## Company reference workspace
+
+The main workspace stores only synthetic demo operations and separately marked public references. Visitor graph copies use random capability IDs, not authenticated user accounts. Their isolation does not provide enterprise identity, permissions or source-level access control. The instance caps reference-session creation at 40 and persists graphs without automatic expiry. Run the service locally until hosting-level spend controls, rate limits and session lifecycle management are configured. The preserved NovaPay mutation endpoints remain local prototype APIs.
+
+The selected Gemini or Groq provider receives synthetic excerpts, the user question, dates and scoped tool outputs. Do not enter private company records into this demo without a separate data-handling review. Read tools use parameterized `GRAPH.RO_QUERY`; the model cannot submit arbitrary Cypher or choose another session graph.

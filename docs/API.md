@@ -1,5 +1,7 @@
 # Local API reference
 
+> This page documents the preserved NovaPay payments prototype. The primary company workspace has its own [reference architecture, graph schema and API](DELHIVERY_REFERENCE.md).
+
 [Architecture](ARCHITECTURE.md) · [Request models](../backend/chronos/models.py) · [Route implementation](../backend/chronos/app.py)
 
 Base URL: `http://127.0.0.1:8000`. With the API running, `/docs` serves interactive OpenAPI documentation and `/openapi.json` exposes its schema. The app is intended for a trusted local machine, not an unauthenticated public deployment.
