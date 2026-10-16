@@ -64,3 +64,62 @@ def upgrade_reference_records(store):
         for a, relation, b in CLAIM_EDGES:
             store.link_evidence(a, relation, b, ["source-schedule"])
         store.bump()
+
+    # Additive, versioned fixture expansion: never reset evidence, history or user edits.
+    if store.demo_config():
+        from .diversity import extension, VERSION
+        from .schema import persist
+        from collections import defaultdict
+
+        marker = store.read(
+            'MATCH (m:Metadata {id:"dataset"}) RETURN coalesce(m.depth_version,0)'
+        )[0][0]
+        if marker < VERSION:
+            nodes, edges = extension()
+            groups = defaultdict(list)
+            for n in nodes:
+                if not store.get(n["id"]):
+                    groups[n["kind"]].append(n)
+            if marker == 1:
+                # Repair two template-linked transaction examples from extension v1.
+                # Other records/history are retained; every older receipt is invalidated.
+                for n in nodes:
+                    if (
+                        n["kind"] in {"Invoice", "Remittance"}
+                        or n["id"] == "depth-source-returns"
+                    ):
+                        old = store.get(n["id"])
+                        if (
+                            old
+                            and old.get("synthetic")
+                            and old.get("title") == n["title"]
+                        ):
+                            old.update(
+                                {
+                                    k: n[k]
+                                    for k in (
+                                        ("excerpt", "content_hash")
+                                        if n["kind"] == "Source"
+                                        else ("status", "amount_inr")
+                                    )
+                                }
+                            )
+                            store.upsert(old)
+                store.write(
+                    "MATCH (:Ticket {id:'depth-ticket-cod'})-[r:AFFECTS]->(:Remittance {id:'depth-remittance-0021'}) DELETE r"
+                )
+                store.write(
+                    "MATCH (:Ticket {id:'depth-ticket-weight'})-[r:AFFECTS]->(:Invoice {id:'depth-invoice-002'}) DELETE r"
+                )
+            for kind, group in groups.items():
+                persist(store, group, kind)
+            for e in edges:
+                store.link_evidence(
+                    e["source"], e["relation"], e["target"], e["source_ids"]
+                )
+            store.write(
+                'MATCH (m:Metadata {id:"dataset"}) SET m.depth_version=$version',
+                dict(version=VERSION),
+            )
+            if groups or marker == 1:
+                store.bump()

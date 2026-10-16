@@ -56,10 +56,14 @@ def test_enforced_ids_and_mandatory_fields(reference):
 def test_catalog_pagination_and_complete_native_record(reference):
     r = CompanyReader(reference)
     c = r.catalog()
-    assert c["records"] == 6155  # Includes Metadata; excludes private registry.
+    from chronos.company.seed import fixture
+
+    assert (
+        c["records"] == len(fixture()[0]) + 1
+    )  # Includes Metadata; excludes private registry.
     assert (
         next(item for item in c["labels"] if item["label"] == "ScanEvent")["count"]
-        == 4800
+        == 5430
     )
     assert c["indexes"] and c["metadata"]["schema_version"] == 4
     assert not any(
@@ -68,8 +72,8 @@ def test_catalog_pagination_and_complete_native_record(reference):
         for field in index["properties"]
     )
     first = r.rows("ScanEvent", limit=100)
-    last = r.rows("ScanEvent", offset=4700, limit=100)
-    assert first["total"] == last["total"] == 4800
+    last = r.rows("ScanEvent", offset=5330, limit=100)
+    assert first["total"] == last["total"] == 5430
     assert len(first["rows"]) == len(last["rows"]) == 100
     assert not {n["id"] for n in first["rows"]} & {n["id"] for n in last["rows"]}
     native = r.record("shipment-0000")["properties"]
@@ -289,3 +293,249 @@ def test_fractional_recorded_boundary_is_preserved(atlas):
     assert not r.rules(before.effective_at, before.known_at)
     assert len(r.rules(after.effective_at, after.known_at)) == 1
     assert "source-expenses" not in {n["id"] for n in answer(s, before)["sources"]}
+
+
+def test_plural_company_count_is_live_data_and_metadata_is_not_evidence(atlas):
+    s, id = atlas
+    s.upsert(dict(id="client-one", kind="Client", title="Example One", synthetic=True))
+    result = answer(s, q(id, "How many companies are we dealing with?"))
+    assert result["aggregates"][0]["label"] == "Client"
+    assert result["aggregates"][0]["groups"][0]["count"] == 1
+    s.upsert(dict(id="client-two", kind="Client", title="Example Two", synthetic=True))
+    changed = answer(s, q(id, "How many companies are we dealing with?"))
+    assert changed["aggregates"][0]["groups"][0]["count"] == 2
+    assert all(
+        n["kind"] not in {"Metadata", "Receipt", "Action"}
+        for n in changed["graph"]["nodes"]
+    )
+    assert not any(x["category"] == "evidence_missing" for x in changed["alerts"])
+
+
+def test_ai_failure_does_not_masquerade_as_an_answer(atlas, monkeypatch):
+    from chronos.company import agent
+
+    s, id = atlas
+
+    def fail(*args):
+        raise RuntimeError("upstream private error")
+
+    monkeypatch.setattr(agent, "run_investigator", fail)
+    result = answer(
+        s,
+        Query(
+            session_id=id, question="How many invoices are recorded?", use_gemini=True
+        ),
+    )
+    assert result["mode"] == "ai_unavailable"
+    assert "No AI answer was generated" in result["summary"]
+    assert "upstream private" not in result["summary"]
+    assert result["aggregates"][0]["groups"][0]["count"] == 2
+
+
+def test_depth_scenarios_are_connected_not_answer_templates(reference):
+    r = CompanyReader(reference)
+    assert r.audit()["passed"]
+    assert r.rows("Shipment")["total"] == 1410
+    assert len(reference.read("MATCH (s:Shipment) RETURN DISTINCT s.status")) >= 8
+    for label in [
+        "Ticket",
+        "Person",
+        "Invoice",
+        "CODCollection",
+        "Remittance",
+        "Return",
+        "DeliveryException",
+        "Vehicle",
+    ]:
+        assert r.rows(label)["total"] > 0
+    path = reference.read(
+        "MATCH (:Decision {id:$id})-[:WHY]->(:Ticket)-[:AFFECTS]->(n) RETURN n.id",
+        dict(id="depth-decision-cod"),
+    )
+    assert path == [["depth-remittance-0007"]]
+
+
+def test_structured_model_plans_execute_real_read_templates(atlas, monkeypatch):
+    from chronos.company import agent, providers
+
+    s, id = atlas
+    request = q(id, "Investigate billed spend for the studio")
+    receipt = answer(s, request)
+    steps = []
+
+    def completion(messages, tools, **options):
+        schema = options["schema"]["properties"]
+        if "summary" in schema:
+            assert "32500" in json.dumps(messages)
+            return dict(
+                content=json.dumps(
+                    dict(
+                        summary="The stored invoice total is INR 32,500.",
+                        source_ids=[],
+                        graph_ids=[],
+                        followups=[],
+                    )
+                )
+            )
+        steps.append(1)
+        plan = (
+            dict(
+                tool="aggregate_records",
+                arguments=json.dumps(
+                    dict(
+                        label="Invoice",
+                        metric="sum",
+                        field="amount_inr",
+                        group_by="",
+                        filters=[],
+                    )
+                ),
+            )
+            if len(steps) == 1
+            else dict(tool="finish", arguments="{}")
+        )
+        return dict(content=json.dumps(plan))
+
+    monkeypatch.setenv("GROQ_API_KEY", "test-placeholder-not-real")
+    monkeypatch.setattr(providers, "groq_completion", completion)
+    result = agent.investigate(s, request, receipt, "groq")
+    assert result["aggregates"][-1]["groups"][0]["result"] == 32500
+    assert any(
+        t["tool"] == "aggregate_records" and t.get("ok") for t in result["trace"]
+    )
+
+
+def test_generated_count_contradiction_is_rejected(atlas, monkeypatch):
+    from chronos.company import agent, providers
+
+    s, id = atlas
+    request = q(id, "How many invoices are recorded?")
+    receipt = answer(s, request)
+    monkeypatch.setenv("GROQ_API_KEY", "test-placeholder-not-real")
+    monkeypatch.setattr(
+        providers,
+        "groq_completion",
+        lambda *a, **k: dict(
+            content=json.dumps(
+                dict(
+                    summary="There is 1 invoice.",
+                    source_ids=[],
+                    graph_ids=[],
+                    followups=[],
+                )
+            )
+        ),
+    )
+    with pytest.raises(ValueError, match="disagrees with database"):
+        agent.investigate(s, request, receipt, "groq")
+
+
+def test_free_router_rejects_paid_configuration_before_network(monkeypatch):
+    from chronos.company.providers import openrouter_completion
+
+    monkeypatch.setenv("OPENROUTER_MODEL", "paid/example")
+    with pytest.raises(ValueError, match="restricted to free"):
+        openrouter_completion([], [])
+
+
+def test_openrouter_is_last_provider_and_context_is_preserved(atlas, monkeypatch):
+    from chronos.company import agent
+
+    s, id = atlas
+    request = q(id, "How many invoices are recorded?")
+    receipt = answer(s, request)
+    calls = []
+    for name in ["GROQ_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY"]:
+        monkeypatch.setenv(name, "test-placeholder-not-real")
+
+    def investigate(store, request, evidence, provider):
+        calls.append(provider)
+        assert evidence is receipt and store is s
+        if provider != "openrouter":
+            raise ValueError("simulated unavailable")
+        return dict(
+            summary="There are 2 invoice records.",
+            mode="openrouter_agent",
+            provider="openrouter",
+        )
+
+    monkeypatch.setattr(agent, "investigate", investigate)
+    result = agent.run_investigator(s, request, receipt)
+    assert calls == ["groq", "gemini", "openrouter"]
+    assert (
+        result["provider"] == "openrouter" and "Openrouter" in result["provider_note"]
+    )
+
+
+def test_knowledge_change_during_inference_marks_receipt_stale(atlas, monkeypatch):
+    from chronos.company import agent
+
+    s, id = atlas
+
+    def changed_during_call(store, request, receipt):
+        store.bump()
+        return dict(
+            summary="The answer used an earlier revision.",
+            mode="groq_agent",
+            provider="groq",
+        )
+
+    monkeypatch.setattr(agent, "run_investigator", changed_during_call)
+    revision = s.revision()
+    receipt = answer(
+        s,
+        Query(session_id=id, question="Who owns the Spring campaign?", use_gemini=True),
+    )
+    assert receipt["revision"] == revision and receipt["stale"]
+    assert s.receipt(receipt["id"])["stale"]
+
+
+def test_count_graph_is_relevant_and_qualified_counts_are_not_global(reference):
+    receipt = answer(reference, q("a" * 32, "How many companies are we dealing with?"))
+    assert {n["kind"] for n in receipt["graph"]["nodes"]} <= {
+        "Client",
+        "Company",
+        "Source",
+    }
+    assert len([n for n in receipt["graph"]["nodes"] if n["kind"] == "Client"]) == 3
+    assert receipt["aggregates"][0]["groups"][0]["count"] == 3
+    qualified = answer(reference, q("a" * 32, "How many disputed invoices are there?"))
+    assert (
+        qualified["aggregates"] == []
+    )  # Never mislabel the global 36-row total as a filtered count.
+
+
+def test_unknown_ai_answer_does_not_expand_to_initial_company_graph(atlas, monkeypatch):
+    from chronos.company import agent, providers
+
+    s, id = atlas
+    request = q(id, "What is the quantum policy?")
+    receipt = answer(s, request)
+    assert receipt["graph"]["nodes"]  # Loose lexical retrieval found policy context.
+    steps = []
+
+    def completion(messages, tools, **options):
+        if "summary" in options["schema"]["properties"]:
+            return dict(
+                content=json.dumps(
+                    dict(
+                        summary="No supporting quantum policy was found.",
+                        source_ids=[],
+                        graph_ids=[],
+                        followups=[],
+                    )
+                )
+            )
+        steps.append(1)
+        return dict(
+            content=json.dumps(
+                dict(tool="search_records", arguments=json.dumps(dict(query="quantum")))
+                if len(steps) == 1
+                else dict(tool="finish", arguments="{}")
+            )
+        )
+
+    monkeypatch.setenv("GROQ_API_KEY", "test-placeholder-not-real")
+    monkeypatch.setattr(providers, "groq_completion", completion)
+    result = agent.investigate(s, request, receipt, "groq")
+    assert result["graph"] == dict(nodes=[], edges=[]) and result["sources"] == []

@@ -317,8 +317,17 @@ class CompanyReader:
                 **{"filter_" + k: v for k, v in filters.items()},
             ),
         )
+        samples = self.store.read(
+            f"{pattern} WHERE n.kind=$label AND {condition} WITH DISTINCT n RETURN n.id ORDER BY n.id LIMIT 5",
+            dict(
+                label=label,
+                **time_params,
+                **{"filter_" + k: v for k, v in filters.items()},
+            ),
+        )
         return dict(
             label=label,
+            sample_ids=[r[0] for r in samples],
             group_by=group_by or "kind",
             metric=metric,
             field=field,

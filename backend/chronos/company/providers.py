@@ -38,7 +38,7 @@ def groq_completion(messages, tools, first=False, final=False, schema=None):
                     "schema": schema,
                 },
             }
-            if schema
+            if schema and body["model"].startswith("openai/gpt-oss")
             else {"type": "json_object"}
         )
     req = urllib.request.Request(
@@ -85,3 +85,47 @@ def groq_completion(messages, tools, first=False, final=False, schema=None):
         raise failure from None
     except (urllib.error.URLError, TimeoutError, OSError):
         raise ProviderUnavailable("groq") from None
+
+
+def openrouter_completion(messages, tools, first=False, final=False, schema=None):
+    """Free-model router only. No automatic paid-model fallback is permitted."""
+    model = os.getenv("OPENROUTER_MODEL", "openrouter/free")
+    if model != "openrouter/free" and not model.endswith(":free"):
+        raise ValueError("OpenRouter is restricted to free models")
+    body = dict(
+        model=model,
+        messages=messages,
+        temperature=0.1,
+        max_tokens=1800,
+        provider={"require_parameters": True},
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "company_investigation",
+                "strict": True,
+                "schema": schema,
+            },
+        }
+        if schema
+        else {"type": "json_object"},
+    )
+    req = urllib.request.Request(
+        "https://openrouter.ai/api/v1/chat/completions",
+        data=json.dumps(body).encode(),
+        headers={
+            "Authorization": "Bearer " + os.environ["OPENROUTER_API_KEY"],
+            "Content-Type": "application/json",
+            "X-Title": "ChronosGraph",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=35) as response:
+            parsed = json.load(response)
+        message = parsed["choices"][0]["message"]
+        message["_model"] = str(parsed.get("model", model))[:160]
+        return message
+    except urllib.error.HTTPError as error:
+        # Provider body can contain prompts or secrets. Never propagate or log it.
+        raise ProviderUnavailable("openrouter", error.code) from None
+    except (urllib.error.URLError, TimeoutError, OSError, KeyError, ValueError):
+        raise ProviderUnavailable("openrouter") from None

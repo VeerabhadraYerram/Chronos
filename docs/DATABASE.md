@@ -27,7 +27,7 @@ Session creation is capped at **40** per reference registry. No automatic expiry
 
 ## 3. Initial dataset size
 
-The deterministic seed contains **6,154 business entities**, **9,779 directed relationships**, and a separate `Metadata` revision record. These are initial fixture counts, not a claim about Delhivery's real scale. Replays, receipts, review packets and session bookkeeping add records.
+The deterministic seed contains **7,333 business entities**, **11,984 directed relationships**, and a separate `Metadata` revision record. These are initial fixture counts, not a claim about Delhivery's real scale. Replays, receipts, review packets and session bookkeeping add records.
 
 | Graph label | SQL-table equivalent | Initial rows/nodes | Example ID |
 | --- | --- | ---: | --- |
@@ -36,25 +36,34 @@ The deterministic seed contains **6,154 business entities**, **9,779 directed re
 | `ClientWarehouse` | client_warehouses | 3 | `warehouse-havells` |
 | `Facility` | processing_facilities | 8 | `facility-bengaluru` |
 | `Team` | departments | 8 | `team-operations` |
-| `Route` | transport_lanes | 24 | `lane-00` |
-| `Manifest` | manifests | 24 | `manifest-00` |
-| `PickupRequest` | pickup_requests | 60 | `pickup-000` |
-| `Shipment` | consignments | 1,200 | `shipment-0000` |
-| `ScanEvent` | tracking_events | 4,800 | `scan-0000-0` |
-| `Rule` | commitment_versions | 3 | `rule-havells-original` |
-| `Source` | source_documents | 15 | `source-havells-agreement` |
-| `Decision` | decisions | 2 | `decision-sunday` |
-| `Policy` | operating_policies | 1 | `policy-schedule` |
+| `Route` | transport_lanes | 45 | `lane-00` |
+| `Manifest` | manifests | 45 | `manifest-00` |
+| `PickupRequest` | pickup_requests | 81 | `pickup-000` |
+| `Shipment` | consignments | 1,410 | `shipment-0000` |
+| `ScanEvent` | tracking_events | 5,430 | `scan-0000-0` |
+| `Rule` | commitment_versions | 7 | `rule-havells-original` |
+| `Source` | source_documents | 36 | `source-havells-agreement` |
+| `Decision` | decisions | 10 | `decision-sunday` |
+| `Policy` | operating_policies | 5 | `policy-schedule` |
 | `Campaign` | campaign_context | 1 | `campaign` |
+| `Claim` | document_assertions | 1 | `claim-current-schedule` |
+| `Ticket` | incident_tickets | 8 | `depth-ticket-cod` |
+| `Person` | fictional_role_directory | 24 | `depth-person-0-0` |
+| `Vehicle` | fleet_units | 21 | `depth-vehicle-00` |
+| `Invoice` | shipping_invoices | 36 | `depth-invoice-000` |
+| `CODCollection` | cash_collections | 15 | `depth-cod-0007` |
+| `Remittance` | settlement_entries | 15 | `depth-remittance-0007` |
+| `Return` | return_requests | 60 | `depth-return-0004` |
+| `DeliveryException` | failed_delivery_reviews | 60 | `depth-exception-0003` |
 | `Receipt` | investigation_receipts | 0 | Created by a question |
 | `Action` | review_packets | 0 | Created from a current receipt |
 | `Event` | applied_demo_events | 0 | Created by replay |
 | `DemoSession` | session_registry | 0 | Created in the reference registry |
 | `Metadata` | dataset_metadata | 1 | `dataset` |
 
-`Metadata` does not carry `Entity`, so it is outside the 6,154 business-node total. Business statistics exclude `Receipt`, `Action`, and `DemoSession`. The relationship counter includes all `Entity` relationships present, including later receipt links; the initial count has no receipt links.
+`Metadata` does not carry `Entity`, so it is outside the 7,333 business-node total. Business statistics exclude `Receipt`, `Action`, and `DemoSession`. The relationship counter includes all `Entity` relationships present, including later receipt links; the initial count has no receipt links.
 
-Four sources are curated public references; eleven are synthetic company records. Replaying the amendment adds one source and two rule versions while retaining the original belief.
+Four sources are curated public references; 32 are synthetic company records. Replaying the amendment adds one source and two rule versions while retaining the original belief.
 
 ## 4. Physical storage schema
 
@@ -95,9 +104,9 @@ The fields below appear in decoded records; scalar values are also mirrored nati
 | `Route` | `mode`, `schedule` | A synthetic road lane linked to origin and destination facilities |
 | `Manifest` | `status` | Planned grouping of consignments associated with a route |
 | `PickupRequest` | `status`, `pickup_date` | A collected synthetic pickup request linked to a client warehouse |
-| `Shipment` | `client`, `facility`, `arrival_at`, `status`, `description` | Synthetic Sunday scenario consignment; relationship traversals establish its client and location |
+| `Shipment` | `client`, `facility`, `arrival_at`, `status`, `description` | November scenario or October snapshot consignment; traversals establish its client and location |
 | `ScanEvent` | `event_at`, `sequence`, `description` | Ordered synthetic event in a consignment's history |
-| `Rule` | `client`, `facility`, `field`, `value`, `status`, four interval bounds | Accepted temporal commitment; current modeled field is `sunday_processing_required`, with a boolean value |
+| `Rule` | `client`, `facility`, `field`, `value`, `status`, four interval bounds | Accepted temporal commitment; modeled fields include `sunday_processing_required` and four source-supported review controls; values are typed |
 | `Source` | `excerpt`, `source_type`, `department`, `timestamp`, `enabled`, `content_hash`, optional `classification`, `url` | Inspectable source text, provenance category, current availability and content hash |
 | `Decision` | `description`, `approved` | Accepted decision context or an explicitly unapproved proposal |
 | `Policy` | `sunday_required`, `sunday_clients`, `description` | Current handbook configuration; `sunday_clients` drives the baseline Sunday-processing preview |
@@ -334,3 +343,5 @@ PYTHONPATH=backend .venv/bin/python scripts/export_schema.py
 Generator: [export_schema.py](../scripts/export_schema.py).
 
 The logistics fixture now includes one explicit `Claim` recording the handbook statement, linked through `Policy → ASSERTS → Claim → SUPPORTED_BY → Source`. General investigation compares its subject/field/value with applicable accepted rules. Existing reference workspaces receive this fixture extension once and conservatively invalidate earlier receipts; this is separate from the physical schema migration.
+
+See [Synthetic logistics depth](DATA_SCENARIOS.md) for the additional operational, finance, incident and people records, example investigations and limitations.

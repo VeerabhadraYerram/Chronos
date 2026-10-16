@@ -15,6 +15,7 @@ from .seed import fixture, amendment
 from .schema import persist, migrate
 from .demo import CONFIG, upgrade_reference_records
 from .timeutil import canonical
+from .diversity import RELATIONS as DEPTH_RELATIONS
 
 BASE_NAME = os.getenv("CHRONOS_COMPANY_GRAPH", "chronos_delhivery_reference_v1")
 SESSION_PREFIX = "chronos_delhivery_demo_"
@@ -76,6 +77,8 @@ RELATIONS = {
     "USED",
     "PROPOSES",
 }
+RELATIONS.update(DEPTH_RELATIONS)
+
 RULE_FIELDS = [
     "client",
     "facility",
@@ -161,7 +164,7 @@ class CompanyStore(Store):
                         f"UNWIND $rows AS x MATCH (a:Entity {{id:x.source}}),(b:Entity {{id:x.target}}) MERGE (a)-[r:{rel}]->(b) SET r.source_ids=x.source_ids",
                         dict(rows=records[start : start + 250]),
                     )
-            self.write('CREATE (:Metadata {id:"dataset", revision:1})')
+            self.write('CREATE (:Metadata {id:"dataset", revision:1, depth_version:2})')
             self.ensure_schema()
             self.write(
                 'MATCH (m:Metadata {id:"dataset"}) SET m.demo_config=$demo',

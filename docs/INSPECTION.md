@@ -6,7 +6,7 @@ Enter the workspace ID shown in the prototype's **About this workspace** dialog.
 
 ## What reviewers can inspect
 
-- Every business node label as a paginated table, including the 4,800 scans and 1,200 shipments in the logistics fixture. Runtime receipts, local review drafts, replay markers and dataset metadata are included when present.
+- Every business node label as a paginated table, including the 5,430 scans and 1,410 shipments in the logistics fixture. Runtime receipts, local review drafts, replay markers and dataset metadata are included when present.
 - Search across the selected label's complete serialized records, with stable ID ordering and exact filtered counts. Pages contain up to 100 records; the interface uses 50.
 - All decoded fields and native database properties, including the original serialized payload, via the record inspector.
 - Every directed business relationship, with its endpoints, endpoint labels, actual relationship properties and source references. Direct connections have their own pagination; there is no graph-neighborhood sampling in the database table view.
@@ -31,3 +31,5 @@ PYTHONPATH=backend .venv/bin/python scripts/import_company.py datasets/atlas-stu
 ```
 
 The command prints separate prototype and inspection URLs. It never clears an existing graph. The supplied Atlas Studio fixture is fictional and tests Finance, Marketing, invoice totals and ownership without logistics assumptions. Public ingestion and uploads are intentionally absent from the read-only reviewer portal.
+
+The portal starts with an evaluator overview. Grouped navigation separates company knowledge, operations/finance and investigation history/setup. Tables show compact two-line previews; selecting a record opens all fields, structured values and paginated connections. Full document text and internal IDs do not expand rows. Metadata is explicitly identified as configuration, not generated business answers.

@@ -346,7 +346,10 @@ def fixture():
     nodes.append(dict(CLAIM))
     for a, relation, b in CLAIM_EDGES:
         edge(a, relation, b, ["source-schedule"])
-    return nodes, edges
+    from .diversity import extension
+
+    extra_nodes, extra_edges = extension()
+    return nodes + extra_nodes, edges + extra_edges
 
 
 def amendment():

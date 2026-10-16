@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 
 from .repository import CompanyReader, PRIVATE
 from .timeutil import canonical
+from ..store import LOCK
 
 
 def usable(n, request, store=None):
@@ -42,8 +43,57 @@ def usable(n, request, store=None):
     return True
 
 
+def label_terms(label):
+    name = re.sub(r"(?<!^)(?=[A-Z])", " ", label).lower()
+    plural = (
+        name[:-1] + "ies"
+        if name.endswith("y")
+        else name + "es"
+        if name.endswith(("s", "x"))
+        else name + "s"
+    )
+    return [name, plural, name.replace(" ", ""), plural.replace(" ", "")]
+
+
+def calculation_graph(store, request, aggregate):
+    """A small proof set from the exact filtered database calculation."""
+    sample = [store.get(id) for id in aggregate.get("sample_ids", [])]
+    sample = [n for n in sample if n and usable(n, request, store)]
+    related = {n["id"]: n for n in sample}
+    neighbors, participation, candidate_edges = {}, {}, []
+    for n in sample:
+        local = store.record_graph(n["id"])
+        linked = set()
+        candidate_edges.extend(local["edges"])
+        for edge in local["edges"]:
+            if n["id"] in {edge["source"], edge["target"]}:
+                linked.add(
+                    edge["target"] if edge["source"] == n["id"] else edge["source"]
+                )
+        for other in local["nodes"]:
+            if other["id"] in linked and usable(other, request, store):
+                neighbors[other["id"]] = other
+                participation.setdefault(other["id"], set()).add(n["id"])
+    # Shared anchors explain a set; unrelated one-off context obscures the count.
+    for id, other in neighbors.items():
+        if len(participation[id]) > 1 or other["kind"] == "Source":
+            related.setdefault(id, other)
+    proof_ids = {
+        id
+        for edge in candidate_edges
+        if edge["source"] in related and edge["target"] in related
+        for id in edge["source_ids"]
+    }
+    for id in sorted(proof_ids)[:2]:
+        source = store.get(id)
+        if source and source["kind"] == "Source" and usable(source, request, store):
+            related.setdefault(id, source)
+    return store.subgraph(list(related.values()))
+
+
 def answer(store, request):
     start = time.perf_counter()
+    revision_at_start = store.revision()
     reader = CompanyReader(store)
     found = reader.search(request.question, request.known_at)
     focus = store.get(request.focus_id) if request.focus_id else None
@@ -150,8 +200,41 @@ def answer(store, request):
         matches = [
             r[0]
             for r in labels
-            if re.sub(r"(?<!^)(?=[A-Z])", " ", r[0]).lower() in q or r[0].lower() in q
+            if any(
+                re.search(r"\b" + re.escape(term) + r"\b", q)
+                for term in label_terms(r[0])
+            )
         ]
+        # Company is the workspace organization; Client represents counterparties.
+        # Resolve the everyday phrase using actual observed labels, never client names/counts.
+        if (
+            matches == ["Company"]
+            and re.search(r"\b(dealing|clients|customers|working with)\b", q)
+            and any(r[0] == "Client" for r in labels)
+        ):
+            matches = ["Client"]
+        # Only calculate an unqualified dataset total here. Qualified questions
+        # (e.g. overdue invoices, a city, OR conditions) need model-selected reads.
+        if len(matches) == 1:
+            grammar = set(
+                "how many count number of what is are do does we have our the a an total sum average mean minimum maximum amount cost price revenue value inr in recorded stored records record there currently dealing working with graph dataset workspace".split()
+            )
+            label_words = {
+                word for term in label_terms(matches[0]) for word in term.split()
+            }
+            if matches[0] == "Client":
+                label_words.update(
+                    {
+                        "company",
+                        "companies",
+                        "client",
+                        "clients",
+                        "customer",
+                        "customers",
+                    }
+                )
+            if set(re.findall(r"[a-z]+", q)) - grammar - label_words:
+                matches = []
         if len(matches) == 1:
             label = matches[0]
             metric = "count"
@@ -205,6 +288,9 @@ def answer(store, request):
                     effective=request.effective_at,
                 )
     if aggregate:
+        # Show actual record examples and their real connections behind the calculation.
+        graph = calculation_graph(store, request, aggregate)
+        sources = [n for n in graph["nodes"] if n["kind"] == "Source"]
         if aggregate["metric"] == "count":
             summary = f"The stored graph contains {sum(g['count'] for g in aggregate['groups']):,} {aggregate['label']} records. This is a dataset count, not a live forecast."
         else:
@@ -294,7 +380,7 @@ def answer(store, request):
         summary=summary,
         sources=sources,
         graph=graph,
-        revision=store.revision(),
+        revision=revision_at_start,
         stale=False,
         mode="graph_search",
         intent="company_investigation",
@@ -312,12 +398,23 @@ def answer(store, request):
             "Current ownership and topology are not historical snapshots.",
         ],
     )
+    if aggregate:
+        receipt["trace"].append(
+            dict(tool="aggregate_records", rows=len(aggregate["groups"]))
+        )
     if request.use_gemini:
         try:
             from .agent import run_investigator
 
-            receipt.update(run_investigator(store, request, receipt))
+            addition = run_investigator(store, request, receipt)
+            receipt.update(addition)
+            if addition.get("graph", {}).get("nodes") or addition.get("aggregates"):
+                alerts[:] = [a for a in alerts if a["category"] != "evidence_missing"]
         except Exception:
+            receipt["summary"] = (
+                "No AI answer was generated. The configured AI providers could not complete this investigation. The retrieved records below remain available for inspection; retry the question."
+            )
+            receipt["mode"] = "ai_unavailable"
             receipt["agent_error"] = (
                 "The AI investigator could not complete this run. Retrieved graph evidence is retained."
             )
@@ -342,8 +439,13 @@ def answer(store, request):
                 )
             )
     receipt["total_ms"] = round((time.perf_counter() - start) * 1000, 2)
-    store.upsert(receipt)
-    store.write("MATCH (r:Receipt {id:$id}) SET r.stale=false", dict(id=receipt["id"]))
-    for source in receipt["sources"]:
-        store.link_evidence(receipt["id"], "USED", source["id"], [source["id"]])
+    with LOCK:
+        receipt["stale"] = store.revision() != revision_at_start
+        store.upsert(receipt)
+        store.write(
+            "MATCH (r:Receipt {id:$id}) SET r.stale=$stale",
+            dict(id=receipt["id"], stale=receipt["stale"]),
+        )
+        for source in receipt["sources"]:
+            store.link_evidence(receipt["id"], "USED", source["id"], [source["id"]])
     return receipt

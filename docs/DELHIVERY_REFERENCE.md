@@ -39,7 +39,7 @@ Select **Guided demo** to expose the sample replay and rehearsal controls. Their
 
 ## Dataset and schema
 
-The initial seed has **6,154 business entities and 9,779 relationships**, including:
+The initial seed has **7,333 business entities and 11,984 relationships**, including:
 
 | Graph label | Count | Meaning |
 | --- | ---: | --- |
@@ -48,15 +48,15 @@ The initial seed has **6,154 business entities and 9,779 relationships**, includ
 | Facility | 8 | Synthetic processing-centre records |
 | ClientWarehouse | 3 | Synthetic registered pickup locations |
 | Team | 8 | Department responsibilities, not real employee identities |
-| Route | 24 | Synthetic outbound Bengaluru lanes |
-| Manifest | 24 | Planned lane-linked manifests |
-| PickupRequest | 60 | Synthetic collected pickup requests |
-| Shipment | 1,200 | Consignments in the Sunday scenario |
-| ScanEvent | 4,800 | Four ordered synthetic events per consignment |
-| Rule | 3 | Accepted, temporally scoped Sunday commitments |
-| Source | 15 | Four public references plus eleven synthetic records |
-| Decision | 2 | Accepted decision and unapproved proposal |
-| Policy | 1 | Current demo handbook configuration |
+| Route | 45 | 24 Bengaluru lanes plus 21 October lanes |
+| Manifest | 45 | Planned lane-linked manifests |
+| PickupRequest | 81 | Synthetic collected pickup requests |
+| Shipment | 1,410 | 1,200 November scenario consignments plus 210 October snapshot consignments |
+| ScanEvent | 5,430 | Four per November consignment; three per October consignment |
+| Rule | 7 | Accepted, temporally scoped Sunday commitments |
+| Source | 36 | Four public references plus 32 synthetic records |
+| Decision | 10 | Accepted decision and unapproved proposal |
+| Policy | 5 | Current demo handbook configuration |
 | Campaign | 1 | Synthetic reason context |
 
 The replay adds source and rule versions. Counts come from FalkorDB, not frontend constants. Receipts and review packets are additional persisted entities. IDs prefixed `DEMO` are not live waybills.
@@ -113,3 +113,5 @@ Read tools call `GRAPH.RO_QUERY`; the model receives neither credentials nor arb
 This implementation is running locally unless a deployment is separately linked. Sessions are synthetic-demo capabilities, not authentication or enterprise tenant isolation. The server caps reference-session creation at 40; sessions persist and no automatic expiry is claimed. Public deployment still requires infrastructure, provider spend/rate controls, lifecycle management and a review of the preserved legacy mutation routes. A single-process lock coordinates graph operations and currently serializes model calls. No high-concurrency or production readiness claim is made.
 
 The original payments workflow remains at `/?demo=payments`. Its model and API documentation are marked as legacy scope.
+
+See [Synthetic logistics depth](DATA_SCENARIOS.md) for the additional operational, finance, incident and people records, example investigations and limitations.

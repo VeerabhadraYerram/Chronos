@@ -113,7 +113,9 @@ def session(request: Session):
                 graph=graph,
                 gemini_configured=bool(os.getenv("GEMINI_API_KEY")),
                 investigator_configured=bool(
-                    os.getenv("GEMINI_API_KEY") or os.getenv("GROQ_API_KEY")
+                    os.getenv("GEMINI_API_KEY")
+                    or os.getenv("GROQ_API_KEY")
+                    or os.getenv("OPENROUTER_API_KEY")
                 ),
                 amendment_loaded=bool(store.get("source-amendment")),
                 receipts=[r for r in store.receipts() if r.get("domain") == "company"],
@@ -135,7 +137,8 @@ def ask(request: Query):
         store = safe_store(request.session_id)
         if request.focus_id and not store.get(request.focus_id):
             raise HTTPException(404, "Selected record not found.")
-        return answer(store, request)
+    # Never hold the global write lock while waiting for external inference.
+    return answer(store, request)
 
 
 @router.post("/explore")

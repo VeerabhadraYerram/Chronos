@@ -110,7 +110,7 @@ export default function CompanyWorkspace() {
         .filter((n) => n.kind !== "Company")
         .slice(0, 3)
         .map((n) => ({
-          label: n.title,
+          label: `Explore ${n.title}`,
           question: `What evidence is connected to ${n.title}?`,
           icon: Network,
         }));
@@ -213,6 +213,7 @@ export default function CompanyWorkspace() {
     setView("investigate");
   }
   async function inspect(entity: CompanyEntity) {
+    setExpanded(false);
     setSelected(entity);
     setEdge(null);
   }
@@ -281,6 +282,7 @@ export default function CompanyWorkspace() {
       selected={selected?.id}
       onSelect={inspect}
       onEdge={(e) => {
+        setExpanded(false);
         setEdge(e);
         setSelected(null);
       }}
@@ -407,7 +409,7 @@ export default function CompanyWorkspace() {
                     ? "The company, connected."
                     : view === "history"
                       ? "Every question leaves a trail."
-                      : "Every decision has a story."}
+                      : "Company answers. Clear evidence."}
               </h1>
               <p>
                 {view === "compare"
@@ -416,7 +418,7 @@ export default function CompanyWorkspace() {
                     ? "Inspect the records behind the answer. Public references and synthetic evidence are distinguished."
                     : view === "history"
                       ? "Reopen the evidence and context behind a previous investigation."
-                      : "Ask why it exists. Check whether it still applies. Follow the evidence."}
+                      : "Ask about decisions, policies or incidents. Follow the records behind the answer, then ask a deeper question."}
               </p>
             </div>
             {session?.demo && (
@@ -673,38 +675,60 @@ export default function CompanyWorkspace() {
                     </div>
                     <span>
                       {receipt.mode === "gemini_agent" ||
-                      receipt.mode === "groq_agent"
-                        ? `${receipt.provider === "groq" ? "Groq" : "Gemini"} + graph evidence`
-                        : "FalkorDB retrieval"}{" "}
+                      receipt.mode === "groq_agent" ||
+                      receipt.mode === "openrouter_agent"
+                        ? `${receipt.provider === "groq" ? "Groq" : receipt.provider === "openrouter" ? "OpenRouter (free)" : "Gemini"} + graph evidence`
+                        : receipt.mode === "ai_unavailable"
+                          ? "AI answer unavailable"
+                          : "Graph-only retrieval"}{" "}
                       · revision {receipt.revision}
                     </span>
                   </div>
-                  <h2>{receipt.title}</h2>
-                  <p>{receipt.summary}</p>
-                  <div className="co-answer-sources">
-                    {(receipt.citations?.length
-                      ? receipt.sources.filter((s) =>
-                          receipt.citations!.includes(s.id),
-                        )
-                      : receipt.sources.filter((s) =>
-                          receipt.graph.nodes.some((n) => n.id === s.id),
-                        )
-                    ).map((source, i) => (
-                      <button
-                        key={source.id}
-                        onClick={() => {
-                          setSelected(source);
-                          setEdge(null);
-                        }}
-                      >
-                        <FileText size={12} />
-                        <span>
-                          {i + 1}. {source.title}
-                        </span>
-                        <ArrowUpRight size={11} />
-                      </button>
+                  <div className="co-answer-heading">
+                    <span className="co-eyebrow">
+                      {receipt.mode === "ai_unavailable"
+                        ? "INVESTIGATION STATUS"
+                        : "YOUR ANSWER"}
+                    </span>
+                    <h2>{receipt.title}</h2>
+                  </div>
+                  <div className="co-answer-copy">
+                    {receipt.summary.split(/\n\s*\n/).map((paragraph, i) => (
+                      <p key={i} className={i === 0 ? "co-answer-lead" : ""}>
+                        {paragraph}
+                      </p>
                     ))}
                   </div>
+                  <details className="co-source-disclosure">
+                    <summary>
+                      Sources behind this answer{" "}
+                      <span>· open to inspect original evidence</span>
+                    </summary>
+                    <div className="co-answer-sources">
+                      {(receipt.citations?.length
+                        ? receipt.sources.filter((s) =>
+                            receipt.citations!.includes(s.id),
+                          )
+                        : receipt.sources.filter((s) =>
+                            receipt.graph.nodes.some((n) => n.id === s.id),
+                          )
+                      ).map((source, i) => (
+                        <button
+                          key={source.id}
+                          onClick={() => {
+                            setSelected(source);
+                            setEdge(null);
+                          }}
+                        >
+                          <FileText size={12} />
+                          <span>
+                            {i + 1}. {source.title}
+                          </span>
+                          <ArrowUpRight size={11} />
+                        </button>
+                      ))}
+                    </div>
+                  </details>
                   {!receipt.stale &&
                     !changed &&
                     !!receipt.documents_to_review?.length && (
@@ -759,105 +783,116 @@ export default function CompanyWorkspace() {
                     <p>
                       Explore the records available in this workspace. Inspect
                       sources, discover owners and investigate the policies that
-                      apply to your question.
+                      apply to your question. Your evidence graph appears after
+                      you ask; click any record to investigate further.
                     </p>
                   </div>
                   <span className="co-intro-number">01</span>
                 </section>
               )}
-              <section className="co-evidence">
-                <div className="co-section-heading">
-                  <div>
-                    <span className="co-eyebrow">
-                      THE EVIDENCE, IN PLAIN SIGHT
+              {receipt && (
+                <section className="co-evidence">
+                  <div className="co-section-heading">
+                    <div>
+                      <span className="co-eyebrow">
+                        THE EVIDENCE, IN PLAIN SIGHT
+                      </span>
+                      <h2>
+                        {receipt
+                          ? "Follow the answer back to its source."
+                          : "Records. Sources. The connections between them."}
+                      </h2>
+                    </div>
+                    <button
+                      className="co-secondary"
+                      onClick={() => setExpanded(true)}
+                    >
+                      <Maximize2 size={14} />
+                      Expand
+                    </button>
+                  </div>
+                  <div className="co-graph-toolbar">
+                    <span>
+                      <i /> {graph.nodes.length} records · {graph.edges.length}{" "}
+                      connections
                     </span>
-                    <h2>
-                      {receipt
-                        ? "Follow the answer back to its source."
-                        : "Records. Sources. The connections between them."}
-                    </h2>
+                    <div>
+                      {visibleKinds
+                        .filter((k) => graph.nodes.some((n) => n.kind === k))
+                        .map((k) => (
+                          <button
+                            className={filters.includes(k) ? "active" : ""}
+                            key={k}
+                            onClick={() =>
+                              setFilters((f) =>
+                                f.includes(k)
+                                  ? f.filter((x) => x !== k)
+                                  : [...f, k],
+                              )
+                            }
+                          >
+                            {k === "Rule"
+                              ? "Commitments"
+                              : k === "Source"
+                                ? "Evidence"
+                                : k === "Team"
+                                  ? "People & teams"
+                                  : k === "Facility"
+                                    ? "Facilities"
+                                    : k === "Company"
+                                      ? "Companies"
+                                      : k + "s"}
+                          </button>
+                        ))}
+                      {!!filters.length && (
+                        <button onClick={() => setFilters([])}>Show all</button>
+                      )}
+                    </div>
                   </div>
-                  <button
-                    className="co-secondary"
-                    onClick={() => setExpanded(true)}
-                  >
-                    <Maximize2 size={14} />
-                    Expand
-                  </button>
-                </div>
-                <div className="co-graph-toolbar">
-                  <span>
-                    <i /> {graph.nodes.length} records · {graph.edges.length}{" "}
-                    connections
-                  </span>
-                  <div>
-                    {visibleKinds
-                      .filter((k) => graph.nodes.some((n) => n.kind === k))
-                      .map((k) => (
-                        <button
-                          className={filters.includes(k) ? "active" : ""}
-                          key={k}
-                          onClick={() =>
-                            setFilters((f) =>
-                              f.includes(k)
-                                ? f.filter((x) => x !== k)
-                                : [...f, k],
-                            )
-                          }
-                        >
-                          {k === "Rule"
-                            ? "Commitments"
-                            : k === "Source"
-                              ? "Evidence"
-                              : k === "Team"
-                                ? "People & teams"
-                                : k === "Facility"
-                                  ? "Facilities"
-                                  : k === "Company"
-                                    ? "Companies"
-                                    : k + "s"}
-                        </button>
-                      ))}
-                    {!!filters.length && (
-                      <button onClick={() => setFilters([])}>Show all</button>
-                    )}
+                  {session ? (
+                    graph.nodes.length ? (
+                      evidenceGraph
+                    ) : (
+                      <p className="co-empty-proof">
+                        No supporting records were selected for this answer. The
+                        graph stays empty rather than implying evidence that was
+                        not found.
+                      </p>
+                    )
+                  ) : (
+                    <div className="co-loading">
+                      <LoaderCircle className="co-spin" size={22} />
+                      {busy === "connect"
+                        ? "Connecting to FalkorDB…"
+                        : "Connect the database to explore evidence."}
+                    </div>
+                  )}
+                  <div className="co-graph-caption">
+                    <span>
+                      <span className="co-number">1</span>Read the labels
+                    </span>
+                    <span>
+                      <span className="co-number">2</span>Click a record or
+                      connection
+                    </span>
+                    <span>
+                      <span className="co-number">3</span>Ask a deeper question
+                    </span>
+                    <button
+                      onClick={() => {
+                        if (receipt) setGraph(receipt.graph);
+                        else if (session) setGraph(session.graph);
+                        setFilters([]);
+                        setSelected(null);
+                        setEdge(null);
+                      }}
+                    >
+                      <RotateCcw size={12} />
+                      Reset view
+                    </button>
                   </div>
-                </div>
-                {session ? (
-                  evidenceGraph
-                ) : (
-                  <div className="co-loading">
-                    <LoaderCircle className="co-spin" size={22} />
-                    {busy === "connect"
-                      ? "Connecting to FalkorDB…"
-                      : "Connect the database to explore evidence."}
-                  </div>
-                )}
-                <div className="co-graph-caption">
-                  <span>
-                    <span className="co-number">1</span>Read the labels
-                  </span>
-                  <span>
-                    <span className="co-number">2</span>Click a record or
-                    connection
-                  </span>
-                  <span>
-                    <span className="co-number">3</span>Ask a deeper question
-                  </span>
-                  <button
-                    onClick={() => {
-                      if (receipt) setGraph(receipt.graph);
-                      else if (session) setGraph(session.graph);
-                      setFilters([]);
-                      setSelected(null);
-                      setEdge(null);
-                    }}
-                  >
-                    <RotateCcw size={12} />
-                    Reset view
-                  </button>
-                </div>
-              </section>
+                </section>
+              )}
               {receipt && (
                 <div className="co-followups">
                   <span>KEEP EXPLORING</span>
@@ -900,47 +935,51 @@ export default function CompanyWorkspace() {
                   </section>
                 )}
                 {/* The guided fixture is separate from company-wide investigation. */}
-                <section className="co-story-card co-story-dark">
-                  <span className="co-eyebrow">FROM ANSWER TO REVIEW</span>
-                  <h3>
-                    Understand the change.
-                    <br />
-                    Then prepare the work.
-                  </h3>
-                  <p>
-                    Assemble a review packet from the current investigation and
-                    its retrieved sources. Every real-world action stays with a
-                    human.
-                  </p>
-                  <div>
-                    {guided && session?.demo && (
+                {receipt && receipt.mode !== "ai_unavailable" && (
+                  <section className="co-story-card co-story-dark">
+                    <span className="co-eyebrow">FROM ANSWER TO REVIEW</span>
+                    <h3>
+                      Understand the change.
+                      <br />
+                      Then prepare the work.
+                    </h3>
+                    <p>
+                      Assemble a review packet from the current investigation
+                      and its retrieved sources. Every real-world action stays
+                      with a human.
+                    </p>
+                    <div>
+                      {guided && session?.demo && (
+                        <button
+                          className="co-secondary"
+                          onClick={() => setView("compare")}
+                        >
+                          Compare demo scenario <ArrowRight size={14} />
+                        </button>
+                      )}
                       <button
-                        className="co-secondary"
-                        onClick={() => setView("compare")}
+                        className="co-text-button"
+                        disabled={
+                          !receipt || !!busy || receipt.stale || changed
+                        }
+                        onClick={() =>
+                          void task("packet", async () => {
+                            const r = await api<{ markdown: string }>(
+                              "/company/packet",
+                              {
+                                session_id: session!.session_id,
+                                receipt_id: receipt!.id,
+                              },
+                            );
+                            setPacket(r.markdown);
+                          })
+                        }
                       >
-                        Compare demo scenario <ArrowRight size={14} />
+                        Prepare review packet <ArrowUpRight size={13} />
                       </button>
-                    )}
-                    <button
-                      className="co-text-button"
-                      disabled={!receipt || !!busy || receipt.stale || changed}
-                      onClick={() =>
-                        void task("packet", async () => {
-                          const r = await api<{ markdown: string }>(
-                            "/company/packet",
-                            {
-                              session_id: session!.session_id,
-                              receipt_id: receipt!.id,
-                            },
-                          );
-                          setPacket(r.markdown);
-                        })
-                      }
-                    >
-                      Prepare review packet <ArrowUpRight size={13} />
-                    </button>
-                  </div>
-                </section>
+                    </div>
+                  </section>
+                )}
               </div>
               {receipt && (
                 <details className="co-trace">
@@ -1569,9 +1608,9 @@ export default function CompanyWorkspace() {
               Ownership and topology are current demo relationships.
             </p>
             <p>
-              <strong>Mode:</strong> Gemini or Groq investigates when enabled
-              and successful; graph search is explicitly labeled otherwise.
-              Sources and retrieval traces remain inspectable.
+              <strong>Mode:</strong> Groq, Gemini or OpenRouter investigates
+              when enabled and successful; graph search is explicitly labeled
+              otherwise. Sources and retrieval traces remain inspectable.
             </p>
             <p>
               Your workspace has its own graph. New workspace creates a fresh

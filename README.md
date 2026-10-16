@@ -27,10 +27,10 @@ Operations wants Sunday closure. Sales has recorded a Havells commitment. Accoun
 - Compare effective time with knowledge time; approved sample amendments preserve the earlier belief.
 - Rehearse full Sunday closure versus preserved client exceptions in a **real FalkorDB graph copy**.
 - Inspect before/after processing, queued sample consignments and explicitly synthetic cost assumptions.
-- Search a graph containing **6,154 initial entities and 9,779 relationships**, including 1,200 consignments and 4,800 tracking events.
+- Search a graph containing **7,333 initial entities and 11,984 relationships**, including 1,410 consignments and 5,430 tracking events across multiple operational states.
 - Reopen persistent investigations and download a review packet. No real company action is published.
 
-Each visitor gets a separate demo graph. The selected AI provider uses bounded read tools when enabled; graph-retrieval fallback is labeled and shows stored facts/excerpts rather than a canned scenario verdict. The guided scheduling simulator retains deterministic checks. Unfamiliar questions are limited by the recorded evidence; this is not unrestricted enterprise question answering.
+Each visitor gets a separate demo graph. The selected AI provider uses bounded read tools when enabled; graph-only mode shows stored facts/excerpts when AI is disabled; if both providers fail, the interface explicitly says no AI answer was generated. The guided scheduling simulator retains deterministic checks. Unfamiliar questions are limited by the recorded evidence; this is not unrestricted enterprise question answering.
 
 <details>
   <summary><strong>View the actual investigation and comparison workspace</strong></summary>
@@ -57,7 +57,7 @@ npm --prefix frontend ci
 
 Open **[http://127.0.0.1:5173](http://127.0.0.1:5173)**. No Gemini key is needed for graph checks, history, rehearsal, or repair drafts. The main workspace copies a separate reference seed into a visitor graph; it does not reset an existing workspace. The preserved NovaPay prototype is available at `/?demo=payments`.
 
-To enable the **Gemini agent**, copy `.env.example` to `.env` only if you do not already have one, add your own `GEMINI_API_KEY`, and restart the API. The main interface enables **AI investigator** when a provider key is configured. Gemini is preferred; an optional `GROQ_API_KEY` enables fallback with `GROQ_MODEL=openai/gpt-oss-120b`. The receipt identifies the provider that actually completed the run. Keep the key server-side; `.env` is ignored. Model availability and quota depend on your account.
+To enable the **Gemini agent**, copy `.env.example` to `.env` only if you do not already have one, add your own `GEMINI_API_KEY`, and restart the API. The main interface enables **AI investigator** when a provider key is configured. Groq is preferred when `GROQ_API_KEY` is configured (`GROQ_MODEL=openai/gpt-oss-120b`); Gemini is the backup. Groq uses bounded structured read plans validated by the server; Gemini uses native function calls. An optional `OPENROUTER_API_KEY` adds `openrouter/free` as a final fallback; paid OpenRouter model IDs are rejected. The receipt identifies the provider that actually completed the run. Keep the key server-side; `.env` is ignored. Model availability and quota depend on your account.
 
 | Service | Local address |
 | --- | --- |
@@ -116,3 +116,5 @@ Start with [contributing guidance](CONTRIBUTING.md), [architecture](docs/ARCHITE
 ## License
 
 ChronosGraph source and documentation are available under the [MIT License](LICENSE). Third-party packages, FalkorDB, and external model services retain their respective licenses and terms.
+
+See [Synthetic logistics depth](docs/DATA_SCENARIOS.md) for the expanded dataset, connected investigation examples and what remains simulated.

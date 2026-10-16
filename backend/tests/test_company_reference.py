@@ -43,8 +43,8 @@ def query(**changes):
 
 def test_operational_dataset_is_real_connected_graph(store):
     stats = store.stats()
-    assert stats["labels"]["Shipment"] == 1200
-    assert stats["labels"]["ScanEvent"] == 4800
+    assert stats["labels"]["Shipment"] == 1410
+    assert stats["labels"]["ScanEvent"] == 5430
     assert stats["labels"]["Client"] == 3
     assert stats["labels"]["Facility"] == 8
     assert stats["connections"] > 9000
@@ -169,7 +169,7 @@ def test_unknown_question_and_search_injection_do_not_change_graph(store):
     assert "could not find evidence" in r["summary"]
     store.search("'; MATCH (n) DETACH DELETE n //")
     assert store.revision() == revision
-    assert store.stats()["labels"]["Shipment"] == 1200
+    assert store.stats()["labels"]["Shipment"] == 1410
 
 
 def test_read_tools_cannot_write(store):
@@ -262,22 +262,21 @@ def test_provider_fallback_uses_same_verified_context(store, monkeypatch):
     calls = []
     monkeypatch.setenv("GEMINI_API_KEY", "test-placeholder-not-a-real-key")
     monkeypatch.setenv("GROQ_API_KEY", "test-placeholder-not-a-real-key")
-    monkeypatch.setattr(agent, "_GEMINI_RETRY_AT", 0.0)
 
     def provider(store, request, receipt, provider):
         calls.append(provider)
-        if provider == "gemini":
-            raise ProviderUnavailable("gemini", 503)
+        if provider == "groq":
+            raise ProviderUnavailable("groq", 503)
         assert receipt["assessment"] == "conflict"
-        return dict(summary=receipt["summary"], mode="groq_agent", provider="groq")
+        return dict(summary=receipt["summary"], mode="gemini_agent", provider="gemini")
 
     monkeypatch.setattr(agent, "investigate", provider)
     r = answer(store, query(use_gemini=True))
-    assert r["mode"] == "groq_agent"
+    assert r["mode"] == "gemini_agent"
     assert r["assessment"] == "conflict"
-    assert calls == ["gemini", "groq"]
+    assert calls == ["groq", "gemini"]
     answer(store, query(use_gemini=True))
-    assert calls == ["gemini", "groq", "groq"]
+    assert calls == ["groq", "gemini", "groq", "gemini"]
 
 
 def test_simulation_reads_operating_configuration_from_graph(store):

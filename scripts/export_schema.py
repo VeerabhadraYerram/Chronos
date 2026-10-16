@@ -5,7 +5,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from chronos.company.seed import fixture
-from chronos.company.schema import properties
+from chronos.company.schema import properties, INDEXES
 
 
 def main():
@@ -98,8 +98,15 @@ def main():
             )
             for relation, group in sorted(relations.items())
         ],
-        database_enforced_unique_constraints=[],
-        explicit_indexes=[],
+        database_enforced_unique_constraints=[dict(label="Entity", properties=["id"])],
+        database_enforced_mandatory_constraints=[
+            dict(label="Entity", properties=["id", "kind", "title", "payload"])
+        ],
+        explicit_indexes=[
+            dict(label=label, properties=[field], type="RANGE")
+            for label, fields in INDEXES.items()
+            for field in fields
+        ],
         amendment_relationship_types=["SUPERSEDES", "AMENDED_BY"],
         investigation_relationship_types=["USED", "PROPOSES"],
     )

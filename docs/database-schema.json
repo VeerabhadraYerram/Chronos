@@ -3,9 +3,73 @@
   "database": "FalkorDB",
   "disclosure": "Independent Delhivery reference schema. Public names; synthetic private operations, agreements and roles. Not Delhivery internal data.",
   "source": "backend/chronos/company/seed.py",
-  "initial_business_entities": 6154,
-  "initial_relationships": 9779,
+  "initial_business_entities": 7333,
+  "initial_relationships": 11984,
   "node_labels": [
+    {
+      "label": "CODCollection",
+      "initial_count": 15,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string",
+        "search_text": "string"
+      },
+      "additional_native_properties": [
+        "amount_inr",
+        "client",
+        "collected_at",
+        "status",
+        "synthetic"
+      ],
+      "payload_field_types": {
+        "amount_inr": [
+          "integer"
+        ],
+        "client": [
+          "string"
+        ],
+        "collected_at": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "amount_inr",
+        "client",
+        "collected_at",
+        "id",
+        "kind",
+        "status",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "depth-cod-0007",
+        "kind": "CODCollection",
+        "title": "COD collection 0007",
+        "synthetic": true,
+        "client": "sugar",
+        "amount_inr": 1625,
+        "status": "collected",
+        "collected_at": "2026-10-12T08:00:00Z"
+      }
+    },
     {
       "label": "Campaign",
       "initial_count": 1,
@@ -310,7 +374,7 @@
     },
     {
       "label": "Decision",
-      "initial_count": 2,
+      "initial_count": 10,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -321,6 +385,7 @@
       "additional_native_properties": [
         "approved",
         "description",
+        "status",
         "synthetic"
       ],
       "payload_field_types": {
@@ -336,6 +401,9 @@
         "kind": [
           "string"
         ],
+        "status": [
+          "string"
+        ],
         "synthetic": [
           "boolean"
         ],
@@ -344,7 +412,6 @@
         ]
       },
       "required_in_initial_fixture": [
-        "approved",
         "id",
         "kind",
         "synthetic",
@@ -357,6 +424,70 @@
         "synthetic": true,
         "description": "The recorded client promise outlives the launch campaign.",
         "approved": true
+      }
+    },
+    {
+      "label": "DeliveryException",
+      "initial_count": 60,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string",
+        "search_text": "string"
+      },
+      "additional_native_properties": [
+        "client",
+        "next_action",
+        "reason",
+        "status",
+        "synthetic"
+      ],
+      "payload_field_types": {
+        "client": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "next_action": [
+          "string"
+        ],
+        "reason": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "client",
+        "id",
+        "kind",
+        "next_action",
+        "reason",
+        "status",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "depth-exception-0003",
+        "kind": "DeliveryException",
+        "title": "Hyderabad · delivery_failed",
+        "synthetic": true,
+        "reason": "incomplete_address",
+        "status": "open",
+        "next_action": "client_review",
+        "client": "havells"
       }
     },
     {
@@ -424,8 +555,102 @@
       }
     },
     {
+      "label": "Invoice",
+      "initial_count": 36,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string",
+        "search_text": "string"
+      },
+      "additional_native_properties": [
+        "amount_inr",
+        "client",
+        "currency",
+        "department",
+        "description",
+        "due_date",
+        "issue_date",
+        "status",
+        "synthetic",
+        "tax_inr"
+      ],
+      "payload_field_types": {
+        "amount_inr": [
+          "integer"
+        ],
+        "client": [
+          "string"
+        ],
+        "currency": [
+          "string"
+        ],
+        "department": [
+          "string"
+        ],
+        "description": [
+          "string"
+        ],
+        "due_date": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "issue_date": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "tax_inr": [
+          "number"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "amount_inr",
+        "client",
+        "currency",
+        "department",
+        "description",
+        "due_date",
+        "id",
+        "issue_date",
+        "kind",
+        "status",
+        "synthetic",
+        "tax_inr",
+        "title"
+      ],
+      "representative_record": {
+        "id": "depth-invoice-000",
+        "kind": "Invoice",
+        "title": "DEMO invoice 000",
+        "synthetic": true,
+        "client": "havells",
+        "amount_inr": 1200,
+        "tax_inr": 216.0,
+        "currency": "INR",
+        "status": "paid",
+        "department": "Finance",
+        "issue_date": "2026-10-12",
+        "due_date": "2026-10-26",
+        "description": "Synthetic shipping invoice. No real tariff is represented."
+      }
+    },
+    {
       "label": "Manifest",
-      "initial_count": 24,
+      "initial_count": 45,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -470,8 +695,8 @@
       }
     },
     {
-      "label": "PickupRequest",
-      "initial_count": 60,
+      "label": "Person",
+      "initial_count": 24,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -480,11 +705,79 @@
         "search_text": "string"
       },
       "additional_native_properties": [
+        "department",
+        "description",
+        "identity_type",
+        "role",
+        "synthetic"
+      ],
+      "payload_field_types": {
+        "department": [
+          "string"
+        ],
+        "description": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "identity_type": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "role": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "department",
+        "description",
+        "id",
+        "identity_type",
+        "kind",
+        "role",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "depth-person-0-0",
+        "kind": "Person",
+        "title": "DEMO Operations role 1",
+        "synthetic": true,
+        "role": "Lead",
+        "department": "Operations",
+        "identity_type": "fictional_role",
+        "description": "Synthetic role identity, not a real employee."
+      }
+    },
+    {
+      "label": "PickupRequest",
+      "initial_count": 81,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string",
+        "search_text": "string"
+      },
+      "additional_native_properties": [
+        "client",
         "pickup_date",
         "status",
         "synthetic"
       ],
       "payload_field_types": {
+        "client": [
+          "string"
+        ],
         "id": [
           "string"
         ],
@@ -523,7 +816,7 @@
     },
     {
       "label": "Policy",
-      "initial_count": 1,
+      "initial_count": 5,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -532,11 +825,15 @@
         "search_text": "string"
       },
       "additional_native_properties": [
+        "department",
         "description",
         "sunday_required",
         "synthetic"
       ],
       "payload_field_types": {
+        "department": [
+          "string"
+        ],
         "description": [
           "string"
         ],
@@ -563,8 +860,6 @@
         "description",
         "id",
         "kind",
-        "sunday_clients",
-        "sunday_required",
         "synthetic",
         "title"
       ],
@@ -581,8 +876,136 @@
       }
     },
     {
+      "label": "Remittance",
+      "initial_count": 15,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string",
+        "search_text": "string"
+      },
+      "additional_native_properties": [
+        "amount_inr",
+        "batch_reference",
+        "client",
+        "status",
+        "synthetic"
+      ],
+      "payload_field_types": {
+        "amount_inr": [
+          "integer"
+        ],
+        "batch_reference": [
+          "string"
+        ],
+        "client": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "amount_inr",
+        "batch_reference",
+        "client",
+        "id",
+        "kind",
+        "status",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "depth-remittance-0007",
+        "kind": "Remittance",
+        "title": "Settlement 0007",
+        "synthetic": true,
+        "client": "sugar",
+        "amount_inr": 0,
+        "status": "reconciling",
+        "batch_reference": "DEMO-BATCH-0007"
+      }
+    },
+    {
+      "label": "Return",
+      "initial_count": 60,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string",
+        "search_text": "string"
+      },
+      "additional_native_properties": [
+        "client",
+        "quality_check",
+        "reason",
+        "status",
+        "synthetic"
+      ],
+      "payload_field_types": {
+        "client": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "quality_check": [
+          "string"
+        ],
+        "reason": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "client",
+        "id",
+        "kind",
+        "quality_check",
+        "reason",
+        "status",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "depth-return-0004",
+        "kind": "Return",
+        "title": "Return 0004",
+        "synthetic": true,
+        "status": "return_initiated",
+        "reason": "unsuccessful_delivery",
+        "quality_check": "pending",
+        "client": "sugar"
+      }
+    },
+    {
       "label": "Route",
-      "initial_count": 24,
+      "initial_count": 45,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -593,6 +1016,7 @@
       "additional_native_properties": [
         "mode",
         "schedule",
+        "status",
         "synthetic"
       ],
       "payload_field_types": {
@@ -608,6 +1032,9 @@
         "schedule": [
           "string"
         ],
+        "status": [
+          "string"
+        ],
         "synthetic": [
           "boolean"
         ],
@@ -619,7 +1046,6 @@
         "id",
         "kind",
         "mode",
-        "schedule",
         "synthetic",
         "title"
       ],
@@ -634,7 +1060,7 @@
     },
     {
       "label": "Rule",
-      "initial_count": 3,
+      "initial_count": 7,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -650,6 +1076,7 @@
         "recorded_from",
         "recorded_to",
         "status",
+        "subject_id",
         "synthetic",
         "valid_from",
         "valid_to",
@@ -683,6 +1110,9 @@
         "status": [
           "string"
         ],
+        "subject_id": [
+          "string"
+        ],
         "synthetic": [
           "boolean"
         ],
@@ -700,9 +1130,6 @@
         ]
       },
       "required_in_initial_fixture": [
-        "client",
-        "description",
-        "facility",
         "field",
         "id",
         "kind",
@@ -734,7 +1161,7 @@
     },
     {
       "label": "ScanEvent",
-      "initial_count": 4800,
+      "initial_count": 5430,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -745,6 +1172,7 @@
       "additional_native_properties": [
         "description",
         "event_at",
+        "facility",
         "sequence",
         "synthetic"
       ],
@@ -753,6 +1181,9 @@
           "string"
         ],
         "event_at": [
+          "string"
+        ],
+        "facility": [
           "string"
         ],
         "id": [
@@ -772,7 +1203,6 @@
         ]
       },
       "required_in_initial_fixture": [
-        "description",
         "event_at",
         "id",
         "kind",
@@ -792,7 +1222,7 @@
     },
     {
       "label": "Shipment",
-      "initial_count": 1200,
+      "initial_count": 1410,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -803,8 +1233,13 @@
       "additional_native_properties": [
         "arrival_at",
         "client",
+        "declared_weight_kg",
         "description",
         "facility",
+        "measured_weight_kg",
+        "payment_mode",
+        "service_type",
+        "snapshot_at",
         "status",
         "synthetic"
       ],
@@ -814,6 +1249,9 @@
         ],
         "client": [
           "string"
+        ],
+        "declared_weight_kg": [
+          "number"
         ],
         "description": [
           "string"
@@ -825,6 +1263,18 @@
           "string"
         ],
         "kind": [
+          "string"
+        ],
+        "measured_weight_kg": [
+          "number"
+        ],
+        "payment_mode": [
+          "string"
+        ],
+        "service_type": [
+          "string"
+        ],
+        "snapshot_at": [
           "string"
         ],
         "status": [
@@ -862,7 +1312,7 @@
     },
     {
       "label": "Source",
-      "initial_count": 15,
+      "initial_count": 36,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -1003,6 +1453,140 @@
         "synthetic": true,
         "description": "Facility scheduling and processing"
       }
+    },
+    {
+      "label": "Ticket",
+      "initial_count": 8,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string",
+        "search_text": "string"
+      },
+      "additional_native_properties": [
+        "department",
+        "description",
+        "opened_at",
+        "priority",
+        "status",
+        "synthetic"
+      ],
+      "payload_field_types": {
+        "department": [
+          "string"
+        ],
+        "description": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "opened_at": [
+          "string"
+        ],
+        "priority": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "department",
+        "description",
+        "id",
+        "kind",
+        "opened_at",
+        "priority",
+        "status",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "depth-ticket-capacity",
+        "kind": "Ticket",
+        "title": "Mumbai peak capacity",
+        "synthetic": true,
+        "status": "planned",
+        "priority": "high",
+        "department": "Operations",
+        "description": "A temporary sorting backlog needs a staffing review. No outage or future delay has been predicted. Staffing approval is pending.",
+        "opened_at": "2026-10-12T08:00:00Z"
+      }
+    },
+    {
+      "label": "Vehicle",
+      "initial_count": 21,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string",
+        "search_text": "string"
+      },
+      "additional_native_properties": [
+        "capacity_kg",
+        "facility",
+        "status",
+        "synthetic",
+        "vehicle_type"
+      ],
+      "payload_field_types": {
+        "capacity_kg": [
+          "integer"
+        ],
+        "facility": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ],
+        "vehicle_type": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "capacity_kg",
+        "facility",
+        "id",
+        "kind",
+        "status",
+        "synthetic",
+        "title",
+        "vehicle_type"
+      ],
+      "representative_record": {
+        "id": "depth-vehicle-00",
+        "kind": "Vehicle",
+        "title": "DEMO fleet unit 00",
+        "synthetic": true,
+        "vehicle_type": "van",
+        "capacity_kg": 1000,
+        "status": "available",
+        "facility": "facility-mumbai"
+      }
     }
   ],
   "runtime_only_labels": {
@@ -1022,6 +1606,22 @@
     "carries_Entity_label": false
   },
   "relationship_types": [
+    {
+      "type": "AFFECTS",
+      "initial_count": 8,
+      "endpoint_label_pairs": [
+        "Ticket -> DeliveryException",
+        "Ticket -> Facility",
+        "Ticket -> Invoice",
+        "Ticket -> Remittance",
+        "Ticket -> Return",
+        "Ticket -> Route",
+        "Ticket -> Shipment"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
     {
       "type": "APPLIES_AT",
       "initial_count": 6,
@@ -1047,9 +1647,10 @@
     },
     {
       "type": "AT",
-      "initial_count": 1200,
+      "initial_count": 1431,
       "endpoint_label_pairs": [
-        "Shipment -> Facility"
+        "Shipment -> Facility",
+        "Vehicle -> Facility"
       ],
       "properties": {
         "source_ids": "array of Source IDs; empty for operational links without document provenance"
@@ -1066,8 +1667,18 @@
       }
     },
     {
+      "type": "BILLED_TO",
+      "initial_count": 36,
+      "endpoint_label_pairs": [
+        "Invoice -> Client"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
       "type": "COLLECTED_BY",
-      "initial_count": 1200,
+      "initial_count": 1410,
       "endpoint_label_pairs": [
         "Shipment -> PickupRequest"
       ],
@@ -1076,8 +1687,19 @@
       }
     },
     {
+      "type": "COVERS",
+      "initial_count": 51,
+      "endpoint_label_pairs": [
+        "CODCollection -> Shipment",
+        "Invoice -> Shipment"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
       "type": "DESTINATION",
-      "initial_count": 24,
+      "initial_count": 45,
       "endpoint_label_pairs": [
         "Route -> Facility"
       ],
@@ -1086,10 +1708,21 @@
       }
     },
     {
+      "type": "DISCUSSES",
+      "initial_count": 8,
+      "endpoint_label_pairs": [
+        "Source -> Ticket"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
       "type": "DOCUMENTED_IN",
-      "initial_count": 2,
+      "initial_count": 14,
       "endpoint_label_pairs": [
         "Campaign -> Source",
+        "Decision -> Source",
         "Policy -> Source"
       ],
       "properties": {
@@ -1108,7 +1741,7 @@
     },
     {
       "type": "FOR_CLIENT",
-      "initial_count": 1201,
+      "initial_count": 1411,
       "endpoint_label_pairs": [
         "Claim -> Client",
         "Shipment -> Client"
@@ -1119,7 +1752,7 @@
     },
     {
       "type": "FROM",
-      "initial_count": 60,
+      "initial_count": 81,
       "endpoint_label_pairs": [
         "PickupRequest -> ClientWarehouse"
       ],
@@ -1129,9 +1762,20 @@
     },
     {
       "type": "HAS_COMMITMENT",
-      "initial_count": 3,
+      "initial_count": 7,
       "endpoint_label_pairs": [
-        "Client -> Rule"
+        "Client -> Rule",
+        "Policy -> Rule"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "HAS_EXCEPTION",
+      "initial_count": 60,
+      "endpoint_label_pairs": [
+        "Shipment -> DeliveryException"
       ],
       "properties": {
         "source_ids": "array of Source IDs; empty for operational links without document provenance"
@@ -1139,7 +1783,7 @@
     },
     {
       "type": "HAS_SCAN",
-      "initial_count": 4800,
+      "initial_count": 5430,
       "endpoint_label_pairs": [
         "Shipment -> ScanEvent"
       ],
@@ -1148,8 +1792,28 @@
       }
     },
     {
+      "type": "KNOWS_ABOUT",
+      "initial_count": 24,
+      "endpoint_label_pairs": [
+        "Person -> Ticket"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "MEMBER_OF",
+      "initial_count": 24,
+      "endpoint_label_pairs": [
+        "Person -> Team"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
       "type": "ON_MANIFEST",
-      "initial_count": 1200,
+      "initial_count": 1410,
       "endpoint_label_pairs": [
         "Shipment -> Manifest"
       ],
@@ -1169,7 +1833,7 @@
     },
     {
       "type": "ORIGIN",
-      "initial_count": 24,
+      "initial_count": 45,
       "endpoint_label_pairs": [
         "Route -> Facility"
       ],
@@ -1179,11 +1843,16 @@
     },
     {
       "type": "OWNED_BY",
-      "initial_count": 5,
+      "initial_count": 196,
       "endpoint_label_pairs": [
         "Decision -> Team",
+        "DeliveryException -> Team",
+        "Invoice -> Team",
         "Policy -> Team",
-        "Rule -> Team"
+        "Remittance -> Team",
+        "Return -> Team",
+        "Rule -> Team",
+        "Ticket -> Team"
       ],
       "properties": {
         "source_ids": "array of Source IDs; empty for operational links without document provenance"
@@ -1210,12 +1879,35 @@
       }
     },
     {
+      "type": "RECONCILES",
+      "initial_count": 15,
+      "endpoint_label_pairs": [
+        "Remittance -> CODCollection"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "RETURN_OF",
+      "initial_count": 60,
+      "endpoint_label_pairs": [
+        "Return -> Shipment"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
       "type": "SUPPORTED_BY",
-      "initial_count": 5,
+      "initial_count": 113,
       "endpoint_label_pairs": [
         "Claim -> Source",
         "Decision -> Source",
-        "Rule -> Source"
+        "DeliveryException -> Source",
+        "Invoice -> Source",
+        "Rule -> Source",
+        "Ticket -> Source"
       ],
       "properties": {
         "source_ids": "array of Source IDs; empty for operational links without document provenance"
@@ -1223,7 +1915,7 @@
     },
     {
       "type": "USES_ROUTE",
-      "initial_count": 24,
+      "initial_count": 45,
       "endpoint_label_pairs": [
         "Manifest -> Route"
       ],
@@ -1232,9 +1924,20 @@
       }
     },
     {
-      "type": "WHY",
-      "initial_count": 1,
+      "type": "USES_VEHICLE",
+      "initial_count": 21,
       "endpoint_label_pairs": [
+        "Manifest -> Vehicle"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "WHY",
+      "initial_count": 9,
+      "endpoint_label_pairs": [
+        "Decision -> Ticket",
         "Rule -> Decision"
       ],
       "properties": {
@@ -1242,8 +1945,90 @@
       }
     }
   ],
-  "database_enforced_unique_constraints": [],
-  "explicit_indexes": [],
+  "database_enforced_unique_constraints": [
+    {
+      "label": "Entity",
+      "properties": [
+        "id"
+      ]
+    }
+  ],
+  "database_enforced_mandatory_constraints": [
+    {
+      "label": "Entity",
+      "properties": [
+        "id",
+        "kind",
+        "title",
+        "payload"
+      ]
+    }
+  ],
+  "explicit_indexes": [
+    {
+      "label": "Entity",
+      "properties": [
+        "id"
+      ],
+      "type": "RANGE"
+    },
+    {
+      "label": "Entity",
+      "properties": [
+        "kind"
+      ],
+      "type": "RANGE"
+    },
+    {
+      "label": "Entity",
+      "properties": [
+        "title"
+      ],
+      "type": "RANGE"
+    },
+    {
+      "label": "Rule",
+      "properties": [
+        "field"
+      ],
+      "type": "RANGE"
+    },
+    {
+      "label": "Rule",
+      "properties": [
+        "client"
+      ],
+      "type": "RANGE"
+    },
+    {
+      "label": "Rule",
+      "properties": [
+        "subject_id"
+      ],
+      "type": "RANGE"
+    },
+    {
+      "label": "Shipment",
+      "properties": [
+        "client"
+      ],
+      "type": "RANGE"
+    },
+    {
+      "label": "Shipment",
+      "properties": [
+        "status"
+      ],
+      "type": "RANGE"
+    },
+    {
+      "label": "Source",
+      "properties": [
+        "enabled"
+      ],
+      "type": "RANGE"
+    }
+  ],
   "amendment_relationship_types": [
     "SUPERSEDES",
     "AMENDED_BY"

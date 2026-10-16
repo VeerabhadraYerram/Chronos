@@ -4,7 +4,7 @@
 
 The new real-FalkorDB suite covers the 1,200-consignment graph, active commitments, required relationships, effective/recorded boundaries, source withdrawal, isolated graph-copy previews, cost provenance, idempotent replay, stale review rejection, recorded reasons, unknown questions, parameterized input, read-only tools, contextual exploration, API validation and session isolation. See [test_company_reference.py](../backend/tests/test_company_reference.py).
 
-The original 16 tests below are preserved. Together with 31 reference-workspace tests and 13 inspection/general-engine tests, the suite has **60 passing tests** at this implementation milestone. The frontend production build also passes. Provider-fallback routing is tested with a controlled transport stub; live-provider status is recorded separately, not inferred from that stub. These checks do not prove model semantic correctness, real logistics outcomes, public deployment or exact replication of Delhivery's private systems.
+The original 16 tests below are preserved. Together with 31 reference-workspace tests and 23 inspection/general-engine tests, the suite has **70 passing tests** at this implementation milestone. The frontend production build also passes. Provider-fallback routing is tested with a controlled transport stub; live-provider status is recorded separately, not inferred from that stub. These checks do not prove model semantic correctness, real logistics outcomes, public deployment or exact replication of Delhivery's private systems.
 
 
 [Run the evaluation](EVALUATION.md) · [CI workflow](../.github/workflows/ci.yml) · [Live GitHub runs](https://github.com/VeerabhadraYerram/Chronos/actions/workflows/ci.yml)
@@ -77,3 +77,11 @@ Production deployment, general source ingestion, live connectors, expertise scor
 ## General-engine live provider check
 
 On October 16, 2026 a real Groq invocation investigated the unrelated Atlas Studio fixture, selected `search_records` and `aggregate_records`, and returned INR 32,500 for the stored invoice sum. This was a manual live-provider check, separate from the deterministic 60-test suite. One earlier provider attempt failed and preserved the labeled graph-retrieval response; reliable broad semantic accuracy or model availability is not claimed. The extended fixture also tests generic document-assertion mismatches against accepted policy.
+
+## Expanded workspace and provider checks (October 16)
+
+The extended suite covers actual plural client counts that change with inserted data; typed JSON read plans executing real database arithmetic; rejection of a generated number that contradicts a database count; provider order and free-model restriction; and stale receipts when knowledge changes during inference. A controlled stub verifies routing and validation, not model semantics.
+
+Live Groq generated the correct three-client count and the expanded fixture invoice sum of INR 153,450. A live OpenRouter free model generated the COD explanation, named Finance, and explicitly declined to infer cash loss, with source IDs from the retrieved graph. Some live attempts failed from rate limits, tool formatting or response validation; Gemini was also unavailable during some checks. These are examples, not an always-correct quality guarantee. The app retains an explicit unavailable state when every provider fails.
+
+The separate database portal and main workspace are manually checked at desktop and mobile widths. Long IDs, structured values and document bodies are previewed in compact table rows; complete fields remain in the detail inspector/export. All operational data remains synthetic. See [Data scenarios](DATA_SCENARIOS.md).

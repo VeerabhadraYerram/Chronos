@@ -7,6 +7,10 @@ import {
   Position,
   MarkerType,
   type NodeProps,
+  type EdgeProps,
+  BaseEdge,
+  EdgeLabelRenderer,
+  getSmoothStepPath,
 } from "@xyflow/react";
 import {
   Building2,
@@ -105,7 +109,8 @@ function Card({ data }: NodeProps) {
         }
       }}
     >
-      <Handle type="target" position={Position.Left} />
+      <Handle id="in-left" type="target" position={Position.Left} />
+      <Handle id="out-left" type="source" position={Position.Left} />
       <div className="cg-node-top">
         <Icon size={14} />
         <span>{names[entity.kind] || entity.kind.toUpperCase()}</span>
@@ -123,10 +128,60 @@ function Card({ data }: NodeProps) {
                 ? "Click to explore responsibility"
                 : "Click to investigate"}
       </small>
-      <Handle type="source" position={Position.Right} />
+      <Handle id="out-right" type="source" position={Position.Right} />
+      <Handle id="in-right" type="target" position={Position.Right} />
     </div>
   );
 }
+function EvidenceEdge(props: EdgeProps) {
+  const { sourceX, sourceY, targetX, targetY, markerEnd, style } = props;
+  const detail = props.data as {
+    edge: Graph["edges"][number];
+    onOpen: (edge: Graph["edges"][number]) => void;
+    lane: number;
+    sameColumn: boolean;
+  };
+  let [path, x, y] = getSmoothStepPath({
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    sourcePosition: props.sourcePosition,
+    targetPosition: props.targetPosition,
+    borderRadius: 18,
+    offset: 40,
+  });
+  // Same-column links need their own lane; a midpoint label would sit on a card.
+  if (detail.sameColumn) {
+    const lane = sourceX + 105 + (detail.lane % 3) * 20;
+    const approachY = targetY - 105;
+    path = `M ${sourceX} ${sourceY} H ${lane} V ${approachY} H ${targetX - 28} V ${targetY} H ${targetX}`;
+    x = lane;
+    y = (sourceY + approachY) / 2;
+  }
+  return (
+    <>
+      <BaseEdge
+        path={path}
+        markerEnd={markerEnd}
+        style={style}
+        interactionWidth={24}
+      />
+      <EdgeLabelRenderer>
+        <button
+          className="cg-edge-label nodrag nopan"
+          style={{
+            transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`,
+          }}
+          onClick={() => detail.onOpen(detail.edge)}
+        >
+          {props.label}
+        </button>
+      </EdgeLabelRenderer>
+    </>
+  );
+}
+const edgeTypes = { evidence: EvidenceEdge };
 const nodeTypes = { evidence: Card };
 export default function CompanyGraph({
   graph,
@@ -145,7 +200,7 @@ export default function CompanyGraph({
   const [showAll, setShowAll] = useState(false);
   const { nodes, edges } = useMemo(() => {
     const tiers: Record<string, number> = {
-      Client: 0,
+      Client: graph.nodes.some((n) => n.kind === "Company") ? 1 : 0,
       Company: 0,
       Rule: 1,
       Decision: 1,
@@ -173,38 +228,67 @@ export default function CompanyGraph({
       return {
         id: n.id,
         type: "evidence",
-        position: { x: c * 300, y: row * 185 - (col.length - 1) * 92.5 },
+        position: { x: c * 470, y: row * 230 - (col.length - 1) * 115 },
         data: { entity: n, selected: n.id === selected },
         draggable: true,
       };
     });
     const ids = new Set(nodes.map((n) => n.id));
+    const column = Object.fromEntries(nodes.map((n) => [n.id, n.position.x]));
     const edges = graph.edges
       .filter((e) => ids.has(e.source) && ids.has(e.target))
       .map((e, i) => ({
         id: `${e.source}-${e.relation}-${e.target}-${i}`,
         source: e.source,
         target: e.target,
+        sourceHandle:
+          column[e.source] <= column[e.target] ? "out-right" : "out-left",
+        targetHandle:
+          column[e.source] <= column[e.target] ? "in-left" : "in-right",
         label: relationLabel(e.relation),
-        data: { edge: e },
-        type: "smoothstep",
+        data: {
+          edge: e,
+          onOpen: onEdge,
+          lane: i,
+          sameColumn: column[e.source] === column[e.target],
+        },
+        type: "evidence",
+        zIndex:
+          selected &&
+          (e.source === selected ||
+            e.target === selected ||
+            e.source_ids.includes(selected))
+            ? 5
+            : 1,
+        pathOptions: { offset: 45, borderRadius: 18 },
         markerEnd: { type: MarkerType.ArrowClosed, color: "#a3acae" },
         style: {
           stroke:
-            selected && (e.source === selected || e.target === selected)
+            selected &&
+            (e.source === selected ||
+              e.target === selected ||
+              e.source_ids.includes(selected))
               ? "#b77b40"
               : "#b5c0be",
           strokeWidth:
-            selected && (e.source === selected || e.target === selected)
+            selected &&
+            (e.source === selected ||
+              e.target === selected ||
+              e.source_ids.includes(selected))
               ? 2.2
               : 1.5,
         },
         labelStyle: { fontSize: 14, fill: "#46554d" },
-        labelBgStyle: { fill: "#fafbf8" },
-        labelBgPadding: [6, 4] as [number, number],
+        labelBgStyle: {
+          fill: "#ffffff",
+          fillOpacity: 1,
+          stroke: "#d4dfd1",
+          strokeWidth: 1,
+        },
+        labelBgPadding: [10, 7] as [number, number],
       }));
     return { nodes, edges };
-  }, [graph, selected]);
+  }, [graph, selected, onEdge]);
   const relationOrder = [
     "HAS_COMMITMENT",
     "SUPPORTED_BY",
@@ -273,7 +357,15 @@ export default function CompanyGraph({
                 className="cg-trail-row"
               >
                 {nodeButton(a)}
-                <button className="cg-trail-relation" onClick={() => onEdge(e)}>
+                <button
+                  className={
+                    "cg-trail-relation " +
+                    (selected && e.source_ids.includes(selected)
+                      ? "provenance-selected"
+                      : "")
+                  }
+                  onClick={() => onEdge(e)}
+                >
                   <span>{relationLabel(e.relation)}</span>
                   <ArrowRight size={15} />
                 </button>
@@ -304,6 +396,7 @@ export default function CompanyGraph({
             nodes={nodes}
             edges={edges}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             onNodeClick={(_, n) => onSelect(n.data.entity)}
             onEdgeClick={(_, e) => {
               if (e.data?.edge) onEdge(e.data.edge);

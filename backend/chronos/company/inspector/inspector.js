@@ -3,7 +3,7 @@ const $ = (id) => document.getElementById(id);
 let session = "",
   catalog = null,
   label = "",
-  view = "records",
+  view = "overview",
   offset = 0,
   total = 0,
   relation = "",
@@ -11,6 +11,23 @@ let session = "",
   detailOffset = 0,
   busy = false;
 const limit = 50;
+const readable = (name) =>
+  name
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+    .replace(/([a-z])([A-Z])/g, "$1 $2");
+const explanations = {
+  Rule: "Accepted policy versions. Effective and recorded dates determine which version applies; a proposal cannot override them.",
+  Claim:
+    "What a document states. A statement can be outdated and does not override an accepted policy.",
+  Receipt:
+    "Saved investigations and their evidence snapshots. These are historical outputs, excluded from the agent's company-evidence tools.",
+  Source:
+    "Original excerpts, tickets, chats and public references. Open a record to read its text, classification, content hash and connections.",
+  Action:
+    "Local drafts prepared for human review. These are not externally published actions.",
+  Shipment:
+    "Synthetic consignments with client and facility connections. October snapshots and the planned November demo cohort are separate.",
+};
 const el = (tag, text, cls) => {
   const n = document.createElement(tag);
   if (text !== undefined)
@@ -69,7 +86,7 @@ function table(columns, rows, cell) {
     head = el("thead"),
     hr = el("tr");
   for (const c of columns) {
-    const th = el("th", c);
+    const th = el("th", c.replaceAll("_", " "));
     th.dataset.column = c;
     hr.append(th);
   }
@@ -82,7 +99,9 @@ function table(columns, rows, cell) {
       const td = el("td");
       td.dataset.column = c;
       const custom = cell?.(c, row);
-      td.append(custom || el("span", value(row[c])));
+      const preview = el("span", value(row[c]), "cell-preview");
+      preview.title = value(row[c]);
+      td.append(custom || preview);
       tr.append(td);
     }
     body.append(tr);
@@ -92,7 +111,9 @@ function table(columns, rows, cell) {
   return wrap;
 }
 function link(id, title) {
-  const b = el("button", title || id, "link");
+  const b = el("button", title || id, "link cell-preview");
+  b.title = id;
+  b.setAttribute("aria-label", "Inspect " + (title || id));
   b.onclick = () => task(() => inspect(id));
   return b;
 }
@@ -122,25 +143,92 @@ async function connect(fresh = false) {
 }
 async function refresh() {
   catalog = await api("catalog");
+  const priority = [
+    "Company",
+    "Client",
+    "Team",
+    "Person",
+    "Decision",
+    "Source",
+    "Ticket",
+    "Rule",
+    "Policy",
+    "Claim",
+    "Facility",
+  ];
+  catalog.labels.sort(
+    (a, b) =>
+      (priority.includes(a.label) ? priority.indexOf(a.label) : 99) -
+        (priority.includes(b.label) ? priority.indexOf(b.label) : 99) ||
+      a.label.localeCompare(b.label),
+  );
   $("totals").textContent =
     `${catalog.records.toLocaleString()} records · ${catalog.connections.toLocaleString()} relationships · schema v${catalog.metadata.schema_version} · knowledge revision ${catalog.metadata.revision}`;
   $("workspace-title").textContent =
     catalog.company?.title || "Workspace " + session.slice(0, 8);
   $("disclosure").textContent = catalog.disclosure;
   $("tables").replaceChildren();
-  for (const item of catalog.labels) {
-    const b = el("button", item.label);
-    b.append(el("span", item.count.toLocaleString()));
-    b.classList.toggle("active", label === item.label);
-    b.onclick = () =>
-      task(async () => {
-        label = item.label;
-        view = "records";
-        offset = 0;
-        $("search").value = "";
-        await render();
-      });
-    $("tables").append(b);
+  const groups = [
+    [
+      "Company knowledge",
+      (x) =>
+        ![
+          "Shipment",
+          "ScanEvent",
+          "Manifest",
+          "Route",
+          "PickupRequest",
+          "Return",
+          "DeliveryException",
+          "CODCollection",
+          "Remittance",
+          "Invoice",
+          "Vehicle",
+          "Receipt",
+          "Action",
+          "Event",
+          "Metadata",
+        ].includes(x.label),
+    ],
+    [
+      "Operations & finance",
+      (x) =>
+        [
+          "Shipment",
+          "ScanEvent",
+          "Manifest",
+          "Route",
+          "PickupRequest",
+          "Return",
+          "DeliveryException",
+          "CODCollection",
+          "Remittance",
+          "Invoice",
+          "Vehicle",
+        ].includes(x.label),
+    ],
+    [
+      "Investigation history & setup",
+      (x) => ["Receipt", "Action", "Event", "Metadata"].includes(x.label),
+    ],
+  ];
+  for (const [name, matches] of groups) {
+    $("tables").append(el("p", name, "nav-group"));
+    for (const item of catalog.labels.filter(matches)) {
+      const b = el("button", readable(item.label));
+      b.dataset.label = item.label;
+      b.append(el("span", item.count.toLocaleString()));
+      b.classList.toggle("active", label === item.label);
+      b.onclick = () =>
+        task(async () => {
+          label = item.label;
+          view = "records";
+          offset = 0;
+          $("search").value = "";
+          await render();
+        });
+      $("tables").append(b);
+    }
   }
   if (!label)
     label =
@@ -160,7 +248,10 @@ async function render() {
     .querySelectorAll("[data-view]")
     .forEach((b) => b.classList.toggle("active", b.dataset.view === view));
   [...$("tables").children].forEach((b) =>
-    b.classList.toggle("active", b.firstChild.textContent === label),
+    b.classList.toggle(
+      "active",
+      view === "records" && b.dataset.label === label,
+    ),
   );
   $("search-form").hidden = !["records", "relationships"].includes(view);
   $("search").hidden = view !== "records";
@@ -169,15 +260,66 @@ async function render() {
   $("pagination").hidden = !["records", "relationships"].includes(view);
   $("content").replaceChildren();
   $("table-title").textContent =
-    view === "records"
-      ? label
-      : view === "relationships"
-        ? "Relationships"
-        : view === "schema"
-          ? "Live schema & enforcement"
-          : "Structural integrity";
+    view === "overview"
+      ? "Start your review"
+      : view === "records"
+        ? readable(label)
+        : view === "relationships"
+          ? "Relationships"
+          : view === "schema"
+            ? "Live schema & enforcement"
+            : "Structural integrity";
   $("count").textContent = "";
-  if (view === "records") {
+  if (view === "overview") {
+    const intro = el("section", undefined, "review-intro");
+    intro.append(
+      el("h3", "Follow a record. Check its evidence. Verify the answer."),
+      el(
+        "p",
+        "Browse company knowledge or operational records on the left. Open any record to inspect every field and follow its real connections. Nothing is hidden by the compact table previews.",
+      ),
+    );
+    $("content").append(intro);
+    const grid = el("div", undefined, "overview-grid");
+    for (const item of catalog.labels.filter(
+      (x) => !["Metadata", "Receipt", "Action", "Event"].includes(x.label),
+    )) {
+      const card = el("button", undefined, "overview-card secondary");
+      card.append(
+        el("strong", item.count.toLocaleString()),
+        el("span", readable(item.label)),
+        el(
+          "small",
+          Object.keys(item.fields).length + " fields · explore records →",
+        ),
+      );
+      card.onclick = () =>
+        task(async () => {
+          label = item.label;
+          view = "records";
+          offset = 0;
+          $("search").value = "";
+          await render();
+        });
+      grid.append(card);
+    }
+    $("content").append(grid);
+    const note = el("section", undefined, "schema-card");
+    note.append(
+      el("h3", "What is stored here?"),
+      el(
+        "p",
+        "Business records are synthetic examples, connected in FalkorDB. Receipts preserve previous investigations; they are historical outputs, not answers fed back as company facts. Metadata contains schema versions and guided-tour questions/replay controls. It does not contain prewritten answers to arbitrary questions.",
+      ),
+      el(
+        "p",
+        "Use Schema & indexes for observed fields and database enforcement, Integrity checks for structural validation, or Download full JSON for the complete snapshot.",
+      ),
+    );
+    $("content").append(note);
+  } else if (view === "records") {
+    if (explanations[label])
+      $("content").append(el("p", explanations[label], "record-explanation"));
     const data = await api("rows", {
       label,
       query: $("search").value,
@@ -190,6 +332,10 @@ async function render() {
       "id",
       "title",
       "status",
+      "mode",
+      "created_at",
+      "revision",
+      "schema_version",
       "client",
       "department",
       "source_type",
@@ -201,33 +347,33 @@ async function render() {
       "event_at",
       "arrival_at",
     ];
+    // Keep large documents, nested objects and runtime payloads out of row previews.
+    // All values remain available in the record inspector and JSON export.
     const columns = [
-      ...new Set([
-        ...preferred.filter((k) => k in fields),
-        ...Object.keys(fields).filter(
-          (k) =>
-            ![
-              "excerpt",
-              "description",
-              "search_text",
-              "payload",
-              "kind",
-              "content_hash",
-              "synthetic",
-            ].includes(k),
-        ),
-      ]),
-    ].slice(0, 8);
+      "title",
+      ...preferred.filter((k) => k !== "id" && k !== "title" && k in fields),
+    ].slice(0, 5);
     const rows = data.rows.map((r) => r.record);
     $("content").append(
-      table(columns, rows, (c, r) => (c === "id" ? link(r.id) : null)),
+      table(columns, rows, (c, r) =>
+        c === "title" ? link(r.id, r.title || r.id) : null,
+      ),
     );
+    if (label === "Metadata")
+      $("content").prepend(
+        el(
+          "p",
+          "Workspace configuration: guided questions and replay controls, not model answers. Open the dataset record to see the complete configuration.",
+          "note",
+        ),
+      );
     if (!rows.length)
       $("content").append(
         el("p", "No matching records. Clear the search to browse every row."),
       );
     $("count").textContent =
-      total.toLocaleString() + " records · select an ID for all fields";
+      total.toLocaleString() +
+      " records · open a record for all fields and connections";
   } else if (view === "relationships") {
     const data = await api("relationships", { relation, offset, limit });
     total = data.total;
@@ -294,7 +440,7 @@ async function render() {
 function edgeTable(rows) {
   return table(["source", "relation", "target", "properties"], rows, (c, r) =>
     c === "source" || c === "target"
-      ? link(r[c], r[c] + " · " + r[c + "_title"])
+      ? link(r[c], r[c + "_title"] || r[c])
       : null,
   );
 }
@@ -306,7 +452,21 @@ async function inspect(id) {
     data.label + " · " + (data.record.title || id);
   const dl = el("dl", undefined, "field-list");
   for (const [k, v] of Object.entries(data.record)) {
-    dl.append(el("dt", k), el("dd", value(v)));
+    const dd = el("dd");
+    if (typeof v === "object" && v !== null) {
+      const disclosure = el("details");
+      disclosure.append(
+        el(
+          "summary",
+          Array.isArray(v)
+            ? `${v.length} items · expand`
+            : "Structured data · expand",
+        ),
+        el("pre", JSON.stringify(v, null, 2)),
+      );
+      dd.append(disclosure);
+    } else dd.append(el("span", value(v)));
+    dl.append(el("dt", k.replaceAll("_", " ")), dd);
   }
   $("detail-body").replaceChildren(dl);
   const native = el("details");
