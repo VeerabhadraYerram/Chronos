@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from .seed import CLIENTS
+from .alerts import commitment_context, investigation_alerts
 
 
 def evaluate(store, effective, known, client="all", close=True):
@@ -162,6 +163,8 @@ def answer(store, request):
     request = request.model_copy(update={"client": client})
     result = evaluate(store, request.effective_at, request.known_at, client)
     intent = infer_intent(q)
+    relevant_commitments = commitment_context(q, intent, focus)
+    evidence_gap = False
     sources = {r["source"]["id"]: r["source"] for r in result["rows"]}
     search = store.search(request.question)
     for n in search:
@@ -206,6 +209,7 @@ def answer(store, request):
                 + json.loads(reason[0][0])["excerpt"]
             )
         else:
+            evidence_gap = True
             summary = "The retrieved records do not establish a recorded reason for this selection. A processing schedule alone does not explain why it was agreed."
     elif intent == "owners":
         owners = store.owners(request.focus_id or "facility-bengaluru")
@@ -216,6 +220,7 @@ def answer(store, request):
                 + ". The responsibility matrix assigns client amendments to Account Management, staffing assumptions to Finance, and dispatch updates to Transport. These are demo roles, not named real employees."
             )
         else:
+            evidence_gap = True
             summary = "No direct owner relationship was retrieved for the selected item. The demo responsibility matrix identifies Operations for facility hours and Account Management for client amendments; this does not prove ownership of every record."
     elif intent == "cost":
         cost = store.get("source-finance")
@@ -231,6 +236,7 @@ def answer(store, request):
         relevant = [
             n for n in search if n["kind"] not in {"Facility", "Team", "Company"}
         ]
+        evidence_gap = not relevant
         summary = (
             (
                 "I found related records: "
@@ -294,7 +300,9 @@ def answer(store, request):
     havells = next((c for c in result["checks"] if c["client"] == "havells"), None)
     for doc in store.documents():
         if (
-            havells
+            supported_scope
+            and relevant_commitments
+            and havells
             and havells["sunday_required"] is False
             and "havells" in doc["policy"].get("sunday_clients", [])
         ):
@@ -322,6 +330,7 @@ def answer(store, request):
         stale=False,
         mode="graph_search",
         intent=intent,
+        commitment_context=relevant_commitments and supported_scope,
         documents_to_review=documents,
         trace=[
             dict(
@@ -353,6 +362,12 @@ def answer(store, request):
                 if getattr(error, "code", None) == 503
                 else "The AI investigator did not complete this run. Verified graph checks are retained. Check configured provider access and quota locally."
             )
+    # Model prose cannot create, remove, or select the deterministic alert categories.
+    receipt["alerts"] = investigation_alerts(
+        receipt,
+        relevant_commitments,
+        evidence_gap and supported_scope and receipt["mode"] == "graph_search",
+    )
     receipt["total_ms"] = round((time.perf_counter() - start) * 1000, 2)
     store.upsert(receipt)
     store.write("MATCH (r:Receipt {id:$id}) SET r.stale=false", dict(id=receipt["id"]))

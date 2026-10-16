@@ -32,6 +32,14 @@ export type CompanyReceipt = {
   id: string;
   title: string;
   summary: string;
+  commitment_context?: boolean;
+  alerts?: {
+    category: string;
+    severity: "info" | "warning" | "success";
+    title: string;
+    message: string;
+    source_ids: string[];
+  }[];
   citations?: string[];
   provider?: string;
   model?: string;

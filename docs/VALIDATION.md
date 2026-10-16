@@ -4,7 +4,7 @@
 
 The new real-FalkorDB suite covers the 1,200-consignment graph, active commitments, required relationships, effective/recorded boundaries, source withdrawal, isolated graph-copy previews, cost provenance, idempotent replay, stale review rejection, recorded reasons, unknown questions, parameterized input, read-only tools, contextual exploration, API validation and session isolation. See [test_company_reference.py](../backend/tests/test_company_reference.py).
 
-The original 16 tests below are preserved. Together with the new 23 integration tests, the suite has **39 passing tests** at this implementation milestone. The frontend production build also passes. Provider-fallback routing is tested with a controlled transport stub; live-provider status is recorded separately, not inferred from that stub. These checks do not prove model semantic correctness, real logistics outcomes, public deployment or exact replication of Delhivery's private systems.
+The original 16 tests below are preserved. Together with the new 31 integration tests, the suite has **47 passing tests** at this implementation milestone. The frontend production build also passes. Provider-fallback routing is tested with a controlled transport stub; live-provider status is recorded separately, not inferred from that stub. These checks do not prove model semantic correctness, real logistics outcomes, public deployment or exact replication of Delhivery's private systems.
 
 
 [Run the evaluation](EVALUATION.md) · [CI workflow](../.github/workflows/ci.yml) · [Live GitHub runs](https://github.com/VeerabhadraYerram/Chronos/actions/workflows/ci.yml)
@@ -21,7 +21,7 @@ The script requires installed dependencies and a reachable real database. It use
 
 | Check | Command | Local result |
 | --- | --- | --- |
-| Integration suite | `PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q` | 39 passed |
+| Integration suite | `PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q` | 47 passed |
 | Business scenario | `PYTHONPATH=backend .venv/bin/python scripts/evaluate.py` | 12 expected outcomes checked |
 | Frontend | `npm --prefix frontend run build` | TypeScript check and production build passed |
 | Documentation | `.venv/bin/python scripts/check_docs.py` | Local links, heading anchors, and image targets checked |

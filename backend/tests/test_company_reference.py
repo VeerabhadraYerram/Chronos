@@ -282,3 +282,68 @@ def test_amended_commitment_flags_graph_connected_handbook(store):
     assert r["documents_to_review"][0]["id"] == "policy-schedule"
     store.write("MATCH (:Policy)-[r:APPLIES_AT]->(:Facility) DELETE r")
     assert answer(store, query())["documents_to_review"] == []
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Who owns the Bengaluru facility?",
+        "What are the Sunday staffing costs?",
+        "How many Sunday consignments are recorded?",
+        "Why did we promise Sunday processing to Havells?",
+    ],
+)
+def test_information_queries_do_not_inherit_closure_warning(store, question):
+    r = answer(store, query(question=question))
+    assert r["assessment"] == "conflict"  # Audit check is retained, not a UI verdict.
+    assert "commitment_conflict" not in {a["category"] for a in r["alerts"]}
+    if not r["commitment_context"]:
+        assert r["documents_to_review"] == []
+
+
+def test_alerts_follow_actual_commitments_and_document_relationships(store):
+    original = answer(store, query())
+    alert = next(
+        a for a in original["alerts"] if a["category"] == "commitment_conflict"
+    )
+    assert alert["source_ids"] == ["source-havells-agreement"]
+    store.replay("amendment")
+    amended = answer(store, query())
+    assert {a["category"] for a in amended["alerts"]} == {
+        "no_modeled_conflict",
+        "document_outdated",
+    }
+    owner = answer(store, query(question="Who owns the Bengaluru facility?"))
+    assert owner["alerts"] == []
+    assert owner["documents_to_review"] == []
+
+
+def test_scope_and_withdrawal_alerts_do_not_report_false_permission(store):
+    outside = answer(store, query(question="Can we close Mumbai on Sundays?"))
+    assert [a["category"] for a in outside["alerts"]] == ["outside_scope"]
+    assert not outside["commitment_context"]
+    store.replay("withdraw")
+    missing = answer(store, query())
+    assert [a["category"] for a in missing["alerts"]] == ["evidence_incomplete"]
+
+
+def test_ai_failure_is_separate_from_company_policy_alerts(store, monkeypatch):
+    from chronos.company import agent
+
+    def unavailable(*args):
+        raise RuntimeError("private upstream detail must never appear")
+
+    monkeypatch.setattr(agent, "run_investigator", unavailable)
+    r = answer(
+        store, query(question="Who owns the Bengaluru facility?", use_gemini=True)
+    )
+    assert [a["category"] for a in r["alerts"]] == ["investigator_unavailable"]
+    assert "private upstream detail" not in str(r["alerts"])
+
+
+def test_focused_applicability_followup_keeps_document_alert_relevant(store):
+    store.replay("amendment")
+    rule = answer(store, query())["checks"][0]["rule_ids"][0]
+    r = answer(store, query(question="Does this still apply?", focus_id=rule))
+    assert r["commitment_context"]
+    assert [a["category"] for a in r["alerts"]] == ["document_outdated"]

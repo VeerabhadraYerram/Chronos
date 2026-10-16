@@ -18,6 +18,7 @@ import {
   Plus,
   Search,
   ShieldAlert,
+  Info,
   ShieldCheck,
   Sparkles,
   X,
@@ -596,14 +597,40 @@ export default function CompanyWorkspace() {
               {receipt ? (
                 <section className="co-answer">
                   <div className="co-answer-top">
-                    <span className={"co-status " + receipt.assessment}>
-                      {receipt.assessment === "conflict" ? (
-                        <ShieldAlert size={15} />
+                    <div
+                      className="co-alerts"
+                      aria-label="Investigation alerts"
+                      aria-live="polite"
+                    >
+                      {receipt.stale || changed ? (
+                        <span className="co-status co-alert warning">
+                          <Clock3 size={17} />
+                          Context needs refresh
+                        </span>
                       ) : (
-                        <ShieldCheck size={15} />
-                      )}{" "}
-                      {status(receipt.assessment)}
-                    </span>
+                        receipt.alerts?.map((alert) => (
+                          <details
+                            className={"co-alert-detail " + alert.severity}
+                            key={alert.category}
+                          >
+                            <summary
+                              className={"co-status co-alert " + alert.severity}
+                            >
+                              {alert.severity === "warning" ? (
+                                <ShieldAlert size={17} />
+                              ) : alert.severity === "success" ? (
+                                <ShieldCheck size={17} />
+                              ) : (
+                                <Info size={17} />
+                              )}
+                              {alert.title}
+                              <ChevronRight size={14} />
+                            </summary>
+                            <p>{alert.message}</p>
+                          </details>
+                        ))
+                      )}
+                    </div>
                     <span>
                       {receipt.mode === "gemini_agent" ||
                       receipt.mode === "groq_agent"
@@ -638,34 +665,30 @@ export default function CompanyWorkspace() {
                       </button>
                     ))}
                   </div>
-                  {!!receipt.documents_to_review?.length && (
-                    <div className="co-doc-review">
-                      <Clock3 size={16} />
-                      <div>
-                        <strong>One operating document needs review</strong>
-                        {receipt.documents_to_review.map((d) => (
-                          <button
-                            key={d.id}
-                            onClick={() => {
-                              const source = session?.sources.find(
-                                (s) => s.id === d.source_id,
-                              );
-                              if (source) setSelected(source);
-                            }}
-                          >
-                            {d.title}: {d.reason}
-                            <ArrowUpRight size={12} />
-                          </button>
-                        ))}
+                  {!receipt.stale &&
+                    !changed &&
+                    !!receipt.documents_to_review?.length && (
+                      <div className="co-doc-review">
+                        <Clock3 size={16} />
+                        <div>
+                          <strong>One operating document needs review</strong>
+                          {receipt.documents_to_review.map((d) => (
+                            <button
+                              key={d.id}
+                              onClick={() => {
+                                const source = session?.sources.find(
+                                  (s) => s.id === d.source_id,
+                                );
+                                if (source) setSelected(source);
+                              }}
+                            >
+                              {d.title}: {d.reason}
+                              <ArrowUpRight size={12} />
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {receipt.provider_note && (
-                    <p className="co-provider-note">{receipt.provider_note}</p>
-                  )}
-                  {receipt.agent_error && (
-                    <p className="co-agent-error">{receipt.agent_error}</p>
-                  )}
+                    )}
                   {(receipt.stale || changed) && (
                     <div className="co-stale">
                       <Clock3 size={14} />
@@ -683,28 +706,31 @@ export default function CompanyWorkspace() {
                     </div>
                   )}
                   <div className="co-answer-evidence">
-                    {receipt.checks.map((c) => (
-                      <button
-                        key={c.client}
-                        onClick={() => {
-                          setClient(c.client);
-                          void ask(
-                            `Does ${c.title} still require Sunday processing?`,
-                            c.client,
-                          );
-                        }}
-                      >
-                        <span className={"co-dot " + c.status} />
-                        {c.title}
-                        <small>
-                          {c.sunday_required === null
-                            ? "Evidence incomplete"
-                            : c.sunday_required
-                              ? "Sunday required"
-                              : "Six-day processing"}
-                        </small>
-                      </button>
-                    ))}
+                    {receipt.commitment_context &&
+                      !receipt.stale &&
+                      !changed &&
+                      receipt.checks.map((c) => (
+                        <button
+                          key={c.client}
+                          onClick={() => {
+                            setClient(c.client);
+                            void ask(
+                              `Does ${c.title} still require Sunday processing?`,
+                              c.client,
+                            );
+                          }}
+                        >
+                          <span className={"co-dot " + c.status} />
+                          {c.title}
+                          <small>
+                            {c.sunday_required === null
+                              ? "Evidence incomplete"
+                              : c.sunday_required
+                                ? "Sunday required"
+                                : "Six-day processing"}
+                          </small>
+                        </button>
+                      ))}
                   </div>
                 </section>
               ) : (
@@ -1233,8 +1259,17 @@ export default function CompanyWorkspace() {
               {session?.receipts.length ? (
                 session.receipts.map((r) => (
                   <button key={r.id} onClick={() => restore(r)}>
-                    <span className={"co-status " + r.assessment}>
-                      {r.stale ? "Outdated context" : status(r.assessment)}
+                    <span
+                      className={
+                        "co-status co-alert " +
+                        (r.stale
+                          ? "warning"
+                          : r.alerts?.[0]?.severity || "info")
+                      }
+                    >
+                      {r.stale
+                        ? "Outdated context"
+                        : r.alerts?.[0]?.title || "Saved investigation"}
                     </span>
                     <h3>{r.title}</h3>
                     <p>{r.summary}</p>

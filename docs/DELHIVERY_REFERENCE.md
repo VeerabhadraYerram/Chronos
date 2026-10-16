@@ -31,6 +31,26 @@ The AI investigator is enabled by default for new browser sessions when a server
 
 For the full field dictionary, physical storage layout, relational equivalents, lifecycle rules and Cypher examples, see [Database & schema](DATABASE.md).
 
+## Contextual alerts and readability
+
+Investigation badges describe the current question and verified evidence, rather than repeating a closure verdict on every answer. Expand a badge to read its reason.
+
+| Category | When it appears |
+| --- | --- |
+| Commitment conflict | A closure-related question and a supported active commitment that full Sunday closure would violate |
+| Evidence incomplete | A commitment-related question with missing or ambiguous supported requirements |
+| No modeled conflict | A closure-related question with complete supported requirements and no modeled commitment conflict; not operational approval |
+| Operating document needs review | A commitment-related question where the graph-connected handbook still schedules Havells despite the applicable amendment |
+| Answer evidence missing | Graph-only retrieval cannot establish the requested reason, owner or matching record |
+| Outside modeled scope | The question asks about another facility's closure policy |
+| Backup AI provider used | A provider fallback actually occurred |
+| AI investigator unavailable | The requested investigator failed; graph retrieval remains available |
+| Context needs refresh | Saved evidence changed, or dates/client differ from the displayed investigation; current verdict badges are suppressed |
+
+Ownership, cost and simple consignment-count questions do not inherit Sunday-closure warnings or client-status pills. Existing saved investigations without structured alert metadata receive a neutral label. Alert relevance uses conservative workflow-specific text rules, not a general natural-language policy parser. The comparison page always evaluates its explicit scheduling proposal. Alerts do not change accepted policies.
+
+The interface uses larger body text, 12–14 px supporting labels, 17 px answers, higher-contrast text on light surfaces, expandable alert explanations, and responsive wrapping. The readable evidence trail remains the default; the spatial map supports zoom controls.
+
 ## Dataset and schema
 
 The initial seed has **6,153 business entities and 9,775 relationships**, including:

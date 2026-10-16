@@ -172,7 +172,7 @@ export default function CompanyGraph({
       return {
         id: n.id,
         type: "evidence",
-        position: { x: c * 280, y: row * 150 - (col.length - 1) * 75 },
+        position: { x: c * 300, y: row * 185 - (col.length - 1) * 92.5 },
         data: { entity: n, selected: n.id === selected },
         draggable: true,
       };
@@ -198,7 +198,7 @@ export default function CompanyGraph({
               ? 2.2
               : 1.5,
         },
-        labelStyle: { fontSize: 11, fill: "#65716d" },
+        labelStyle: { fontSize: 14, fill: "#46554d" },
         labelBgStyle: { fill: "#fafbf8" },
         labelBgPadding: [6, 4] as [number, number],
       }));
