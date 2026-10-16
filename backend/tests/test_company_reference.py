@@ -6,7 +6,12 @@ from fastapi.testclient import TestClient
 from chronos.app import app
 from chronos.company.store import CompanyStore
 from chronos.company.api import Query
-from chronos.company.engine import answer, evaluate, simulate, prepare
+from chronos.company.engine import (
+    scenario_answer as answer,
+    evaluate,
+    simulate,
+    prepare,
+)
 
 
 @pytest.fixture(scope="module")
@@ -27,7 +32,13 @@ def store(base):
 
 
 def query(**changes):
-    return Query(session_id="a" * 32, **changes)
+    defaults = dict(
+        question="Can we close the Bengaluru facility on Sundays?",
+        effective_at="2026-11-08T12:00:00Z",
+        known_at="2026-10-16T12:00:00Z",
+    )
+    defaults.update(changes)
+    return Query(session_id="a" * 32, **defaults)
 
 
 def test_operational_dataset_is_real_connected_graph(store):
@@ -189,7 +200,9 @@ def test_api_uses_real_session_store_and_validates_scope(store, monkeypatch):
         json={"session_id": "a" * 32, "question": "Can we close Sundays?"},
     )
     assert response.status_code == 200
-    assert response.json()["assessment"] == "conflict"
+    assert response.json()["assessment"] == "not_assessed"
+    assert response.json()["intent"] == "company_investigation"
+    assert response.json()["sources"]
     assert client.post("/api/company/simulate", json={"session_id": "a" * 32}).json()[
         "base_unchanged"
     ]

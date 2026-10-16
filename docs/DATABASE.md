@@ -27,7 +27,7 @@ Session creation is capped at **40** per reference registry. No automatic expiry
 
 ## 3. Initial dataset size
 
-The deterministic seed contains **6,153 business entities**, **9,775 directed relationships**, and a separate `Metadata` revision record. These are initial fixture counts, not a claim about Delhivery's real scale. Replays, receipts, review packets and session bookkeeping add records.
+The deterministic seed contains **6,154 business entities**, **9,779 directed relationships**, and a separate `Metadata` revision record. These are initial fixture counts, not a claim about Delhivery's real scale. Replays, receipts, review packets and session bookkeeping add records.
 
 | Graph label | SQL-table equivalent | Initial rows/nodes | Example ID |
 | --- | --- | ---: | --- |
@@ -52,7 +52,7 @@ The deterministic seed contains **6,153 business entities**, **9,775 directed re
 | `DemoSession` | session_registry | 0 | Created in the reference registry |
 | `Metadata` | dataset_metadata | 1 | `dataset` |
 
-`Metadata` does not carry `Entity`, so it is outside the 6,153 business-node total. Business statistics exclude `Receipt`, `Action`, and `DemoSession`. The relationship counter includes all `Entity` relationships present, including later receipt links; the initial count has no receipt links.
+`Metadata` does not carry `Entity`, so it is outside the 6,154 business-node total. Business statistics exclude `Receipt`, `Action`, and `DemoSession`. The relationship counter includes all `Entity` relationships present, including later receipt links; the initial count has no receipt links.
 
 Four sources are curated public references; eleven are synthetic company records. Replaying the amendment adds one source and two rule versions while retaining the original belief.
 
@@ -69,24 +69,21 @@ Every business record has the shared label `Entity` and its domain label. A clie
 | `title` | string | Human-readable name and searchable summary |
 | `payload` | JSON-encoded string | Complete domain record, including the common fields |
 
-Most domain-specific properties live **inside `payload`**, not as separate native FalkorDB properties. The backend decodes the payload after retrieval. This is an explicit prototype tradeoff: simple record storage and inspection, with fewer native fields available for direct filtering.
+All scalar domain fields with safe property names are now mirrored as native FalkorDB properties, including rule values, source availability, shipment status/times, invoice amounts, and custom imported fields. The complete JSON `payload` preserves nested arrays/objects and the full record. `search_text` is a native discovery projection. Runtime `Receipt.stale` and registry creation times are native lifecycle fields; serialized receipts preserve their original context.
 
-### Additional native properties
+### Physical schema v4
 
-| Label | Additional native properties |
-| --- | --- |
-| `Rule` | `client`, `facility`, `field`, `status`, `valid_from`, `valid_to`, `recorded_from`, `recorded_to` |
-| `Receipt` | `stale`, initialized by the ask endpoint and updated by revision invalidation |
-| `DemoSession` | `created`, epoch seconds used as creation metadata |
-| `Metadata` | `id`, `revision`; separate node without a JSON payload |
+- **UNIQUE** on `Entity.id`; **MANDATORY** on `Entity.id`, `kind`, `title`, and `payload`. Actual operational states are visible in the separate inspection portal.
+- Range indexes for `Entity.id/kind/title`, `Rule.field/client/subject_id`, `Shipment.client/status`, and `Source.enabled`. Optional indexes may be present even when a custom workspace has no records of that label.
+- Temporal predicates use explicit comparison of canonical UTC strings. Integration testing found unsuitable temporal string-index filtering in the pinned configuration; schema v4 removes those indexes and guards date predicates with `toString`. Correctness takes precedence over claiming faster date lookup.
+- Versioned migrations add native projections/indexes/constraints without reseeding a workspace, changing its business revision, deleting facts, or clearing history. Failed constraint construction is surfaced rather than marked operational.
+- New records include mandatory identity fields at creation. Application relationship writes require existing endpoints. The trusted importer validates source references and accepted-rule support. These are not database-enforced foreign-key or business-domain constraints.
 
-**`Rule.value` is in the JSON payload, not mirrored natively.** `Source.enabled` and shipment dates/status are also payload properties. Queries should use the actual storage layout rather than assuming every JSON key is a native property.
-
-The current application creates no explicit indexes, foreign-key constraints, or database-enforced uniqueness constraints. `MERGE` on `Entity.id`, server allowlists, validation, and a single-process lock maintain application-level conventions. This is not a fully constrained enterprise schema.
+The [separate inspection portal](INSPECTION.md) exposes complete business tables, relationships, observed fields, native properties, structural checks and JSON export. The [general engine](COMPANY_ENGINE.md) discovers the actual workspace schema rather than assuming this reference dataset.
 
 ## 5. Domain data dictionary
 
-The fields below are **payload fields unless the previous section identifies them as native**. Optional fields depend on the record type.
+The fields below appear in decoded records; scalar values are also mirrored natively. Optional fields depend on record type.
 
 | Label | Important fields | Meaning |
 | --- | --- | --- |
@@ -277,7 +274,7 @@ RETURN e.id, e.payload
 ORDER BY e.id
 ```
 
-The seed's event IDs end in the sequence number. `sequence` and `event_at` are decoded payload fields, not native properties.
+The seed's event IDs end in the sequence number. `sequence` and `event_at` are also native properties.
 
 ### Trace a recorded reason back to its source
 
@@ -335,3 +332,5 @@ PYTHONPATH=backend .venv/bin/python scripts/export_schema.py
 ```
 
 Generator: [export_schema.py](../scripts/export_schema.py).
+
+The logistics fixture now includes one explicit `Claim` recording the handbook statement, linked through `Policy → ASSERTS → Claim → SUPPORTED_BY → Source`. General investigation compares its subject/field/value with applicable accepted rules. Existing reference workspaces receive this fixture extension once and conservatively invalidate earlier receipts; this is separate from the physical schema migration.

@@ -2423,3 +2423,7 @@
     flex: 0 0 86px;
   }
 }
+
+.co-answer > p {
+  white-space: pre-line;
+}

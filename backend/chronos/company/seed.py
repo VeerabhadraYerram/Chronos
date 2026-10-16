@@ -1,6 +1,7 @@
 """A documented logistics reference model, never Delhivery's private schema/data."""
 
 import hashlib
+from .demo import CLAIM, CLAIM_EDGES
 from datetime import datetime, timedelta, timezone
 
 PUBLIC_SOURCES = [
@@ -341,6 +342,10 @@ def fixture():
                 description="Synthetic operational event",
             )
             edge(shipment, "HAS_SCAN", scan)
+    # Explicit claims record what a document says, not authority to override policy.
+    nodes.append(dict(CLAIM))
+    for a, relation, b in CLAIM_EDGES:
+        edge(a, relation, b, ["source-schedule"])
     return nodes, edges
 
 

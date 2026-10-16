@@ -12,6 +12,9 @@ from redis.exceptions import ResponseError
 
 from ..store import Store, LOCK
 from .seed import fixture, amendment
+from .schema import persist, migrate
+from .demo import CONFIG, upgrade_reference_records
+from .timeutil import canonical
 
 BASE_NAME = os.getenv("CHRONOS_COMPANY_GRAPH", "chronos_delhivery_reference_v1")
 SESSION_PREFIX = "chronos_delhivery_demo_"
@@ -25,6 +28,7 @@ EXCLUDED = [
     "DemoSession",
 ]
 KINDS = {
+    "Record",
     "Company",
     "Client",
     "ClientWarehouse",
@@ -46,6 +50,7 @@ KINDS = {
     "Event",
 }
 RELATIONS = {
+    "ASSERTS",
     "PART_OF",
     "OPERATED_BY",
     "PUBLIC_RELATIONSHIP",
@@ -85,34 +90,46 @@ RULE_FIELDS = [
 
 class CompanyStore(Store):
     def upsert(self, n):
-        if n["kind"] not in KINDS:
-            raise ValueError("Unsupported reference entity")
-        self.write(
-            f"MERGE (n:Entity:{n['kind']} {{id:$id}}) SET n.payload=$payload,n.kind=$kind,n.title=$title",
-            dict(id=n["id"], payload=json.dumps(n), kind=n["kind"], title=n["title"]),
-        )
-        if n["kind"] == "Rule":
-            params = {k: n[k] for k in RULE_FIELDS}
-            params["id"] = n["id"]
-            self.write(
-                "MATCH (n:Rule {id:$id}) SET "
-                + ",".join(f"n.{k}=${k}" for k in RULE_FIELDS),
-                params,
-            )
+        if not re.fullmatch(r"[A-Z][A-Za-z0-9_]{0,47}", n["kind"]) or n["kind"] in {
+            "Entity",
+            "Metadata",
+        }:
+            raise ValueError("Unsupported entity label")
+        existing = self.get(n["id"])
+        if existing and existing["kind"] != n["kind"]:
+            raise ValueError("Record kind cannot change for an existing identifier")
+        persist(self, [n], n["kind"])
+
+    def ensure_schema(self):
+        with LOCK:
+            migrate(self)
 
     def link_evidence(self, a, relation, b, source_ids=None):
-        if relation not in RELATIONS:
-            raise ValueError("Unsupported reference relationship")
-        self.write(
-            f"MATCH (a:Entity {{id:$a}}),(b:Entity {{id:$b}}) MERGE (a)-[r:{relation}]->(b) SET r.source_ids=$sources",
+        if not re.fullmatch(r"[A-Z][A-Z0-9_]{0,47}", relation):
+            raise ValueError("Unsupported relationship name")
+        rows = self.write(
+            f"MATCH (a:Entity {{id:$a}}),(b:Entity {{id:$b}}) MERGE (a)-[r:{relation}]->(b) SET r.source_ids=$sources RETURN count(r)",
             dict(a=a, b=b, sources=source_ids or []),
         )
+        if not rows or rows[0][0] != 1:
+            raise ValueError("Both relationship endpoints must exist")
+
+    def demo_config(self):
+        rows = self.read('MATCH (m:Metadata {id:"dataset"}) RETURN m.demo_config')
+        return json.loads(rows[0][0]) if rows and rows[0][0] else None
 
     def seed(self):
         with LOCK:
             if self.name in self.db.list_graphs() and self.read(
                 'MATCH (m:Metadata {id:"dataset"}) RETURN m.revision'
             ):
+                self.ensure_schema()
+                if self.get("facility-bengaluru") and not self.demo_config():
+                    self.write(
+                        'MATCH (m:Metadata {id:"dataset"}) SET m.demo_config=$demo',
+                        dict(demo=json.dumps(CONFIG)),
+                    )
+                upgrade_reference_records(self)
                 return
             nodes, edges = fixture()
             grouped = defaultdict(list)
@@ -145,6 +162,11 @@ class CompanyStore(Store):
                         dict(rows=records[start : start + 250]),
                     )
             self.write('CREATE (:Metadata {id:"dataset", revision:1})')
+            self.ensure_schema()
+            self.write(
+                'MATCH (m:Metadata {id:"dataset"}) SET m.demo_config=$demo',
+                dict(demo=json.dumps(CONFIG)),
+            )
 
     def stats(self):
         kinds = self.read(
@@ -172,7 +194,13 @@ class CompanyStore(Store):
         root = self.get(id)
         if not root:
             return dict(nodes=[], edges=[])
-        if root["kind"] in {"Shipment", "Manifest", "PickupRequest"}:
+        if root["kind"] in {
+            "Shipment",
+            "Manifest",
+            "PickupRequest",
+            "ScanEvent",
+            "Route",
+        }:
             rows = self.read(
                 "MATCH (a:Entity {id:$id})-[r]-(b:Entity) RETURN DISTINCT b.payload,b.id ORDER BY b.id LIMIT 16",
                 dict(id=id),
@@ -245,10 +273,10 @@ class CompanyStore(Store):
             """MATCH (c:Client)-[:HAS_COMMITMENT]->(r:Rule)-[:APPLIES_AT]->(f:Facility {id:"facility-bengaluru"})
             MATCH (r)-[:SUPPORTED_BY]->(s:Source)
             WHERE r.field="sunday_processing_required" AND r.status="accepted" AND ($client="all" OR c.id=$client)
-            AND r.valid_from <= $effective AND (r.valid_to="" OR $effective < r.valid_to)
-            AND r.recorded_from <= $known AND (r.recorded_to="" OR $known < r.recorded_to)
+            AND toString(r.valid_from) <= $effective AND (r.valid_to="" OR $effective < toString(r.valid_to))
+            AND toString(r.recorded_from) <= $known AND (r.recorded_to="" OR $known < toString(r.recorded_to))
             RETURN c.payload,r.payload,s.payload LIMIT 30""",
-            dict(client=client, effective=effective, known=known),
+            dict(client=client, effective=canonical(effective), known=canonical(known)),
         )
         return [
             dict(client=json.loads(c), rule=json.loads(r), source=json.loads(s))
@@ -406,6 +434,19 @@ def session_store(id):
     store = CompanyStore(SESSION_PREFIX + id)
     if store.name not in store.db.list_graphs():
         raise HTTPException(404, "Workspace not found. Start a new demo workspace.")
+    store.ensure_schema()
+    if (
+        store.get("facility-bengaluru")
+        and not store.demo_config()
+        and not store.read(
+            'MATCH (m:Metadata {id:"dataset"}) RETURN coalesce(m.imported,false)'
+        )[0][0]
+    ):
+        store.write(
+            'MATCH (m:Metadata {id:"dataset"}) SET m.demo_config=$demo',
+            dict(demo=json.dumps(CONFIG)),
+        )
+    upgrade_reference_records(store)
     policy = store.get("policy-schedule")
     if policy and "sunday_clients" not in policy:
         policy["sunday_clients"] = ["havells"]

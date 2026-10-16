@@ -18,10 +18,10 @@ A separately replayed approved **demo amendment** changes Havells to six-day pro
 
 Follow the [root setup](../README.md#run-locally), then open `http://127.0.0.1:5173/`.
 
-1. Ask **Can we close the Bengaluru facility on Sundays?** The original agreement produces a Havells conflict.
+1. Select **Guided demo**. Ask **Can we close the Bengaluru facility on Sundays?** The investigator retrieves the original agreement. The separate guided rehearsal produces the deterministic Havells conflict.
 2. Read the small evidence trail. Each row is a real relationship; click a record or connection to inspect it. Switch to **Map** for a spatial view.
 3. Select a commitment and ask **Why does this exist?**, **Does this still apply?**, or a custom follow-up. **Explore connections** performs another bounded graph read. Exploration can show historical records; inspect their intervals.
-4. Replay **Introduce approved amendment**. Existing receipts become stale. Rerun for November 8, known by October 16: no modeled Sunday conflict remains.
+4. Replay **Introduce approved amendment**. Existing receipts become stale. Rerun for November 8, known by October 16: the investigator retrieves the amended agreement; the guided rehearsal confirms no modeled Sunday commitment conflict.
 5. Change the effective date to October 25: Havells still requires Sunday processing. Change the knowledge cutoff to October 14: the original belief remains available even for a November effective date.
 6. Open **Before & after**, run comparison, and toggle **Full proposal / Preserve commitments**. The real graph copy is discarded after the calculation; base knowledge stays unchanged.
 7. Prepare and download a source-linked review packet from a current investigation. No external ticket or operating change is made.
@@ -31,29 +31,15 @@ The AI investigator is enabled by default for new browser sessions when a server
 
 For the full field dictionary, physical storage layout, relational equivalents, lifecycle rules and Cypher examples, see [Database & schema](DATABASE.md).
 
-## Contextual alerts and readability
+## General engine and guided boundaries
 
-Investigation badges describe the current question and verified evidence, rather than repeating a closure verdict on every answer. Expand a badge to read its reason.
+The default investigator uses the [company-wide engine](COMPANY_ENGINE.md), rather than routing all questions through this example. Alerts describe missing evidence, conflicting retrieved accepted rules, unavailable selected evidence, actual provider fallback, or stale context. The guided rehearsal alone produces its explicit Sunday closure verdict. Historical receipts retain the context and alerts recorded when created.
 
-| Category | When it appears |
-| --- | --- |
-| Commitment conflict | A closure-related question and a supported active commitment that full Sunday closure would violate |
-| Evidence incomplete | A commitment-related question with missing or ambiguous supported requirements |
-| No modeled conflict | A closure-related question with complete supported requirements and no modeled commitment conflict; not operational approval |
-| Operating document needs review | A commitment-related question where the graph-connected handbook still schedules Havells despite the applicable amendment |
-| Answer evidence missing | Graph-only retrieval cannot establish the requested reason, owner or matching record |
-| Outside modeled scope | The question asks about another facility's closure policy |
-| Backup AI provider used | A provider fallback actually occurred |
-| AI investigator unavailable | The requested investigator failed; graph retrieval remains available |
-| Context needs refresh | Saved evidence changed, or dates/client differ from the displayed investigation; current verdict badges are suppressed |
-
-Ownership, cost and simple consignment-count questions do not inherit Sunday-closure warnings or client-status pills. Existing saved investigations without structured alert metadata receive a neutral label. Alert relevance uses conservative workflow-specific text rules, not a general natural-language policy parser. The comparison page always evaluates its explicit scheduling proposal. Alerts do not change accepted policies.
-
-The interface uses larger body text, 12–14 px supporting labels, 17 px answers, higher-contrast text on light surfaces, expandable alert explanations, and responsive wrapping. The readable evidence trail remains the default; the spatial map supports zoom controls.
+Select **Guided demo** to expose the sample replay and rehearsal controls. Their text comes from the dataset's tour configuration. Normal investigation does not show a Havells amendment card by default. The complete database is available through a [separate inspection link](INSPECTION.md).
 
 ## Dataset and schema
 
-The initial seed has **6,153 business entities and 9,775 relationships**, including:
+The initial seed has **6,154 business entities and 9,779 relationships**, including:
 
 | Graph label | Count | Meaning |
 | --- | ---: | --- |

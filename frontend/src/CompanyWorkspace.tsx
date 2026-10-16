@@ -40,7 +40,7 @@ import type {
   Preview,
 } from "./company-types";
 import "./company.css";
-const initialQuestion = "Can we close the Bengaluru facility on Sundays?";
+const initialQuestion = "What evidence do we have for this company?";
 const emptyGraph: Graph = { nodes: [], edges: [] };
 const status = (s: string) =>
   s === "not_assessed"
@@ -50,12 +50,6 @@ const status = (s: string) =>
       : s === "insufficient_evidence"
         ? "Evidence incomplete"
         : "No modeled conflict";
-const clientNames: Record<string, string> = {
-  all: "All three clients",
-  havells: "Havells India",
-  sugar: "SUGAR Cosmetics",
-  hpcl: "HPCL",
-};
 const day = (s: string) =>
   new Date(s + "T12:00:00Z").toLocaleDateString("en-GB", {
     day: "numeric",
@@ -63,29 +57,14 @@ const day = (s: string) =>
     year: "numeric",
     timeZone: "UTC",
   });
-const starters = [
-  {
-    label: "Can we close on Sundays?",
-    question: initialQuestion,
-    icon: Building2,
-  },
-  {
-    label: "Why did we promise this?",
-    question: "Why did we promise Sunday processing to Havells?",
-    icon: GitBranch,
-  },
-  {
-    label: "What changes if we close?",
-    question: "What happens to the Sunday consignments if we close?",
-    icon: Package,
-  },
-];
-const visibleKinds = ["Client", "Rule", "Source", "Team", "Facility"];
 export default function CompanyWorkspace() {
   const [session, setSession] = useState<CompanySession | null>(null);
+  const [guided, setGuided] = useState(false);
   const [question, setQuestion] = useState("");
-  const [effective, setEffective] = useState("2026-11-08");
-  const [known, setKnown] = useState("2026-10-16");
+  const [effective, setEffective] = useState(
+    new Date().toISOString().slice(0, 10),
+  );
+  const [known, setKnown] = useState(new Date().toISOString().slice(0, 10));
   const [client, setClient] = useState("all");
   const [gemini, setGemini] = useState(false);
   const [busy, setBusy] = useState("");
@@ -119,6 +98,22 @@ export default function CompanyWorkspace() {
     use_gemini: gemini,
     close_sunday: close,
   };
+  const companyName = session?.company?.title || "Company workspace";
+  const clientNames: Record<string, string> = {
+    all: "All clients",
+    ...Object.fromEntries((session?.clients || []).map((c) => [c.id, c.title])),
+  };
+  const visibleKinds = [...new Set(graph.nodes.map((n) => n.kind))];
+  const starters = guided
+    ? (session?.demo?.examples || []).map((s) => ({ ...s, icon: GitBranch }))
+    : graph.nodes
+        .filter((n) => n.kind !== "Company")
+        .slice(0, 3)
+        .map((n) => ({
+          label: n.title,
+          question: `What evidence is connected to ${n.title}?`,
+          icon: Network,
+        }));
   const changed =
     !!receipt &&
     (receipt.request.effective_at !== context.effective_at ||
@@ -140,12 +135,15 @@ export default function CompanyWorkspace() {
   async function load(fresh = false) {
     const stored = fresh
       ? null
-      : localStorage.getItem("chronos-company-session");
+      : new URLSearchParams(window.location.search).get("workspace") ||
+        localStorage.getItem("chronos-company-session");
     const result = await api<CompanySession>("/company/session", {
       session_id: stored,
     });
     localStorage.setItem("chronos-company-session", result.session_id);
     setSession(result);
+    setGuided(false);
+    setClient("all");
     setGemini(result.investigator_configured);
     setGraph(result.graph);
     setRecords(result.sources);
@@ -303,9 +301,10 @@ export default function CompanyWorkspace() {
           </span>
         </a>
         <button className="co-workspace" onClick={() => setHelp(true)}>
-          <span className="co-workspace-mark">D</span>
+          <span className="co-workspace-mark">{companyName.slice(0, 1)}</span>
           <span>
-            Delhivery<small>Reference workspace</small>
+            {companyName}
+            <small>Company workspace</small>
           </span>
           <ChevronRight size={14} />
         </button>
@@ -316,39 +315,56 @@ export default function CompanyWorkspace() {
               { id: "investigate", label: "Investigate", icon: MessageSquare },
               {
                 id: "compare",
-                label: "Before & after",
+                label: "Demo rehearsal",
                 icon: SlidersHorizontal,
               },
               { id: "records", label: "Company records", icon: BookOpen },
               { id: "history", label: "Saved investigations", icon: History },
             ] as const
-          ).map((n) => (
-            <button
-              key={n.id}
-              className={view === n.id ? "active" : ""}
-              onClick={() => setView(n.id)}
-            >
-              <n.icon size={17} />
-              {n.label}
-              {n.id === "history" && !!session?.receipts.length && (
-                <span>{session.receipts.length}</span>
-              )}
-            </button>
-          ))}
+          )
+            .filter((n) => n.id !== "compare" || (guided && !!session?.demo))
+            .map((n) => (
+              <button
+                key={n.id}
+                className={view === n.id ? "active" : ""}
+                onClick={() => setView(n.id)}
+              >
+                <n.icon size={17} />
+                {n.label}
+                {n.id === "history" && !!session?.receipts.length && (
+                  <span>{session.receipts.length}</span>
+                )}
+              </button>
+            ))}
         </nav>
         <div className="co-sidebar-story">
-          <span className="co-mini-label">THE DECISION</span>
+          <span className="co-mini-label">COMPANY BRAIN</span>
           <strong>
-            A quieter Sunday.
-            <br />
-            An active promise.
+            {guided ? session?.demo?.title : "Evidence before answers."}
           </strong>
           <p>
-            Follow a warehouse decision across Sales, Operations and Finance.
+            {guided
+              ? session?.demo?.description
+              : "Explore decisions, ownership and policies across your company records."}
           </p>
-          <button onClick={() => void ask(initialQuestion, undefined)}>
-            Start the story <ArrowUpRight size={13} />
-          </button>
+          {session?.demo && (
+            <button
+              onClick={() => {
+                setGuided(!guided);
+                setView("investigate");
+                if (!guided) {
+                  setQuestion(session.demo!.question);
+                  setEffective(session.demo!.effective_at);
+                  setKnown(session.demo!.known_at);
+                } else {
+                  setClient("all");
+                }
+              }}
+            >
+              {guided ? "Leave guided demo" : "Open guided demo"}
+              <ArrowUpRight size={13} />
+            </button>
+          )}
         </div>
         <div className="co-sidebar-bottom">
           <span className={"co-connection " + (session ? "online" : "")}>
@@ -367,9 +383,11 @@ export default function CompanyWorkspace() {
         <header className="co-topbar">
           <div>
             Workspace <ChevronRight size={12} />
-            <strong>Delhivery reference</strong>
+            <strong>{companyName}</strong>
           </div>
-          <span className="co-demo-pill">SYNTHETIC OPERATIONS</span>
+          <span className="co-demo-pill">
+            {session?.demo ? "SYNTHETIC DATA" : "COMPANY WORKSPACE"}
+          </span>
           <button
             title="Create a fresh, separate demo workspace"
             disabled={!!busy}
@@ -401,6 +419,24 @@ export default function CompanyWorkspace() {
                       : "Ask why it exists. Check whether it still applies. Follow the evidence."}
               </p>
             </div>
+            {session?.demo && (
+              <button
+                className="co-secondary"
+                onClick={() => {
+                  setGuided(!guided);
+                  setView("investigate");
+                  if (!guided) {
+                    setQuestion(session.demo!.question);
+                    setEffective(session.demo!.effective_at);
+                    setKnown(session.demo!.known_at);
+                  } else {
+                    setClient("all");
+                  }
+                }}
+              >
+                {guided ? "Leave demo" : "Guided demo"}
+              </button>
+            )}
             <button
               className="co-icon-button"
               aria-label="Explain the prototype"
@@ -438,41 +474,45 @@ export default function CompanyWorkspace() {
                 }}
               />
             </label>
-            <label>
-              Client
-              <select
-                aria-label="Client scope"
-                value={client}
-                onChange={(e) => {
-                  setClient(e.target.value);
-                  setPreview(null);
-                }}
-              >
-                {Object.entries(clientNames).map(([id, name]) => (
-                  <option key={id} value={id}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              onClick={() => {
-                setEffective("2026-10-25");
-                setKnown("2026-10-14");
-                setPreview(null);
-              }}
-            >
-              As known then
-            </button>
-            <button
-              onClick={() => {
-                setEffective("2026-11-08");
-                setKnown("2026-10-16");
-                setPreview(null);
-              }}
-            >
-              After 1 Nov
-            </button>
+            {guided && session?.demo && (
+              <>
+                <label>
+                  Client
+                  <select
+                    aria-label="Client scope"
+                    value={client}
+                    onChange={(e) => {
+                      setClient(e.target.value);
+                      setPreview(null);
+                    }}
+                  >
+                    {Object.entries(clientNames).map(([id, name]) => (
+                      <option key={id} value={id}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  onClick={() => {
+                    setEffective(session?.demo?.before_effective || effective);
+                    setKnown(session?.demo?.before_known || known);
+                    setPreview(null);
+                  }}
+                >
+                  As known then
+                </button>
+                <button
+                  onClick={() => {
+                    setEffective(session?.demo?.effective_at || effective);
+                    setKnown(session?.demo?.known_at || known);
+                    setPreview(null);
+                  }}
+                >
+                  Later knowledge
+                </button>
+              </>
+            )}
           </div>
           {error && (
             <div role="alert" className="co-error">
@@ -608,10 +648,10 @@ export default function CompanyWorkspace() {
                           Context needs refresh
                         </span>
                       ) : (
-                        receipt.alerts?.map((alert) => (
+                        receipt.alerts?.map((alert, alertIndex) => (
                           <details
                             className={"co-alert-detail " + alert.severity}
-                            key={alert.category}
+                            key={alert.category + alertIndex}
                           >
                             <summary
                               className={"co-status co-alert " + alert.severity}
@@ -634,8 +674,8 @@ export default function CompanyWorkspace() {
                     <span>
                       {receipt.mode === "gemini_agent" ||
                       receipt.mode === "groq_agent"
-                        ? `${receipt.provider === "groq" ? "Groq" : "Gemini"} + verified graph checks`
-                        : "Verified graph search"}{" "}
+                        ? `${receipt.provider === "groq" ? "Groq" : "Gemini"} + graph evidence`
+                        : "FalkorDB retrieval"}{" "}
                       · revision {receipt.revision}
                     </span>
                   </div>
@@ -705,33 +745,6 @@ export default function CompanyWorkspace() {
                       </button>
                     </div>
                   )}
-                  <div className="co-answer-evidence">
-                    {receipt.commitment_context &&
-                      !receipt.stale &&
-                      !changed &&
-                      receipt.checks.map((c) => (
-                        <button
-                          key={c.client}
-                          onClick={() => {
-                            setClient(c.client);
-                            void ask(
-                              `Does ${c.title} still require Sunday processing?`,
-                              c.client,
-                            );
-                          }}
-                        >
-                          <span className={"co-dot " + c.status} />
-                          {c.title}
-                          <small>
-                            {c.sunday_required === null
-                              ? "Evidence incomplete"
-                              : c.sunday_required
-                                ? "Sunday required"
-                                : "Six-day processing"}
-                          </small>
-                        </button>
-                      ))}
-                  </div>
                 </section>
               ) : (
                 <section className="co-intro">
@@ -742,11 +755,11 @@ export default function CompanyWorkspace() {
                     <span className="co-eyebrow">
                       START WITH ONE SIMPLE QUESTION
                     </span>
-                    <h2>Can a warehouse take Sunday off?</h2>
+                    <h2>Ask a question. Follow the evidence.</h2>
                     <p>
-                      Operations wants a quieter Sunday. Sales has made a client
-                      promise. Find out what still applies—and explore every
-                      connection behind the answer.
+                      Explore the records available in this workspace. Inspect
+                      sources, discover owners and investigate the policies that
+                      apply to your question.
                     </p>
                   </div>
                   <span className="co-intro-number">01</span>
@@ -761,7 +774,7 @@ export default function CompanyWorkspace() {
                     <h2>
                       {receipt
                         ? "Follow the answer back to its source."
-                        : "A promise. Its source. The people responsible."}
+                        : "Records. Sources. The connections between them."}
                     </h2>
                   </div>
                   <button
@@ -800,7 +813,9 @@ export default function CompanyWorkspace() {
                                 ? "People & teams"
                                 : k === "Facility"
                                   ? "Facilities"
-                                  : k + "s"}
+                                  : k === "Company"
+                                    ? "Companies"
+                                    : k + "s"}
                         </button>
                       ))}
                     {!!filters.length && (
@@ -859,37 +874,32 @@ export default function CompanyWorkspace() {
                 </div>
               )}
               <div className="co-bottom-grid">
-                <section className="co-story-card">
-                  <span className="co-eyebrow">WATCH THE EVIDENCE CHANGE</span>
-                  <h3>A new agreement. A different answer.</h3>
-                  <p>
-                    Replay an approved{" "}
-                    <strong>synthetic Havells amendment</strong>: recorded 15
-                    October, effective 1 November. A proposal alone never
-                    changes an accepted promise.
-                  </p>
-                  <button
-                    className="co-secondary"
-                    disabled={!session || !!busy || session.amendment_loaded}
-                    onClick={() => void replay("amendment")}
-                  >
-                    {session?.amendment_loaded ? (
-                      <Check size={14} />
-                    ) : (
-                      <Plus size={14} />
-                    )}{" "}
-                    {session?.amendment_loaded
-                      ? "Amendment in your workspace"
-                      : "Introduce approved amendment"}
-                  </button>
-                  <button
-                    className="co-text-button"
-                    disabled={!session || !!busy}
-                    onClick={() => void replay("withdraw")}
-                  >
-                    Challenge the original evidence <ArrowUpRight size={12} />
-                  </button>
-                </section>
+                {guided && session?.demo && (
+                  <section className="co-story-card">
+                    <span className="co-eyebrow">
+                      GUIDED DEMO · SYNTHETIC REPLAY
+                    </span>
+                    <h3>{session.demo.title}</h3>
+                    {session.demo.events.map((event) => (
+                      <div key={event.id}>
+                        <p>{event.description}</p>
+                        <button
+                          className="co-secondary"
+                          disabled={
+                            !!busy ||
+                            (event.id === "amendment" &&
+                              session.amendment_loaded)
+                          }
+                          onClick={() => void replay(event.id)}
+                        >
+                          {event.label}
+                          <ArrowUpRight size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </section>
+                )}
+                {/* The guided fixture is separate from company-wide investigation. */}
                 <section className="co-story-card co-story-dark">
                   <span className="co-eyebrow">FROM ANSWER TO REVIEW</span>
                   <h3>
@@ -898,16 +908,19 @@ export default function CompanyWorkspace() {
                     Then prepare the work.
                   </h3>
                   <p>
-                    Compare processing schedules and assemble a source-linked
-                    review packet. Every real-world action stays with a human.
+                    Assemble a review packet from the current investigation and
+                    its retrieved sources. Every real-world action stays with a
+                    human.
                   </p>
                   <div>
-                    <button
-                      className="co-secondary"
-                      onClick={() => setView("compare")}
-                    >
-                      Compare before & after <ArrowRight size={14} />
-                    </button>
+                    {guided && session?.demo && (
+                      <button
+                        className="co-secondary"
+                        onClick={() => setView("compare")}
+                      >
+                        Compare demo scenario <ArrowRight size={14} />
+                      </button>
+                    )}
                     <button
                       className="co-text-button"
                       disabled={!receipt || !!busy || receipt.stale || changed}
@@ -1247,9 +1260,8 @@ export default function CompanyWorkspace() {
                     )}
                 </div>
                 <p>
-                  Independently designed graph schema informed by public
-                  logistics concepts. This is not Delhivery’s private database
-                  schema.
+                  Independently designed graph schema informed by public company
+                  evidence. This is an independently designed database schema.
                 </p>
               </details>
             </>
@@ -1306,7 +1318,9 @@ export default function CompanyWorkspace() {
               ChronosGraph · connected company memory
             </span>
             <span>
-              Real names. Synthetic operations. Independent reference demo.
+              {session?.demo
+                ? "Public names. Synthetic private records."
+                : "Answers grounded in stored company evidence."}
             </span>
           </footer>
         </div>
@@ -1533,31 +1547,22 @@ export default function CompanyWorkspace() {
             >
               <X size={20} />
             </button>
-            <span className="co-eyebrow">AN INDEPENDENT REFERENCE DEMO</span>
-            <h2>
-              Real business context.
-              <br />
-              An invented operating story.
-            </h2>
+            <span className="co-eyebrow">WORKSPACE & EVIDENCE</span>
+            <h2>{companyName}</h2>
+            <p>{session?.disclosure}</p>
             <p>
-              Delhivery, Havells India, SUGAR Cosmetics and HPCL are real
-              organizations. Public references establish the logistics concepts
-              and named business relationships. Every agreement, warehouse
-              schedule, staffing amount, employee role, consignment and internal
-              conversation here is synthetic.
+              Ask a company question, inspect the connected sources and records,
+              and follow up on a selected item. Answers are limited by the
+              evidence in this workspace.
             </p>
             <p>
-              This is not Delhivery’s actual internal system, private schema or
-              an affiliated product. No real logistics service is connected.
+              <strong>Workspace ID:</strong> <code>{session?.session_id}</code>
             </p>
-            <h3>How to explore</h3>
-            <ol>
-              <li>Ask whether Bengaluru can close Sundays.</li>
-              <li>Click a commitment, source or department in the graph.</li>
-              <li>Ask a follow-up or explore its connections.</li>
-              <li>Introduce the approved demo amendment and compare dates.</li>
-              <li>Preview closure in a disposable FalkorDB graph copy.</li>
-            </ol>
+            <p>
+              This identifier can be entered in the separate database inspection
+              portal. It grants access to this synthetic workspace; it is not
+              production authentication.
+            </p>
             <p>
               <strong>Two clocks:</strong> “Effective on” selects when a
               commitment applies. “Known by” limits what was recorded by then.
@@ -1566,7 +1571,7 @@ export default function CompanyWorkspace() {
             <p>
               <strong>Mode:</strong> Gemini or Groq investigates when enabled
               and successful; graph search is explicitly labeled otherwise.
-              Sources and structured checks remain inspectable.
+              Sources and retrieval traces remain inspectable.
             </p>
             <p>
               Your workspace has its own graph. New workspace creates a fresh
@@ -1602,7 +1607,7 @@ export default function CompanyWorkspace() {
               <X size={20} />
             </button>
             <span className="co-eyebrow">PREPARED FOR HUMAN REVIEW</span>
-            <h2>Sunday processing review packet.</h2>
+            <h2>Company evidence review packet.</h2>
             <p>
               A source-linked local draft. No external ticket, email or schedule
               change has been made.

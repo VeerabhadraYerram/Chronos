@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ChronosGraph · Database inspection</title>
+    <link rel="stylesheet" href="/database/assets/inspector.css" />
+    <script src="/database/assets/inspector.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <a href="/database">ChronosGraph <span>Database inspection</span></a
+      ><span class="badge">READ ONLY · FALKORDB</span>
+    </header>
+    <main>
+      <section id="connect">
+        <p class="eyebrow">OPEN THE DATA BEHIND THE ANSWER</p>
+        <h1>Every record. Every relationship.</h1>
+        <p>
+          A separate inspection workspace for reviewers. Graph labels are
+          presented as tables, with the complete stored record, native
+          properties and connections available for inspection.
+        </p>
+        <form id="connect-form">
+          <label for="workspace"
+            >Workspace ID
+            <small
+              >Use the same ID as the prototype to inspect its investigations
+              and changes.</small
+            ></label
+          >
+          <div class="controls">
+            <input
+              id="workspace"
+              placeholder="32-character workspace ID"
+              maxlength="32"
+              autocomplete="off"
+              spellcheck="false"
+            /><button type="submit">Open workspace</button
+            ><button id="new" type="button" class="secondary">
+              Create demo workspace
+            </button>
+          </div>
+        </form>
+        <p class="note">
+          This contains synthetic operating data. Workspace links grant access
+          to that demo workspace; they are not production authentication.
+          Database credentials and internal session registries are never
+          exposed.
+        </p>
+      </section>
+      <div id="message" role="status" aria-live="polite"></div>
+      <section id="browser" hidden>
+        <div class="workspace-bar">
+          <div>
+            <p class="eyebrow">LIVE WORKSPACE</p>
+            <h1 id="workspace-title">Company data</h1>
+            <p id="totals"></p>
+          </div>
+          <div class="controls">
+            <button id="change" class="secondary">Change workspace</button
+            ><button id="share" class="secondary">Copy inspection link</button
+            ><button id="export">Download full JSON</button
+            ><button id="refresh" class="secondary">Refresh</button>
+          </div>
+        </div>
+        <p id="disclosure" class="note"></p>
+        <div class="layout">
+          <aside>
+            <h2>Tables / node labels</h2>
+            <nav id="tables" aria-label="Database tables"></nav>
+          </aside>
+          <article>
+            <nav class="tabs" aria-label="Inspection view">
+              <button data-view="records">Records</button
+              ><button data-view="relationships">Relationships</button
+              ><button data-view="schema">Schema & indexes</button
+              ><button data-view="audit">Integrity checks</button>
+            </nav>
+            <div class="table-title">
+              <h2 id="table-title"></h2>
+              <span id="count"></span>
+            </div>
+            <form id="search-form" class="controls">
+              <label class="sr-only" for="search">Search table</label
+              ><input
+                id="search"
+                placeholder="Search record content or ID…"
+              /><button>Search</button
+              ><label class="sr-only" for="relation">Relationship type</label
+              ><select id="relation" hidden></select>
+            </form>
+            <div id="content"></div>
+            <div id="pagination" class="controls">
+              <button id="previous" class="secondary">Previous</button
+              ><span id="page"></span
+              ><button id="next" class="secondary">Next</button>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+    <dialog id="detail">
+      <div class="dialog-head">
+        <h2 id="detail-title"></h2>
+        <button id="close" class="secondary">Close</button>
+      </div>
+      <div id="detail-body"></div>
+    </dialog>
+    <footer>
+      Direct reads from FalkorDB · No arbitrary query console · Public names,
+      synthetic private operating records
+    </footer>
+  </body>
+</html>

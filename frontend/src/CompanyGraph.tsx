@@ -35,7 +35,8 @@ const palette: Record<string, string> = {
 };
 const names: Record<string, string> = {
   Client: "CLIENT",
-  Rule: "COMMITMENT",
+  Rule: "ACCEPTED RULE",
+  Claim: "DOCUMENT STATEMENT",
   Source: "EVIDENCE",
   Team: "DEPARTMENT",
   Facility: "FACILITY",

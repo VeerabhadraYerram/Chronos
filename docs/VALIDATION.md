@@ -4,7 +4,7 @@
 
 The new real-FalkorDB suite covers the 1,200-consignment graph, active commitments, required relationships, effective/recorded boundaries, source withdrawal, isolated graph-copy previews, cost provenance, idempotent replay, stale review rejection, recorded reasons, unknown questions, parameterized input, read-only tools, contextual exploration, API validation and session isolation. See [test_company_reference.py](../backend/tests/test_company_reference.py).
 
-The original 16 tests below are preserved. Together with the new 31 integration tests, the suite has **47 passing tests** at this implementation milestone. The frontend production build also passes. Provider-fallback routing is tested with a controlled transport stub; live-provider status is recorded separately, not inferred from that stub. These checks do not prove model semantic correctness, real logistics outcomes, public deployment or exact replication of Delhivery's private systems.
+The original 16 tests below are preserved. Together with 31 reference-workspace tests and 13 inspection/general-engine tests, the suite has **60 passing tests** at this implementation milestone. The frontend production build also passes. Provider-fallback routing is tested with a controlled transport stub; live-provider status is recorded separately, not inferred from that stub. These checks do not prove model semantic correctness, real logistics outcomes, public deployment or exact replication of Delhivery's private systems.
 
 
 [Run the evaluation](EVALUATION.md) · [CI workflow](../.github/workflows/ci.yml) · [Live GitHub runs](https://github.com/VeerabhadraYerram/Chronos/actions/workflows/ci.yml)
@@ -21,12 +21,14 @@ The script requires installed dependencies and a reachable real database. It use
 
 | Check | Command | Local result |
 | --- | --- | --- |
-| Integration suite | `PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q` | 47 passed |
+| Integration suite | `PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q` | 60 passed |
 | Business scenario | `PYTHONPATH=backend .venv/bin/python scripts/evaluate.py` | 12 expected outcomes checked |
 | Frontend | `npm --prefix frontend run build` | TypeScript check and production build passed |
 | Documentation | `.venv/bin/python scripts/check_docs.py` | Local links, heading anchors, and image targets checked |
 
 CI runs the same integration suite and business scenario against a real FalkorDB service, builds the client in a separate job, and checks documentation in a third job. Actions are pinned by commit SHA and the workflow has read-only repository permission. CI deliberately uses an empty Gemini key.
+
+The inspection suite verifies enforced IDs, required native fields, complete pagination/export, hidden session registries, migration idempotency, structural fault detection, independent company data, changed-owner answers, generic arithmetic, withdrawn evidence, HTTP limits and cross-workspace boundaries. These checks use disposable real FalkorDB graphs.
 
 ## Automated coverage
 
@@ -71,3 +73,7 @@ The [workspace image](assets/workspace.png) is an actual captured UI state with 
 ## Unverified or intentionally absent
 
 Production deployment, general source ingestion, live connectors, expertise scoring, fully temporal ownership/topology/source access, external publishing, multi-user authorization, multi-worker operation, crash-atomic ingestion, and a fair retrieval-baseline benchmark remain outside current verification. Recorded timings are per-run observations, not performance guarantees.
+
+## General-engine live provider check
+
+On October 16, 2026 a real Groq invocation investigated the unrelated Atlas Studio fixture, selected `search_records` and `aggregate_records`, and returned INR 32,500 for the stored invoice sum. This was a manual live-provider check, separate from the deterministic 60-test suite. One earlier provider attempt failed and preserved the labeled graph-retrieval response; reliable broad semantic accuracy or model availability is not claimed. The extended fixture also tests generic document-assertion mismatches against accepted policy.

@@ -5,6 +5,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from chronos.company.seed import fixture
+from chronos.company.schema import properties
 
 
 def main():
@@ -42,19 +43,11 @@ def main():
                     kind="string",
                     title="string",
                     payload="JSON-encoded string",
+                    search_text="string",
                 ),
-                additional_native_properties=[
-                    "client",
-                    "facility",
-                    "field",
-                    "status",
-                    "valid_from",
-                    "valid_to",
-                    "recorded_from",
-                    "recorded_to",
-                ]
-                if kind == "Rule"
-                else [],
+                additional_native_properties=sorted(
+                    {key for n in group for key in properties(n)}
+                ),
                 payload_field_types={k: sorted(v) for k, v in sorted(fields.items())},
                 required_in_initial_fixture=sorted(
                     set.intersection(*(set(n) for n in group))
@@ -66,7 +59,7 @@ def main():
     for edge in edges:
         relations[edge["relation"]].append(edge)
     schema = dict(
-        format="chronosgraph-reference-dictionary-v1",
+        format="chronosgraph-reference-dictionary-v2",
         database="FalkorDB",
         disclosure="Independent Delhivery reference schema. Public names; synthetic private operations, agreements and roles. Not Delhivery internal data.",
         source="backend/chronos/company/seed.py",
@@ -81,7 +74,12 @@ def main():
         ),
         metadata=dict(
             label="Metadata",
-            properties=dict(id="dataset", revision="integer"),
+            properties=dict(
+                id="dataset",
+                revision="integer",
+                schema_version=4,
+                demo_config="JSON-encoded guided tour",
+            ),
             carries_Entity_label=False,
         ),
         relationship_types=[

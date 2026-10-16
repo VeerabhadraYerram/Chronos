@@ -148,7 +148,7 @@ def infer_intent(question):
     return "search"
 
 
-def answer(store, request):
+def scenario_answer(store, request):
     start = time.perf_counter()
     client = request.client
     focus = store.get(request.focus_id) if request.focus_id else None
@@ -476,10 +476,15 @@ def prepare(store, receipt_id):
         raise RuntimeError(
             "Knowledge changed. Rerun the investigation before preparing work."
         )
+    owners = store.read(
+        "MATCH (n:Entity)-[:OWNED_BY|OPERATED_BY]->(t:Team) WHERE n.id IN $ids RETURN DISTINCT t.title ORDER BY t.title",
+        dict(ids=[n["id"] for n in r["graph"]["nodes"]]),
+    )
+    reviewers = [row[0] for row in owners]
     lines = [
-        "# Sunday processing · review packet",
+        "# Company evidence · review packet",
         "",
-        "Independent Delhivery reference demo. All operational records and agreements are synthetic.",
+        "Draft based on the selected company evidence. Inspect source classifications and limitations before acting.",
         "",
         r["summary"],
         "",
@@ -487,11 +492,20 @@ def prepare(store, receipt_id):
         f"Known by: {r['request']['known_at']}",
         f"Knowledge revision: {r['revision']}",
         "",
-        "## Required reviews",
-        "- Operations: select a schedule compatible with each supported commitment.",
-        "- Account Management: confirm amendments and their effective dates.",
-        "- Warehouse and Transport: revise the handbook and processing calendar.",
-        "- Finance: review the scenario's staffing assumptions.",
+        "## Data classification",
+        "Includes synthetic records."
+        if any(n.get("synthetic") for n in r["sources"])
+        else "Inspect each source classification.",
+        "",
+        "## Review scope",
+        r["title"],
+        "Confirm the evidence, applicability dates, recorded owners and any missing facts before authorizing a change.",
+        "",
+        "## Recorded owners in retrieved context",
+        ", ".join(reviewers)
+        if reviewers
+        else "No owner relationship retrieved; assign a reviewer explicitly.",
+        "Current relationships only; this is not a historical ownership reconstruction or authorization to act.",
         "",
         "## Evidence",
     ]
@@ -505,12 +519,14 @@ def prepare(store, receipt_id):
     action = dict(
         id="company-action-" + receipt_id,
         kind="Action",
-        title="Sunday processing review packet",
+        title="Evidence review: " + r["title"],
         receipt_id=receipt_id,
         revision=r["revision"],
         status="draft",
         markdown="\n".join(lines),
-        reviewer="Operations + Account Management",
+        reviewer=", ".join(reviewers)
+        if reviewers
+        else "Human reviewer; ownership unconfirmed",
         synthetic=True,
     )
     store.upsert(action)

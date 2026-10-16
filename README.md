@@ -10,9 +10,9 @@
 
 **Ask why a company decision exists. Check whether it still applies. Follow the evidence, then compare the proposed change.**
 
-ChronosGraph is an interactive company-memory investigator powered by **FalkorDB** and an optional **Gemini / Groq** tool loop. Its main workspace models one understandable logistics decision: **can the Bengaluru facility close on Sundays?**
+ChronosGraph is an interactive company-memory investigator powered by **FalkorDB** and an optional **Gemini / Groq** tool loop. Its core investigates records across company departments. A guided logistics fixture demonstrates one understandable decision: **can the Bengaluru facility close on Sundays?**
 
-**[Explore the reference demo](docs/DELHIVERY_REFERENCE.md)** · **[Database & schema](docs/DATABASE.md)** · **[Evaluate locally](docs/EVALUATION.md)** · **[Competition fit](docs/COMPETITION_FIT.md)** · **[Validation](docs/VALIDATION.md)**
+**[Separate database inspection](docs/INSPECTION.md)** · **[Company-wide engine](docs/COMPANY_ENGINE.md)** · **[Explore the reference demo](docs/DELHIVERY_REFERENCE.md)** · **[Database & schema](docs/DATABASE.md)** · **[Evaluate locally](docs/EVALUATION.md)** · **[Competition fit](docs/COMPETITION_FIT.md)** · **[Validation](docs/VALIDATION.md)**
 
 ## The story
 
@@ -27,10 +27,10 @@ Operations wants Sunday closure. Sales has recorded a Havells commitment. Accoun
 - Compare effective time with knowledge time; approved sample amendments preserve the earlier belief.
 - Rehearse full Sunday closure versus preserved client exceptions in a **real FalkorDB graph copy**.
 - Inspect before/after processing, queued sample consignments and explicitly synthetic cost assumptions.
-- Search a graph containing **6,153 initial entities and 9,775 relationships**, including 1,200 consignments and 4,800 tracking events.
+- Search a graph containing **6,154 initial entities and 9,779 relationships**, including 1,200 consignments and 4,800 tracking events.
 - Reopen persistent investigations and download a review packet. No real company action is published.
 
-Each visitor gets a separate demo graph. The selected AI provider uses bounded read tools when enabled; graph-search fallback is labeled and has narrower intent handling. Requirement checks remain deterministic. Unfamiliar questions are limited by the recorded evidence; this is not unrestricted enterprise question answering.
+Each visitor gets a separate demo graph. The selected AI provider uses bounded read tools when enabled; graph-retrieval fallback is labeled and shows stored facts/excerpts rather than a canned scenario verdict. The guided scheduling simulator retains deterministic checks. Unfamiliar questions are limited by the recorded evidence; this is not unrestricted enterprise question answering.
 
 <details>
   <summary><strong>View the actual investigation and comparison workspace</strong></summary>
@@ -62,6 +62,7 @@ To enable the **Gemini agent**, copy `.env.example` to `.env` only if you do not
 | Service | Local address |
 | --- | --- |
 | Interface | `http://127.0.0.1:5173` |
+| Separate database inspection | `http://127.0.0.1:8000/database` |
 | API / interactive reference | `http://127.0.0.1:8000/docs` |
 | FalkorDB | `127.0.0.1:6389` |
 
@@ -69,7 +70,7 @@ Stop development servers with `Ctrl+C`. `docker compose stop` preserves database
 
 ## Reproduce the result
 
-Ask about Sunday closure in a fresh workspace. Inspect the Havells commitment and its evidence. Replay the approved synthetic amendment, then rerun before and after November 1 using different knowledge cutoffs. Compare full closure with a commitment-preserving alternative. [Step-by-step walkthrough](docs/DELHIVERY_REFERENCE.md#start-and-explore).
+Select **Guided demo**, then ask about Sunday closure in a fresh workspace. Inspect the Havells commitment and its evidence. Replay the approved synthetic amendment, then rerun before and after November 1 using different knowledge cutoffs. Compare full closure with a commitment-preserving alternative. [Step-by-step walkthrough](docs/DELHIVERY_REFERENCE.md#start-and-explore).
 
 For a repeatable audit without opening the UI or calling Gemini:
 
@@ -94,11 +95,12 @@ flowchart LR
     API --> Scenario[(Temporary graph copy)]
 ```
 
-Accepted commitments are selected by client, facility, effective time, and recorded time through parameterized graph queries. Sources and owners come from relationships. Receipts and in-app actions are written back to FalkorDB. The frontend's graph filter changes presentation only; it does not compute verdicts. [Follow the implementation →](docs/DELHIVERY_REFERENCE.md#architecture-and-api)
+Applicable rules are selected from retrieved subjects and source evidence at the selected effective and recorded times. Generic search, ownership, schema discovery and database aggregations work with imported company records. Sources and owners come from relationships. Receipts and in-app actions are written back to FalkorDB. The frontend's graph filter changes presentation only; it does not compute verdicts. [Follow the implementation →](docs/DELHIVERY_REFERENCE.md#architecture-and-api)
 
 ## Scope and limitations
 
-- **“No modeled conflict” covers the selected Sunday-processing commitments.** It does not establish logistics feasibility, final delivery dates or production safety.
+- **The general investigator is not an arbitrary change simulator.** Scenario predictions require an explicit model; graph excerpts and LLM prose are not operational approval.
+- **“No modeled conflict” in the guided simulator covers the selected Sunday-processing commitments.** It does not establish logistics feasibility, final delivery dates or production safety.
 - **Source-ID validation is not semantic proof.** AI explanations still need review; they cannot override the deterministic assessment.
 - **Ownership is implemented; expertise ranking is not.** Historical ownership and topology are not versioned.
 - **Updates are replayed sample events.** There are no live Slack, GitHub, Jira, or Notion connectors.

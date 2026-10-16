@@ -10,7 +10,8 @@ from redis.exceptions import RedisError
 
 from ..store import LOCK
 from .store import new_session, session_store
-from .engine import answer, evaluate, simulate, prepare, useful_graph
+from .engine import simulate, prepare
+from .investigation import answer
 
 router = APIRouter(prefix="/api/company")
 
@@ -22,15 +23,23 @@ class Session(BaseModel):
 class Query(BaseModel):
     session_id: str = Field(min_length=32, max_length=32)
     question: str = Field(
-        default="Can we close the Bengaluru facility on Sundays?",
+        default="What evidence is available in this company workspace?",
         min_length=3,
         max_length=1500,
     )
     focus_id: str | None = Field(default=None, max_length=100)
     parent_receipt_id: str | None = Field(default=None, max_length=100)
-    client: Literal["all", "havells", "sugar", "hpcl"] = "all"
-    effective_at: str = "2026-11-08T12:00:00Z"
-    known_at: str = "2026-10-16T12:00:00Z"
+    client: str = Field(default="all", min_length=1, max_length=200)
+    effective_at: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).strftime(
+            "%Y-%m-%dT12:00:00Z"
+        )
+    )
+    known_at: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).strftime(
+            "%Y-%m-%dT12:00:00Z"
+        )
+    )
     use_gemini: bool = False
     close_sunday: bool = True
 
@@ -40,7 +49,7 @@ class Query(BaseModel):
         dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
         if dt.tzinfo is None:
             raise ValueError("Timezone is required")
-        return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        return dt.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 class Explore(BaseModel):
@@ -76,12 +85,29 @@ def session(request: Session):
                 r[0]
                 for r in store.read("MATCH (s:Source) RETURN s.id ORDER BY s.title")
             ]
-            checks = evaluate(store, "2026-11-08T12:00:00Z", "2026-10-16T12:00:00Z")[
-                "checks"
+            roots = [
+                store.get(r[0])
+                for r in store.read(
+                    "MATCH (n:Entity) WHERE n.kind IN ['Company','Team','Client','Decision'] RETURN n.id ORDER BY CASE WHEN n.kind='Company' THEN 0 ELSE 1 END,n.title LIMIT 10"
+                )
             ]
-            graph = useful_graph(store, checks)
+            graph = store.subgraph(roots)
             return dict(
                 session_id=id,
+                company=next(
+                    (
+                        store.get(r[0])
+                        for r in store.read(
+                            "MATCH (n:Company) RETURN n.id ORDER BY n.id LIMIT 1"
+                        )
+                    ),
+                    None,
+                ),
+                clients=[
+                    store.get(r[0])
+                    for r in store.read("MATCH (n:Client) RETURN n.id ORDER BY n.title")
+                ],
+                demo=store.demo_config(),
                 stats=store.stats(),
                 sources=[store.get(s) for s in sources],
                 graph=graph,
@@ -91,7 +117,13 @@ def session(request: Session):
                 ),
                 amendment_loaded=bool(store.get("source-amendment")),
                 receipts=[r for r in store.receipts() if r.get("domain") == "company"],
-                disclosure="Independent Delhivery reference demo. Public company names; synthetic operational records, commitments, roles and policies. Not affiliated with Delhivery.",
+                disclosure=(
+                    "Independent reference demo. Real public organization names; all private operations, policies and roles are synthetic. Not affiliated with the named companies."
+                    if store.demo_config()
+                    else store.read(
+                        'MATCH (m:Metadata {id:"dataset"}) RETURN coalesce(m.dataset_description,"Company evidence workspace; inspect source classifications")'
+                    )[0][0]
+                ),
             )
     except (RedisError, OSError):
         raise HTTPException(503, "FalkorDB is unavailable. Start the project database.")
@@ -113,16 +145,14 @@ def explore(request: Explore):
         node = store.get(request.id)
         if not node or node["kind"] in {"Receipt", "Action", "DemoSession"}:
             raise HTTPException(404, "Record not found.")
-        # For operational records, a read-only bounded traversal includes scan history.
-        if node["kind"] in {"Shipment", "Manifest", "PickupRequest"}:
-            rows = store.read(
-                "MATCH (a:Entity {id:$id})-[r]-(b:Entity) RETURN DISTINCT b.payload LIMIT 16",
-                dict(id=request.id),
-            )
-            import json
-
-            graph = store.subgraph([node] + [json.loads(row[0]) for row in rows])
-        else:
+        graph = store.record_graph(request.id)
+        if request.depth == 2 and node["kind"] not in {
+            "Shipment",
+            "ScanEvent",
+            "Manifest",
+            "PickupRequest",
+            "Route",
+        }:
             graph = store.neighborhood(request.id, request.depth)
         return dict(entity=node, graph=graph, owners=store.owners(request.id))
 
@@ -130,13 +160,19 @@ def explore(request: Explore):
 @router.post("/simulate")
 def simulation(request: Query):
     with LOCK:
-        return simulate(safe_store(request.session_id), request)
+        store = safe_store(request.session_id)
+        if not store.demo_config():
+            raise HTTPException(422, "This workspace has no registered demo simulation")
+        return simulate(store, request)
 
 
 @router.post("/events")
 def events(request: Event):
     with LOCK:
-        return safe_store(request.session_id).replay(request.event)
+        store = safe_store(request.session_id)
+        if not store.demo_config():
+            raise HTTPException(422, "This workspace has no registered demo replay")
+        return store.replay(request.event)
 
 
 @router.post("/packet")

@@ -1,10 +1,10 @@
 {
-  "format": "chronosgraph-reference-dictionary-v1",
+  "format": "chronosgraph-reference-dictionary-v2",
   "database": "FalkorDB",
   "disclosure": "Independent Delhivery reference schema. Public names; synthetic private operations, agreements and roles. Not Delhivery internal data.",
   "source": "backend/chronos/company/seed.py",
-  "initial_business_entities": 6153,
-  "initial_relationships": 9775,
+  "initial_business_entities": 6154,
+  "initial_relationships": 9779,
   "node_labels": [
     {
       "label": "Campaign",
@@ -13,9 +13,14 @@
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
-      "additional_native_properties": [],
+      "additional_native_properties": [
+        "description",
+        "ended_at",
+        "synthetic"
+      ],
       "payload_field_types": {
         "description": [
           "string"
@@ -54,15 +59,120 @@
       }
     },
     {
+      "label": "Claim",
+      "initial_count": 1,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string",
+        "search_text": "string"
+      },
+      "additional_native_properties": [
+        "client",
+        "facility",
+        "field",
+        "recorded_from",
+        "recorded_to",
+        "status",
+        "subject_id",
+        "synthetic",
+        "valid_from",
+        "valid_to",
+        "value"
+      ],
+      "payload_field_types": {
+        "client": [
+          "string"
+        ],
+        "facility": [
+          "string"
+        ],
+        "field": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "recorded_from": [
+          "string"
+        ],
+        "recorded_to": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "subject_id": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ],
+        "valid_from": [
+          "string"
+        ],
+        "valid_to": [
+          "string"
+        ],
+        "value": [
+          "boolean"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "client",
+        "facility",
+        "field",
+        "id",
+        "kind",
+        "recorded_from",
+        "recorded_to",
+        "status",
+        "subject_id",
+        "synthetic",
+        "title",
+        "valid_from",
+        "valid_to",
+        "value"
+      ],
+      "representative_record": {
+        "id": "claim-current-schedule",
+        "kind": "Claim",
+        "title": "Handbook statement: Sunday processing",
+        "subject_id": "havells",
+        "client": "havells",
+        "facility": "facility-bengaluru",
+        "field": "sunday_processing_required",
+        "value": true,
+        "status": "documented",
+        "valid_from": "2026-05-01T00:00:00Z",
+        "valid_to": "",
+        "recorded_from": "2026-05-01T09:00:00Z",
+        "recorded_to": "",
+        "synthetic": true
+      }
+    },
+    {
       "label": "Client",
       "initial_count": 3,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
-      "additional_native_properties": [],
+      "additional_native_properties": [
+        "description",
+        "sector",
+        "synthetic"
+      ],
       "payload_field_types": {
         "description": [
           "string"
@@ -107,9 +217,14 @@
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
-      "additional_native_properties": [],
+      "additional_native_properties": [
+        "city",
+        "description",
+        "synthetic"
+      ],
       "payload_field_types": {
         "city": [
           "string"
@@ -154,9 +269,13 @@
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
-      "additional_native_properties": [],
+      "additional_native_properties": [
+        "description",
+        "synthetic"
+      ],
       "payload_field_types": {
         "description": [
           "string"
@@ -196,9 +315,14 @@
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
-      "additional_native_properties": [],
+      "additional_native_properties": [
+        "approved",
+        "description",
+        "synthetic"
+      ],
       "payload_field_types": {
         "approved": [
           "boolean"
@@ -242,9 +366,16 @@
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
-      "additional_native_properties": [],
+      "additional_native_properties": [
+        "city",
+        "current_sunday_open",
+        "description",
+        "facility_type",
+        "synthetic"
+      ],
       "payload_field_types": {
         "city": [
           "string"
@@ -299,9 +430,13 @@
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
-      "additional_native_properties": [],
+      "additional_native_properties": [
+        "status",
+        "synthetic"
+      ],
       "payload_field_types": {
         "id": [
           "string"
@@ -341,9 +476,14 @@
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
-      "additional_native_properties": [],
+      "additional_native_properties": [
+        "pickup_date",
+        "status",
+        "synthetic"
+      ],
       "payload_field_types": {
         "id": [
           "string"
@@ -388,9 +528,14 @@
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
-      "additional_native_properties": [],
+      "additional_native_properties": [
+        "description",
+        "sunday_required",
+        "synthetic"
+      ],
       "payload_field_types": {
         "description": [
           "string"
@@ -442,9 +587,14 @@
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
-      "additional_native_properties": [],
+      "additional_native_properties": [
+        "mode",
+        "schedule",
+        "synthetic"
+      ],
       "payload_field_types": {
         "id": [
           "string"
@@ -489,17 +639,21 @@
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
       "additional_native_properties": [
         "client",
+        "description",
         "facility",
         "field",
+        "recorded_from",
+        "recorded_to",
         "status",
+        "synthetic",
         "valid_from",
         "valid_to",
-        "recorded_from",
-        "recorded_to"
+        "value"
       ],
       "payload_field_types": {
         "client": [
@@ -585,9 +739,15 @@
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
-      "additional_native_properties": [],
+      "additional_native_properties": [
+        "description",
+        "event_at",
+        "sequence",
+        "synthetic"
+      ],
       "payload_field_types": {
         "description": [
           "string"
@@ -637,9 +797,17 @@
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
-      "additional_native_properties": [],
+      "additional_native_properties": [
+        "arrival_at",
+        "client",
+        "description",
+        "facility",
+        "status",
+        "synthetic"
+      ],
       "payload_field_types": {
         "arrival_at": [
           "string"
@@ -699,9 +867,23 @@
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
-      "additional_native_properties": [],
+      "additional_native_properties": [
+        "approval_status",
+        "classification",
+        "content_hash",
+        "department",
+        "enabled",
+        "excerpt",
+        "full_shift_inr",
+        "restricted_shift_inr",
+        "source_type",
+        "synthetic",
+        "timestamp",
+        "url"
+      ],
       "payload_field_types": {
         "approval_status": [
           "string"
@@ -783,9 +965,13 @@
         "id": "string",
         "kind": "string",
         "title": "string",
-        "payload": "JSON-encoded string"
+        "payload": "JSON-encoded string",
+        "search_text": "string"
       },
-      "additional_native_properties": [],
+      "additional_native_properties": [
+        "description",
+        "synthetic"
+      ],
       "payload_field_types": {
         "description": [
           "string"
@@ -829,18 +1015,31 @@
     "label": "Metadata",
     "properties": {
       "id": "dataset",
-      "revision": "integer"
+      "revision": "integer",
+      "schema_version": 4,
+      "demo_config": "JSON-encoded guided tour"
     },
     "carries_Entity_label": false
   },
   "relationship_types": [
     {
       "type": "APPLIES_AT",
-      "initial_count": 5,
+      "initial_count": 6,
       "endpoint_label_pairs": [
+        "Claim -> Facility",
         "Decision -> Facility",
         "Policy -> Facility",
         "Rule -> Facility"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "ASSERTS",
+      "initial_count": 1,
+      "endpoint_label_pairs": [
+        "Policy -> Claim"
       ],
       "properties": {
         "source_ids": "array of Source IDs; empty for operational links without document provenance"
@@ -909,8 +1108,9 @@
     },
     {
       "type": "FOR_CLIENT",
-      "initial_count": 1200,
+      "initial_count": 1201,
       "endpoint_label_pairs": [
+        "Claim -> Client",
         "Shipment -> Client"
       ],
       "properties": {
@@ -1011,8 +1211,9 @@
     },
     {
       "type": "SUPPORTED_BY",
-      "initial_count": 4,
+      "initial_count": 5,
       "endpoint_label_pairs": [
+        "Claim -> Source",
         "Decision -> Source",
         "Rule -> Source"
       ],

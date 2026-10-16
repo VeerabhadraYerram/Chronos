@@ -69,6 +69,23 @@ export type CompanyReceipt = {
   };
 };
 export type CompanySession = {
+  company?: CompanyEntity | null;
+  clients: CompanyEntity[];
+  demo?: {
+    title: string;
+    description: string;
+    question: string;
+    effective_at: string;
+    known_at: string;
+    before_effective: string;
+    before_known: string;
+    examples: { label: string; question: string }[];
+    events: {
+      id: "amendment" | "withdraw";
+      label: string;
+      description: string;
+    }[];
+  } | null;
   session_id: string;
   stats: {
     entities: number;

@@ -1,0 +1,244 @@
+{
+  "format": "chronosgraph-data-pack-v1",
+  "description": "Fictional Atlas Studio: Finance and Marketing evidence. All data is synthetic.",
+  "nodes": [
+    {
+      "id": "atlas",
+      "kind": "Company",
+      "title": "Atlas Studio",
+      "synthetic": true,
+      "description": "Fictional design business used to test company-wide retrieval without logistics assumptions."
+    },
+    {
+      "id": "team-finance",
+      "kind": "Team",
+      "title": "Finance",
+      "description": "Budget and reimbursement review",
+      "synthetic": true
+    },
+    {
+      "id": "team-marketing",
+      "kind": "Team",
+      "title": "Marketing",
+      "description": "Campaign planning and brand approval",
+      "synthetic": true
+    },
+    {
+      "id": "team-legal",
+      "kind": "Team",
+      "title": "Legal",
+      "description": "Vendor agreement review",
+      "synthetic": true
+    },
+    {
+      "id": "source-expenses",
+      "kind": "Source",
+      "title": "Expense approval policy",
+      "excerpt": "Expenses above INR 10000 need Finance approval. The threshold was chosen to keep routine purchases fast while reviewing larger commitments.",
+      "department": "Finance",
+      "timestamp": "2026-01-01T09:00:00Z",
+      "enabled": true,
+      "synthetic": true,
+      "classification": "synthetic_internal",
+      "source_type": "Policy document"
+    },
+    {
+      "id": "source-brand",
+      "kind": "Source",
+      "title": "Campaign launch checklist",
+      "excerpt": "Marketing owns campaign launch approval. Legal reviews vendor agreements before signature. This checklist does not approve individual campaigns.",
+      "department": "Marketing",
+      "timestamp": "2026-01-01T09:00:00Z",
+      "enabled": true,
+      "synthetic": true,
+      "classification": "synthetic_internal",
+      "source_type": "Policy document"
+    },
+    {
+      "id": "policy-expenses",
+      "kind": "Policy",
+      "title": "Expense approvals",
+      "description": "Approval policy for business expenses",
+      "synthetic": true
+    },
+    {
+      "id": "decision-expenses",
+      "kind": "Decision",
+      "title": "Review purchases above INR 10000",
+      "approved": true,
+      "synthetic": true
+    },
+    {
+      "id": "campaign-spring",
+      "kind": "Campaign",
+      "title": "Spring launch campaign",
+      "status": "draft",
+      "synthetic": true
+    },
+    {
+      "id": "invoice-001",
+      "kind": "Invoice",
+      "title": "Design software renewal",
+      "amount_inr": 7500,
+      "status": "pending_review",
+      "department": "Marketing",
+      "synthetic": true
+    },
+    {
+      "id": "invoice-002",
+      "kind": "Invoice",
+      "title": "Event venue deposit",
+      "amount_inr": 25000,
+      "status": "pending_review",
+      "department": "Marketing",
+      "synthetic": true
+    },
+    {
+      "id": "rule-expense-limit",
+      "kind": "Rule",
+      "title": "Finance approval threshold",
+      "subject_id": "policy-expenses",
+      "field": "approval_threshold_inr",
+      "value": 10000,
+      "status": "accepted",
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_to": "",
+      "recorded_from": "2026-01-01T09:00:00Z",
+      "recorded_to": "",
+      "synthetic": true
+    },
+    {
+      "id": "source-old-expenses",
+      "kind": "Source",
+      "title": "Archived expense handbook",
+      "excerpt": "Older handbook states that Finance approval is required above INR 5000. This record has not yet been reconciled with the accepted policy.",
+      "department": "Finance",
+      "timestamp": "2026-01-01T09:00:00Z",
+      "enabled": true,
+      "synthetic": true,
+      "classification": "synthetic_internal"
+    },
+    {
+      "id": "claim-old-threshold",
+      "kind": "Claim",
+      "title": "Handbook approval threshold",
+      "subject_id": "policy-expenses",
+      "field": "approval_threshold_inr",
+      "value": 5000,
+      "status": "documented",
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_to": "",
+      "recorded_from": "2026-01-01T09:00:00Z",
+      "recorded_to": "",
+      "synthetic": true
+    }
+  ],
+  "relationships": [
+    {
+      "source": "team-finance",
+      "relation": "PART_OF",
+      "target": "atlas",
+      "source_ids": []
+    },
+    {
+      "source": "team-marketing",
+      "relation": "PART_OF",
+      "target": "atlas",
+      "source_ids": []
+    },
+    {
+      "source": "team-legal",
+      "relation": "PART_OF",
+      "target": "atlas",
+      "source_ids": []
+    },
+    {
+      "source": "policy-expenses",
+      "relation": "OWNED_BY",
+      "target": "team-finance",
+      "source_ids": [
+        "source-expenses"
+      ]
+    },
+    {
+      "source": "rule-expense-limit",
+      "relation": "SUPPORTED_BY",
+      "target": "source-expenses",
+      "source_ids": [
+        "source-expenses"
+      ]
+    },
+    {
+      "source": "rule-expense-limit",
+      "relation": "APPLIES_TO",
+      "target": "policy-expenses",
+      "source_ids": [
+        "source-expenses"
+      ]
+    },
+    {
+      "source": "rule-expense-limit",
+      "relation": "WHY",
+      "target": "decision-expenses",
+      "source_ids": [
+        "source-expenses"
+      ]
+    },
+    {
+      "source": "decision-expenses",
+      "relation": "EXPLAINED_BY",
+      "target": "source-expenses",
+      "source_ids": [
+        "source-expenses"
+      ]
+    },
+    {
+      "source": "campaign-spring",
+      "relation": "OWNED_BY",
+      "target": "team-marketing",
+      "source_ids": [
+        "source-brand"
+      ]
+    },
+    {
+      "source": "campaign-spring",
+      "relation": "DOCUMENTED_IN",
+      "target": "source-brand",
+      "source_ids": [
+        "source-brand"
+      ]
+    },
+    {
+      "source": "invoice-001",
+      "relation": "OWNED_BY",
+      "target": "team-marketing",
+      "source_ids": [
+        "source-brand"
+      ]
+    },
+    {
+      "source": "invoice-002",
+      "relation": "OWNED_BY",
+      "target": "team-finance",
+      "source_ids": [
+        "source-expenses"
+      ]
+    },
+    {
+      "source": "policy-expenses",
+      "relation": "ASSERTS",
+      "target": "claim-old-threshold",
+      "source_ids": [
+        "source-old-expenses"
+      ]
+    },
+    {
+      "source": "claim-old-threshold",
+      "relation": "SUPPORTED_BY",
+      "target": "source-old-expenses",
+      "source_ids": [
+        "source-old-expenses"
+      ]
+    }
+  ]
+}

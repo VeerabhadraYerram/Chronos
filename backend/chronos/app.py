@@ -212,3 +212,6 @@ def rehearse(request: Investigation):
 # The original NovaPay routes stay available; the main UI uses isolated company sessions.
 from .company.api import router as company_router
 app.include_router(company_router)
+
+from .company.inspection_api import router as inspection_router
+app.include_router(inspection_router)
