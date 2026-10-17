@@ -4,12 +4,12 @@
 
 The new real-FalkorDB suite covers the 1,200-consignment graph, active commitments, required relationships, effective/recorded boundaries, source withdrawal, isolated graph-copy previews, cost provenance, idempotent replay, stale review rejection, recorded reasons, unknown questions, parameterized input, read-only tools, contextual exploration, API validation and session isolation. See [test_company_reference.py](../backend/tests/test_company_reference.py).
 
-The original 16 tests below are preserved. Together with 31 reference-workspace tests and 23 inspection/general-engine tests, the suite has **70 passing tests** at this implementation milestone. The frontend production build also passes. Provider-fallback routing is tested with a controlled transport stub; live-provider status is recorded separately, not inferred from that stub. These checks do not prove model semantic correctness, real logistics outcomes, public deployment or exact replication of Delhivery's private systems.
+The original 16 tests below are preserved. Together with 35 reference-workspace tests and 23 inspection/general-engine tests, the suite has **74 passing tests** at this implementation milestone. The frontend production build and two geometry tests also pass. Provider-fallback routing is tested with a controlled transport stub; live-provider status is recorded separately, not inferred from that stub. These checks do not prove model semantic correctness, real logistics outcomes, public deployment or exact replication of Delhivery's private systems.
 
 
 [Run the evaluation](EVALUATION.md) · [CI workflow](../.github/workflows/ci.yml) · [Live GitHub runs](https://github.com/VeerabhadraYerram/Chronos/actions/workflows/ci.yml)
 
-Local verification date: **October 16, 2026**. Environment: macOS ARM64, Python 3.13, Node.js 20.19.6, real FalkorDB v4.22.1. The image digest is pinned in Compose and CI. The live Actions run is the source for remote CI status; local results do not imply a remote run passed.
+Local verification date: **October 17, 2026**. Environment: macOS ARM64, Python 3.13, Node.js 20.19.6, real FalkorDB v4.22.1. The image digest is pinned in Compose and CI. The live Actions run is the source for remote CI status; local results do not imply a remote run passed.
 
 ## Reproduce all checks
 
@@ -21,7 +21,7 @@ The script requires installed dependencies and a reachable real database. It use
 
 | Check | Command | Local result |
 | --- | --- | --- |
-| Integration suite | `PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q` | 60 passed |
+| Integration suite | `PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q` | 74 passed |
 | Business scenario | `PYTHONPATH=backend .venv/bin/python scripts/evaluate.py` | 12 expected outcomes checked |
 | Frontend | `npm --prefix frontend run build` | TypeScript check and production build passed |
 | Documentation | `.venv/bin/python scripts/check_docs.py` | Local links, heading anchors, and image targets checked |
@@ -29,6 +29,16 @@ The script requires installed dependencies and a reachable real database. It use
 CI runs the same integration suite and business scenario against a real FalkorDB service, builds the client in a separate job, and checks documentation in a third job. Actions are pinned by commit SHA and the workflow has read-only repository permission. CI deliberately uses an empty Gemini key.
 
 The inspection suite verifies enforced IDs, required native fields, complete pagination/export, hidden session registries, migration idempotency, structural fault detection, independent company data, changed-owner answers, generic arithmetic, withdrawn evidence, HTTP limits and cross-workspace boundaries. These checks use disposable real FalkorDB graphs.
+
+A live Groq response on October 17 correctly reported 12 Client companies after the additive expansion. This verifies that run, not every possible future model response.
+
+## Account expansion and graph layout checks
+
+The account coverage extension verifies 12 clients, three distinct-city pickup warehouses per client, 36 assigned operational review items, 25 source-backed document statements, diverse accepted rule fields and additive migration with retained history. The scheduling simulation still uses exactly its original 1,200 consignments even though ordinary Bengaluru traffic is now present.
+
+A regression crosses the database server's 10,000-row response cap with saved history and verifies complete catalog counts and full node/relationship exports. Internal catalog, migration and audit reads page in 1,000-record batches.
+
+Two frontend geometry tests cover 100 coincident relationship labels, varied measured label heights, moving card obstacles and deterministic placement. Labels reserve padded rectangles against every card and previously placed label; when crowded, the search expands canvas space. Displaced labels retain dotted connectors. Browser checks on a real 11-record / 19-connection answer found zero label-to-label and label-to-card intersections before and after dragging and zooming. Fit View includes displaced labels. This prevents label occlusion; dense graphs still require pan/zoom for comfortable reading.
 
 ## Automated coverage
 

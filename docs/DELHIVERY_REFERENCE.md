@@ -39,27 +39,27 @@ Select **Guided demo** to expose the sample replay and rehearsal controls. Their
 
 ## Dataset and schema
 
-The initial seed has **7,333 business entities and 11,984 relationships**, including:
+The initial seed has **9,991 business entities and 17,207 relationships**, including:
 
 | Graph label | Count | Meaning |
 | --- | ---: | --- |
 | Company | 1 | Public business identity |
-| Client | 3 | Real organization names; synthetic operating commitments |
-| Facility | 8 | Synthetic processing-centre records |
-| ClientWarehouse | 3 | Synthetic registered pickup locations |
+| Client | 12 | Real organization names; synthetic operating commitments |
+| Facility | 14 | Synthetic processing-centre records |
+| ClientWarehouse | 36 | Synthetic registered pickup locations |
 | Team | 8 | Department responsibilities, not real employee identities |
-| Route | 45 | 24 Bengaluru lanes plus 21 October lanes |
-| Manifest | 45 | Planned lane-linked manifests |
-| PickupRequest | 81 | Synthetic collected pickup requests |
-| Shipment | 1,410 | 1,200 November scenario consignments plus 210 October snapshot consignments |
-| ScanEvent | 5,430 | Four per November consignment; three per October consignment |
-| Rule | 7 | Accepted, temporally scoped Sunday commitments |
-| Source | 36 | Four public references plus 32 synthetic records |
-| Decision | 10 | Accepted decision and unapproved proposal |
-| Policy | 5 | Current demo handbook configuration |
-| Campaign | 1 | Synthetic reason context |
+| Route | 81 | 24 Bengaluru lanes plus 57 October lanes |
+| Manifest | 81 | Planned lane-linked manifests |
+| PickupRequest | 117 | Synthetic collected pickup requests |
+| Shipment | 1,890 | 1,200 November scenario consignments plus 690 October operational consignments |
+| ScanEvent | 6,870 | Four per November consignment; three per October consignment |
+| Rule | 43 | Accepted, temporally scoped handling, billing and scheduling controls |
+| Source | 102 | Seven public context references plus 95 modeled records |
+| Decision | 22 | Accepted decision and unapproved proposal |
+| Policy | 17 | Operating handbooks and account guides |
+| Campaign | 13 | Client promotions, rollouts and capacity programmes |
 
-The replay adds source and rule versions. Counts come from FalkorDB, not frontend constants. Receipts and review packets are additional persisted entities. IDs prefixed `DEMO` are not live waybills.
+The replay adds source and rule versions. Counts come from FalkorDB, not frontend constants. Receipts and review packets are additional persisted entities. Waybills are local fixture identifiers, not live tracking IDs.
 
 ```mermaid
 flowchart LR

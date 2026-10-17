@@ -12,7 +12,14 @@ let session = "",
   busy = false;
 const limit = 50;
 const readable = (name) =>
-  name
+  (
+    ({
+      Action: "Actions · review packets",
+      Campaign: "Campaigns · client programmes",
+      Claim: "Claims · document statements",
+      WorkItem: "Operational work items",
+    })[name] || name
+  )
     .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
     .replace(/([a-z])([A-Z])/g, "$1 $2");
 const explanations = {
@@ -25,8 +32,12 @@ const explanations = {
     "Original excerpts, tickets, chats and public references. Open a record to read its text, classification, content hash and connections.",
   Action:
     "Local drafts prepared for human review. These are not externally published actions.",
+  Campaign:
+    "A client promotion or logistics rollout with dates, regions and planning volumes. It explains demand and capacity decisions; ending a programme does not automatically change a contract.",
+  WorkItem:
+    "Pending operational work connected to a client, review ticket, owner and assigned role. These differ from saved investigation review packets in Action.",
   Shipment:
-    "Synthetic consignments with client and facility connections. October snapshots and the planned November demo cohort are separate.",
+    "Consignments linked to clients, warehouse pickups, routes and processing facilities. Operational snapshots and the planned scheduling cohort are separate.",
 };
 const el = (tag, text, cls) => {
   const n = document.createElement(tag);
@@ -120,7 +131,7 @@ function link(id, title) {
 async function connect(fresh = false) {
   const id = fresh ? "" : $("workspace").value.trim();
   if (!fresh && !/^[a-f0-9]{32}$/.test(id))
-    throw new Error("Enter a valid workspace ID, or create a demo workspace.");
+    throw new Error("Enter a valid workspace ID, or create a workspace.");
   const r = await fetch("/api/company/session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -309,7 +320,7 @@ async function render() {
       el("h3", "What is stored here?"),
       el(
         "p",
-        "Business records are synthetic examples, connected in FalkorDB. Receipts preserve previous investigations; they are historical outputs, not answers fed back as company facts. Metadata contains schema versions and guided-tour questions/replay controls. It does not contain prewritten answers to arbitrary questions.",
+        "Business records are connected in FalkorDB. Receipts preserve previous investigations; they are historical outputs, not answers fed back as company facts. Actions are review packets created from investigations. Operational work items are tracked separately. Metadata stores schema versions and walkthrough controls, not prewritten answers.",
       ),
       el(
         "p",
@@ -451,7 +462,12 @@ async function inspect(id) {
   $("detail-title").textContent =
     data.label + " · " + (data.record.title || id);
   const dl = el("dl", undefined, "field-list");
+  const provenance = {};
   for (const [k, v] of Object.entries(data.record)) {
+    if (["synthetic", "classification", "content_hash"].includes(k)) {
+      provenance[k] = v;
+      continue;
+    }
     const dd = el("dd");
     if (typeof v === "object" && v !== null) {
       const disclosure = el("details");
@@ -469,6 +485,12 @@ async function inspect(id) {
     dl.append(el("dt", k.replaceAll("_", " ")), dd);
   }
   $("detail-body").replaceChildren(dl);
+  const provenanceDetails = el("details");
+  provenanceDetails.append(
+    el("summary", "Provenance & record classification"),
+    el("pre", JSON.stringify(provenance, null, 2)),
+  );
+  $("detail-body").append(provenanceDetails);
   const native = el("details");
   native.append(
     el("summary", "Native database properties"),
@@ -551,9 +573,7 @@ $("close").onclick = () => $("detail").close();
 $("share").onclick = () =>
   task(async () => {
     await navigator.clipboard.writeText(location.href);
-    message(
-      "Inspection link copied. It grants read access to this demo workspace.",
-    );
+    message("Inspection link copied. It grants read access to this workspace.");
   });
 $("export").onclick = () =>
   task(async () => {

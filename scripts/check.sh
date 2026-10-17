@@ -9,5 +9,6 @@ fi
 
 PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q
 PYTHONPATH=backend .venv/bin/python scripts/evaluate.py
+npm --prefix frontend test
 npm --prefix frontend run build
 .venv/bin/python scripts/check_docs.py

@@ -27,43 +27,44 @@ Session creation is capped at **40** per reference registry. No automatic expiry
 
 ## 3. Initial dataset size
 
-The deterministic seed contains **7,333 business entities**, **11,984 directed relationships**, and a separate `Metadata` revision record. These are initial fixture counts, not a claim about Delhivery's real scale. Replays, receipts, review packets and session bookkeeping add records.
+The deterministic seed contains **9,991 business entities**, **17,207 directed relationships**, and a separate `Metadata` revision record. These are initial fixture counts, not a claim about Delhivery's real scale. Replays, receipts, review packets and session bookkeeping add records.
 
 | Graph label | SQL-table equivalent | Initial rows/nodes | Example ID |
 | --- | --- | ---: | --- |
 | `Company` | companies | 1 | `delhivery` |
-| `Client` | clients | 3 | `havells` |
-| `ClientWarehouse` | client_warehouses | 3 | `warehouse-havells` |
-| `Facility` | processing_facilities | 8 | `facility-bengaluru` |
+| `Client` | clients | 12 | `havells` |
+| `ClientWarehouse` | client_warehouses | 36 | `warehouse-havells` |
+| `Facility` | processing_facilities | 14 | `facility-bengaluru` |
 | `Team` | departments | 8 | `team-operations` |
-| `Route` | transport_lanes | 45 | `lane-00` |
-| `Manifest` | manifests | 45 | `manifest-00` |
-| `PickupRequest` | pickup_requests | 81 | `pickup-000` |
-| `Shipment` | consignments | 1,410 | `shipment-0000` |
-| `ScanEvent` | tracking_events | 5,430 | `scan-0000-0` |
-| `Rule` | commitment_versions | 7 | `rule-havells-original` |
-| `Source` | source_documents | 36 | `source-havells-agreement` |
-| `Decision` | decisions | 10 | `decision-sunday` |
-| `Policy` | operating_policies | 5 | `policy-schedule` |
-| `Campaign` | campaign_context | 1 | `campaign` |
-| `Claim` | document_assertions | 1 | `claim-current-schedule` |
-| `Ticket` | incident_tickets | 8 | `depth-ticket-cod` |
+| `Route` | transport_lanes | 81 | `lane-00` |
+| `Manifest` | manifests | 81 | `manifest-00` |
+| `PickupRequest` | pickup_requests | 117 | `pickup-000` |
+| `Shipment` | consignments | 1,890 | `shipment-0000` |
+| `ScanEvent` | tracking_events | 6,870 | `scan-0000-0` |
+| `Rule` | commitment_versions | 43 | `rule-havells-original` |
+| `Source` | source_documents | 102 | `source-havells-agreement` |
+| `Decision` | decisions | 22 | `decision-sunday` |
+| `Policy` | operating_policies | 17 | `policy-schedule` |
+| `Campaign` | campaign_context | 13 | `campaign` |
+| `Claim` | document_assertions | 25 | `claim-current-schedule` |
+| `Ticket` | incident_tickets | 20 | `depth-ticket-cod` |
 | `Person` | fictional_role_directory | 24 | `depth-person-0-0` |
 | `Vehicle` | fleet_units | 21 | `depth-vehicle-00` |
-| `Invoice` | shipping_invoices | 36 | `depth-invoice-000` |
-| `CODCollection` | cash_collections | 15 | `depth-cod-0007` |
-| `Remittance` | settlement_entries | 15 | `depth-remittance-0007` |
-| `Return` | return_requests | 60 | `depth-return-0004` |
-| `DeliveryException` | failed_delivery_reviews | 60 | `depth-exception-0003` |
+| `Invoice` | shipping_invoices | 72 | `depth-invoice-000` |
+| `CODCollection` | cash_collections | 39 | `depth-cod-0007` |
+| `Remittance` | settlement_entries | 39 | `depth-remittance-0007` |
+| `Return` | return_requests | 156 | `depth-return-0004` |
+| `DeliveryException` | failed_delivery_reviews | 252 | `depth-exception-0003` |
+| `WorkItem` | operational_review_work | 36 | `work-havells-operations` |
 | `Receipt` | investigation_receipts | 0 | Created by a question |
 | `Action` | review_packets | 0 | Created from a current receipt |
 | `Event` | applied_demo_events | 0 | Created by replay |
 | `DemoSession` | session_registry | 0 | Created in the reference registry |
 | `Metadata` | dataset_metadata | 1 | `dataset` |
 
-`Metadata` does not carry `Entity`, so it is outside the 7,333 business-node total. Business statistics exclude `Receipt`, `Action`, and `DemoSession`. The relationship counter includes all `Entity` relationships present, including later receipt links; the initial count has no receipt links.
+`Metadata` does not carry `Entity`, so it is outside the 9,991 business-node total. Business statistics exclude `Receipt`, `Action`, and `DemoSession`. The relationship counter includes all `Entity` relationships present, including later receipt links; the initial count has no receipt links.
 
-Four sources are curated public references; 32 are synthetic company records. Replaying the amendment adds one source and two rule versions while retaining the original belief.
+Seven sources provide curated public context; 95 contain modeled company records. Replaying the amendment adds one source and two rule versions while retaining the original belief.
 
 ## 4. Physical storage schema
 
@@ -342,6 +343,6 @@ PYTHONPATH=backend .venv/bin/python scripts/export_schema.py
 
 Generator: [export_schema.py](../scripts/export_schema.py).
 
-The logistics fixture now includes one explicit `Claim` recording the handbook statement, linked through `Policy → ASSERTS → Claim → SUPPORTED_BY → Source`. General investigation compares its subject/field/value with applicable accepted rules. Existing reference workspaces receive this fixture extension once and conservatively invalidate earlier receipts; this is separate from the physical schema migration.
+The logistics fixture includes 25 explicit `Claim` records for handling and billing statements across 12 accounts, linked through `Policy → ASSERTS → Claim → SUPPORTED_BY → Source`. General investigation compares its subject/field/value with applicable accepted rules. Existing reference workspaces receive this fixture extension once and conservatively invalidate earlier receipts; this is separate from the physical schema migration.
 
 See [Synthetic logistics depth](DATA_SCENARIOS.md) for the additional operational, finance, incident and people records, example investigations and limitations.

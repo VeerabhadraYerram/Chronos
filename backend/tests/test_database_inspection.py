@@ -63,7 +63,7 @@ def test_catalog_pagination_and_complete_native_record(reference):
     )  # Includes Metadata; excludes private registry.
     assert (
         next(item for item in c["labels"] if item["label"] == "ScanEvent")["count"]
-        == 5430
+        == 6870
     )
     assert c["indexes"] and c["metadata"]["schema_version"] == 4
     assert not any(
@@ -72,8 +72,8 @@ def test_catalog_pagination_and_complete_native_record(reference):
         for field in index["properties"]
     )
     first = r.rows("ScanEvent", limit=100)
-    last = r.rows("ScanEvent", offset=5330, limit=100)
-    assert first["total"] == last["total"] == 5430
+    last = r.rows("ScanEvent", offset=6770, limit=100)
+    assert first["total"] == last["total"] == 6870
     assert len(first["rows"]) == len(last["rows"]) == 100
     assert not {n["id"] for n in first["rows"]} & {n["id"] for n in last["rows"]}
     native = r.record("shipment-0000")["properties"]
@@ -335,7 +335,7 @@ def test_ai_failure_does_not_masquerade_as_an_answer(atlas, monkeypatch):
 def test_depth_scenarios_are_connected_not_answer_templates(reference):
     r = CompanyReader(reference)
     assert r.audit()["passed"]
-    assert r.rows("Shipment")["total"] == 1410
+    assert r.rows("Shipment")["total"] == 1890
     assert len(reference.read("MATCH (s:Shipment) RETURN DISTINCT s.status")) >= 8
     for label in [
         "Ticket",
@@ -497,8 +497,8 @@ def test_count_graph_is_relevant_and_qualified_counts_are_not_global(reference):
         "Company",
         "Source",
     }
-    assert len([n for n in receipt["graph"]["nodes"] if n["kind"] == "Client"]) == 3
-    assert receipt["aggregates"][0]["groups"][0]["count"] == 3
+    assert len([n for n in receipt["graph"]["nodes"] if n["kind"] == "Client"]) == 5
+    assert receipt["aggregates"][0]["groups"][0]["count"] == 12
     qualified = answer(reference, q("a" * 32, "How many disputed invoices are there?"))
     assert (
         qualified["aggregates"] == []

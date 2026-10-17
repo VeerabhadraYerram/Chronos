@@ -168,7 +168,7 @@ def migrate(store):
     )
     if version and version[0][0] >= VERSION:
         return
-    rows = store.read("MATCH (n:Entity) RETURN n.payload ORDER BY n.id")
+    rows = store.read_all("MATCH (n:Entity) RETURN n.payload ORDER BY n.id")
     groups = {}
     for row in rows:
         n = json.loads(row[0])

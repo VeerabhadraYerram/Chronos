@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useLayoutEffect, useRef } from "react";
 import {
   ReactFlow,
   Background,
@@ -11,6 +11,9 @@ import {
   BaseEdge,
   EdgeLabelRenderer,
   getSmoothStepPath,
+  useNodes,
+  useEdges,
+  useReactFlow,
 } from "@xyflow/react";
 import {
   Building2,
@@ -25,6 +28,7 @@ import {
   Network,
   AlignLeft,
 } from "lucide-react";
+import { placeLabels } from "./graph-label-layout";
 import type { CompanyEntity, CompanyGraph as Graph } from "./company-types";
 
 const palette: Record<string, string> = {
@@ -141,7 +145,7 @@ function EvidenceEdge(props: EdgeProps) {
     lane: number;
     sameColumn: boolean;
   };
-  let [path, x, y] = getSmoothStepPath({
+  let [path] = getSmoothStepPath({
     sourceX,
     sourceY,
     targetX,
@@ -156,8 +160,6 @@ function EvidenceEdge(props: EdgeProps) {
     const lane = sourceX + 105 + (detail.lane % 3) * 20;
     const approachY = targetY - 105;
     path = `M ${sourceX} ${sourceY} H ${lane} V ${approachY} H ${targetX - 28} V ${targetY} H ${targetX}`;
-    x = lane;
-    y = (sourceY + approachY) / 2;
   }
   return (
     <>
@@ -167,16 +169,134 @@ function EvidenceEdge(props: EdgeProps) {
         style={style}
         interactionWidth={24}
       />
+    </>
+  );
+}
+// One shared allocator sees every label and card, including live drag positions.
+function RelationshipLabels() {
+  const { fitBounds } = useReactFlow();
+  const nodes = useNodes();
+  const edges = useEdges();
+  const elements = useRef(new Map<string, HTMLButtonElement>());
+  const [sizes, setSizes] = useState<
+    Record<string, { width: number; height: number }>
+  >({});
+  useLayoutEffect(() => {
+    const measure = () => {
+      const next: typeof sizes = {};
+      elements.current.forEach((el, id) => {
+        next[id] = { width: el.offsetWidth, height: el.offsetHeight };
+      });
+      setSizes((old) =>
+        JSON.stringify(old) === JSON.stringify(next) ? old : next,
+      );
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    elements.current.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [edges]);
+  const rectangles = nodes.map((n) => ({
+    id: n.id,
+    x: n.position.x,
+    y: n.position.y,
+    width: n.measured?.width || 220,
+    height: n.measured?.height || 160,
+  }));
+  const anchors = edges.flatMap((edge) => {
+    const source = rectangles.find((n) => n.id === edge.source);
+    const target = rectangles.find((n) => n.id === edge.target);
+    if (!source || !target) return [];
+    const right = edge.sourceHandle === "out-right";
+    const sourceX = source.x + (right ? source.width : 0);
+    const sourceY = source.y + source.height / 2;
+    const targetX = target.x + (right ? 0 : target.width);
+    const targetY = target.y + target.height / 2;
+    const detail = edge.data as { sameColumn: boolean; lane: number };
+    let [, x, y] = getSmoothStepPath({
+      sourceX,
+      sourceY,
+      targetX,
+      targetY,
+      sourcePosition: right ? Position.Right : Position.Left,
+      targetPosition: right ? Position.Left : Position.Right,
+      borderRadius: 18,
+      offset: 40,
+    });
+    if (detail.sameColumn) {
+      x = sourceX + 105 + (detail.lane % 3) * 20;
+      y = (sourceY + targetY - 105) / 2;
+    }
+    const size = sizes[edge.id] || { width: 184, height: 56 };
+    return [
+      {
+        id: edge.id,
+        x: x - size.width / 2,
+        y: y - size.height / 2,
+        ...size,
+        anchorX: x,
+        anchorY: y,
+      },
+    ];
+  });
+  const placed = placeLabels(anchors, rectangles);
+  const title = (id: string) =>
+    (nodes.find((n) => n.id === id)?.data.entity as CompanyEntity | undefined)
+      ?.title || "record";
+  const fitEverything = () => {
+    const all = [...rectangles, ...placed];
+    if (!all.length) return;
+    const x = Math.min(...all.map((r) => r.x)),
+      y = Math.min(...all.map((r) => r.y));
+    void fitBounds(
+      {
+        x,
+        y,
+        width: Math.max(...all.map((r) => r.x + r.width)) - x,
+        height: Math.max(...all.map((r) => r.y + r.height)) - y,
+      },
+      { padding: 0.15, duration: 200 },
+    );
+  };
+  return (
+    <>
+      <Controls showInteractive={false} onFitView={fitEverything} />
       <EdgeLabelRenderer>
-        <button
-          className="cg-edge-label nodrag nopan"
-          style={{
-            transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`,
-          }}
-          onClick={() => detail.onOpen(detail.edge)}
-        >
-          {props.label}
-        </button>
+        {placed.map((label) => {
+          const edge = edges.find((e) => e.id === label.id)!;
+          const anchor = anchors.find((a) => a.id === label.id)!;
+          const detail = edge.data as {
+            edge: Graph["edges"][number];
+            onOpen: (edge: Graph["edges"][number]) => void;
+          };
+          const x = label.x + label.width / 2,
+            y = label.y + label.height / 2;
+          return (
+            <div key={label.id}>
+              {(Math.abs(x - anchor.anchorX) > 1 ||
+                Math.abs(y - anchor.anchorY) > 1) && (
+                <svg className="cg-label-leader" aria-hidden="true">
+                  <path
+                    d={`M ${anchor.anchorX} ${anchor.anchorY} L ${x} ${y}`}
+                  />
+                  <circle cx={anchor.anchorX} cy={anchor.anchorY} r="3" />
+                </svg>
+              )}
+              <button
+                ref={(el) => {
+                  if (el) elements.current.set(label.id, el);
+                  else elements.current.delete(label.id);
+                }}
+                className="cg-edge-label nodrag nopan"
+                style={{ transform: `translate(${label.x}px, ${label.y}px)` }}
+                aria-label={`${edge.label}: ${title(edge.source)} to ${title(edge.target)}`}
+                onClick={() => detail.onOpen(detail.edge)}
+              >
+                {edge.label}
+              </button>
+            </div>
+          );
+        })}
       </EdgeLabelRenderer>
     </>
   );
@@ -409,8 +529,8 @@ export default function CompanyGraph({
             edgesFocusable={true}
             colorMode="light"
           >
+            <RelationshipLabels />
             <Background color="#dce2db" gap={22} size={1} />
-            <Controls showInteractive={false} />
           </ReactFlow>
         </div>
       )}

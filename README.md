@@ -27,7 +27,7 @@ Operations wants Sunday closure. Sales has recorded a Havells commitment. Accoun
 - Compare effective time with knowledge time; approved sample amendments preserve the earlier belief.
 - Rehearse full Sunday closure versus preserved client exceptions in a **real FalkorDB graph copy**.
 - Inspect before/after processing, queued sample consignments and explicitly synthetic cost assumptions.
-- Search a graph containing **7,333 initial entities and 11,984 relationships**, including 1,410 consignments and 5,430 tracking events across multiple operational states.
+- Search a graph containing **9,991 initial entities and 17,207 relationships**, including 1,890 consignments and 6,870 tracking events across multiple operational states.
 - Reopen persistent investigations and download a review packet. No real company action is published.
 
 Each visitor gets a separate demo graph. The selected AI provider uses bounded read tools when enabled; graph-only mode shows stored facts/excerpts when AI is disabled; if both providers fail, the interface explicitly says no AI answer was generated. The guided scheduling simulator retains deterministic checks. Unfamiliar questions are limited by the recorded evidence; this is not unrestricted enterprise question answering.

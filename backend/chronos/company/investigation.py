@@ -66,7 +66,12 @@ def calculation_graph(store, request, aggregate):
         linked = set()
         candidate_edges.extend(local["edges"])
         for edge in local["edges"]:
-            if n["id"] in {edge["source"], edge["target"]}:
+            if n["id"] in {edge["source"], edge["target"]} and edge["relation"] not in {
+                "OWNED_BY",
+                "OPERATED_BY",
+                "ASSIGNED_TO",
+                "KNOWS_ABOUT",
+            }:
                 linked.add(
                     edge["target"] if edge["source"] == n["id"] else edge["source"]
                 )

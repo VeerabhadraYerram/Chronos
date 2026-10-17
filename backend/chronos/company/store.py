@@ -117,6 +117,19 @@ class CompanyStore(Store):
         if not rows or rows[0][0] != 1:
             raise ValueError("Both relationship endpoints must exist")
 
+    def read_all(self, ordered_query, params=None):
+        """Internal ordered templates only; page below the server result cap."""
+        rows, offset = [], 0
+        while True:
+            page = self.read(
+                ordered_query + " SKIP $page_offset LIMIT 1000",
+                dict(params or {}, page_offset=offset),
+            )
+            rows.extend(page)
+            if len(page) < 1000:
+                return rows
+            offset += len(page)
+
     def demo_config(self):
         rows = self.read('MATCH (m:Metadata {id:"dataset"}) RETURN m.demo_config')
         return json.loads(rows[0][0]) if rows and rows[0][0] else None
@@ -164,7 +177,9 @@ class CompanyStore(Store):
                         f"UNWIND $rows AS x MATCH (a:Entity {{id:x.source}}),(b:Entity {{id:x.target}}) MERGE (a)-[r:{rel}]->(b) SET r.source_ids=x.source_ids",
                         dict(rows=records[start : start + 250]),
                     )
-            self.write('CREATE (:Metadata {id:"dataset", revision:1, depth_version:2})')
+            self.write(
+                'CREATE (:Metadata {id:"dataset", revision:1, depth_version:2, coverage_version:1, presentation_version:1})'
+            )
             self.ensure_schema()
             self.write(
                 'MATCH (m:Metadata {id:"dataset"}) SET m.demo_config=$demo',
@@ -288,7 +303,7 @@ class CompanyStore(Store):
 
     def operating_policy(self):
         rows = self.read(
-            'MATCH (p:Policy)-[:APPLIES_AT]->(:Facility {id:"facility-bengaluru"}) RETURN p.payload LIMIT 1'
+            'MATCH (p:Policy {id:"policy-schedule"})-[:APPLIES_AT]->(:Facility {id:"facility-bengaluru"}) RETURN p.payload LIMIT 1'
         )
         policy = json.loads(rows[0][0]) if rows else None
         if not policy or "sunday_clients" not in policy:
@@ -297,7 +312,7 @@ class CompanyStore(Store):
 
     def documents(self):
         rows = self.read(
-            'MATCH (p:Policy)-[:APPLIES_AT]->(:Facility {id:"facility-bengaluru"}) MATCH (p)-[:DOCUMENTED_IN]->(s:Source) RETURN p.payload,s.payload'
+            'MATCH (p:Policy {id:"policy-schedule"})-[:APPLIES_AT]->(:Facility {id:"facility-bengaluru"}) MATCH (p)-[:DOCUMENTED_IN]->(s:Source) RETURN p.payload,s.payload'
         )
         return [dict(policy=json.loads(p), source=json.loads(s)) for p, s in rows]
 
@@ -305,8 +320,8 @@ class CompanyStore(Store):
         rows = self.read(
             """MATCH (s:Shipment)-[:AT]->(:Facility {id:"facility-bengaluru"})
             MATCH (s)-[:FOR_CLIENT]->(c:Client)
-            WHERE $client="all" OR c.id=$client RETURN c.id,c.title,count(s) ORDER BY c.title""",
-            dict(client=client),
+            WHERE s.scenario_cohort=$cohort AND ($client="all" OR c.id=$client) RETURN c.id,c.title,count(s) ORDER BY c.title""",
+            dict(client=client, cohort="bengaluru-scheduling"),
         )
         return [dict(client=id, title=title, count=count) for id, title, count in rows]
 

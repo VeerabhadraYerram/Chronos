@@ -6,12 +6,16 @@ This is an independently designed Company Brain dataset, not a replica of Delhiv
 
 Delhivery's public help documents describe [delivery exceptions](https://help.delhivery.com/docs/exception-ndr), [return to origin](https://help.delhivery.com/docs/courier-returnrto), and [COD remittance](https://help.delhivery.com/docs/cod-remittance). These establish concepts only. Our amounts, controls, timings and incidents are synthetic assumptions; the public references do not validate them.
 
-## Two distinct operational cohorts
+## Three distinct operational cohorts
 
 - The original 1,200 Bengaluru shipments are the planned November Sunday-comparison cohort. Four scans each support that guided example.
 - Another 210 October snapshot shipments cover seven other cities and seven statuses: delivered, in transit, out for delivery, failed delivery, return initiated, returned to origin, and on hold. These have three scans each, payment modes, declared/measured weights and service types. They do not change the Sunday rehearsal population.
 
-The expanded initial seed contains **7,333 business records, 11,984 relationships and 24 labels**, plus separate dataset metadata. Replays and investigation history add further records. The inspector always reads actual current counts from FalkorDB.
+- A further 480 October shipments connect all 12 accounts to 36 pickup warehouses across multiple cities, with handling holds, rescheduling, damage review, billing and settlements. Their origin facility is distinct from live parcel position.
+
+The Sunday comparison explicitly selects its 1,200-record cohort; ordinary Bengaluru traffic cannot change that population.
+
+The expanded initial seed contains **9,991 business records, 17,207 relationships and 25 labels**, plus separate dataset metadata. Replays and investigation history add further records. The inspector always reads actual current counts from FalkorDB.
 
 ## Connected investigation examples
 
@@ -26,7 +30,11 @@ The expanded initial seed contains **7,333 business records, 11,984 relationship
 | Weather contingency | Proposed decision → ticket → route → facilities; Transport owns review | Is the Kolkata reroute approved? |
 | Packaging hold | Decision → ticket → exception → shipment; Compliance owns review | Who reviews the HPCL packaging hold? |
 
-There are 8 incident tickets, their 8 decision records, 16 ticket/chat sources plus 5 supporting procedure/directory sources, 24 fictional role identities, 21 vehicles, 36 invoices, 60 exceptions, 60 returns, 15 COD collections and 15 settlements. Four additional accepted review controls have source links and effective/recorded intervals. Current role membership and expertise are explicit graph relationships, not historical personnel records.
+The complete fixture has 20 review tickets, 22 decisions, 24 role identities, 21 vehicles, 72 invoices, 252 exceptions, 156 returns, 39 COD collections and 39 settlements. Its 43 accepted rules span 12 handling controls plus billing, escalation and scheduling. Claims preserve 25 document statements, including four handling guides that disagree with current accepted terms. Current role membership and expertise are graph relationships, not historical personnel records.
+
+The 13 Campaign records describe client programmes (festive replenishment, regional rollout, returns improvement and inventory rebalance). They provide planning rationale, never policy authority. The 36 WorkItems represent assigned pending review work across Operations, Account Management and Finance. Action rows remain actual user-created local review packets; no completed user activity is seeded to inflate that table.
+
+Public account context comes from Delhivery's [Q1 FY24 release](https://www.delhivery.com/uploads/2023/08/PressRelease.pdf), [FY24 annual report](https://www.delhivery.com/uploads/2024/08/Annual_Report_FY24.pdf) and [press archive](https://www.delhivery.com/company/press-release). Those establish historical business context only. The 36 warehouse locations and private terms are modeled, not verified real account infrastructure.
 
 The examples are source material, not query/answer pairs. The general investigator cannot read guided-tour metadata or past receipts as company evidence. Saved receipts preserve what a prior run returned; they are not prewritten future responses. A field called `demo_config` contains optional tour questions and replay controls only.
 

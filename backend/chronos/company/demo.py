@@ -1,8 +1,9 @@
 """Fixture-owned guided tour. This configuration is not company policy logic."""
 
 CONFIG = dict(
+    cohort_id="bengaluru-scheduling",
     title="A quieter Sunday. An active promise.",
-    description="Follow the synthetic Bengaluru scheduling example across departments.",
+    description="Follow the Bengaluru scheduling example across departments.",
     question="Can we close the Bengaluru facility on Sundays?",
     effective_at="2026-11-08",
     known_at="2026-10-16",
@@ -23,12 +24,12 @@ CONFIG = dict(
         dict(
             id="amendment",
             label="Introduce approved amendment",
-            description="Replay an approved synthetic Havells amendment, recorded 15 October and effective 1 November. This is a guided sample, not live ingestion.",
+            description="Replay an approved Havells amendment, recorded 15 October and effective 1 November. This is a guided sample, not live ingestion.",
         ),
         dict(
             id="withdraw",
             label="Challenge original evidence",
-            description="Withdraw the original synthetic agreement in this workspace.",
+            description="Withdraw the original agreement in this workspace.",
         ),
     ],
 )
@@ -123,3 +124,8 @@ def upgrade_reference_records(store):
             )
             if groups or marker == 1:
                 store.bump()
+
+    if store.demo_config():
+        from .coverage import upgrade
+
+        upgrade(store)

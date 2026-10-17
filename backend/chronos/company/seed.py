@@ -349,7 +349,12 @@ def fixture():
     from .diversity import extension
 
     extra_nodes, extra_edges = extension()
-    return nodes + extra_nodes, edges + extra_edges
+    from .coverage import fixture as account_fixture, clean_record
+
+    account_nodes, account_edges = account_fixture()
+    return [
+        clean_record(n) for n in nodes + extra_nodes + account_nodes
+    ], edges + extra_edges + account_edges
 
 
 def amendment():

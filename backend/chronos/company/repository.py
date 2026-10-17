@@ -9,6 +9,7 @@ from fastapi import HTTPException
 
 from .schema import NATIVE_FIELDS
 from .timeutil import canonical
+from .coverage import DISCLOSURE
 
 VISIBLE = "(n:Entity OR n:Metadata) AND coalesce(n.kind,'Metadata') <> 'DemoSession'"
 EDGE_VISIBLE = "a.kind <> 'DemoSession' AND b.kind <> 'DemoSession'"
@@ -32,7 +33,7 @@ class CompanyReader:
         self.store = store
 
     def catalog(self):
-        rows = self.store.read(
+        rows = self.store.read_all(
             f"MATCH (n) WHERE {VISIBLE} RETURN properties(n) ORDER BY n.id"
         )
         labels = {}
@@ -99,7 +100,7 @@ class CompanyReader:
             metadata=metadata,
             records=len(rows),
             connections=sum(r[3] for r in relations),
-            disclosure="Synthetic company workspace. Full business data and local audit records are inspectable. Session registry/capabilities and database credentials are excluded. Read-only portal; not a production administration console.",
+            disclosure=DISCLOSURE,
         )
 
     def rows(self, label, query="", offset=0, limit=50):
@@ -238,7 +239,7 @@ class CompanyReader:
             AND toString(r.valid_from) <= $effective AND (r.valid_to='' OR $effective < toString(r.valid_to))
             AND toString(r.recorded_from) <= $known AND (r.recorded_to='' OR $known < toString(r.recorded_to))
             AND (size($ids)=0 OR r.id IN $ids OR r.subject_id IN $ids OR r.client IN $ids OR r.facility IN $ids)
-            RETURN r.payload,s.payload ORDER BY r.id LIMIT 40""",
+            RETURN r.payload,s.payload ORDER BY r.id LIMIT 100""",
             dict(effective=canonical(effective), known=canonical(known), ids=ids or []),
         )
         return [dict(rule=json.loads(r), source=json.loads(s)) for r, s in rows]
@@ -370,7 +371,7 @@ class CompanyReader:
             "Temporal intervals are ordered",
             "MATCH (n:Rule) WHERE (n.valid_to<>'' AND n.valid_to<=n.valid_from) OR (n.recorded_to<>'' AND n.recorded_to<=n.recorded_from) RETURN count(n)",
         )
-        hashes = self.store.read("MATCH (n:Source) RETURN n.payload")
+        hashes = self.store.read_all("MATCH (n:Source) RETURN n.payload ORDER BY n.id")
         bad = sum(
             hashlib.sha256(json.loads(r[0]).get("excerpt", "").encode()).hexdigest()
             != json.loads(r[0]).get("content_hash")
@@ -383,8 +384,8 @@ class CompanyReader:
                 passed=bad == 0,
             )
         )
-        rows = self.store.read(
-            "MATCH (n:Entity) WHERE n.kind<>'DemoSession' RETURN properties(n)"
+        rows = self.store.read_all(
+            "MATCH (n:Entity) WHERE n.kind<>'DemoSession' RETURN properties(n) ORDER BY n.id"
         )
         mismatches = 0
         for (props,) in rows:
@@ -415,8 +416,11 @@ class CompanyReader:
             raise HTTPException(
                 413, "Workspace exceeds single-export limit; use paginated inspection"
             )
-        nodes = self.rows("", limit=25000)["rows"]
-        edges = self.edges(limit=50000)["rows"]
+        nodes, edges = [], []
+        for offset in range(0, catalog["records"], 1000):
+            nodes.extend(self.rows("", offset=offset, limit=1000)["rows"])
+        for offset in range(0, catalog["connections"], 1000):
+            edges.extend(self.edges(offset=offset, limit=1000)["rows"])
         contents = dict(nodes=nodes, relationships=edges)
         return dict(
             format="chronosgraph-workspace-v1",

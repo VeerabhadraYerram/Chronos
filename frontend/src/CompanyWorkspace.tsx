@@ -363,7 +363,7 @@ export default function CompanyWorkspace() {
                 }
               }}
             >
-              {guided ? "Leave guided demo" : "Open guided demo"}
+              {guided ? "Leave guided walkthrough" : "Open guided walkthrough"}
               <ArrowUpRight size={13} />
             </button>
           )}
@@ -387,17 +387,18 @@ export default function CompanyWorkspace() {
             Workspace <ChevronRight size={12} />
             <strong>{companyName}</strong>
           </div>
-          <span className="co-demo-pill">
-            {session?.demo ? "SYNTHETIC DATA" : "COMPANY WORKSPACE"}
-          </span>
+          <span className="co-demo-pill">COMPANY WORKSPACE</span>
           <button
-            title="Create a fresh, separate demo workspace"
+            title="Create a fresh, separate workspace"
             disabled={!!busy}
             onClick={() => void task("connect", () => load(true))}
           >
             <Plus size={14} /> New workspace
           </button>
         </header>
+        {session?.disclosure && (
+          <p className="co-global-disclosure">{session.disclosure}</p>
+        )}
         <div className="co-page">
           <div className="co-page-heading">
             <div>
@@ -415,7 +416,7 @@ export default function CompanyWorkspace() {
                 {view === "compare"
                   ? "Compare processing rules, affected consignments and commitments in an isolated graph copy."
                   : view === "records"
-                    ? "Inspect the records behind the answer. Public references and synthetic evidence are distinguished."
+                    ? "Inspect the records behind the answer. Public references and internal records are distinguished."
                     : view === "history"
                       ? "Reopen the evidence and context behind a previous investigation."
                       : "Ask about decisions, policies or incidents. Follow the records behind the answer, then ask a deeper question."}
@@ -436,7 +437,7 @@ export default function CompanyWorkspace() {
                   }
                 }}
               >
-                {guided ? "Leave demo" : "Guided demo"}
+                {guided ? "Leave walkthrough" : "Guided walkthrough"}
               </button>
             )}
             <button
@@ -912,7 +913,7 @@ export default function CompanyWorkspace() {
                 {guided && session?.demo && (
                   <section className="co-story-card">
                     <span className="co-eyebrow">
-                      GUIDED DEMO · SYNTHETIC REPLAY
+                      GUIDED WALKTHROUGH · EVENT REPLAY
                     </span>
                     <h3>{session.demo.title}</h3>
                     {session.demo.events.map((event) => (
@@ -954,7 +955,7 @@ export default function CompanyWorkspace() {
                           className="co-secondary"
                           onClick={() => setView("compare")}
                         >
-                          Compare demo scenario <ArrowRight size={14} />
+                          Compare scheduling scenario <ArrowRight size={14} />
                         </button>
                       )}
                       <button
@@ -1064,7 +1065,7 @@ export default function CompanyWorkspace() {
                     <div className="co-table-head">
                       <span>CLIENT / SUNDAY SAMPLE</span>
                       <strong>
-                        Before<small>Current demo handbook</small>
+                        Before<small>Current handbook</small>
                       </strong>
                       <strong>
                         {afterMode === "proposal"
@@ -1083,7 +1084,7 @@ export default function CompanyWorkspace() {
                         <span>
                           <strong>{r.title}</strong>
                           <small>
-                            {r.consignments.toLocaleString()} demo consignments
+                            {r.consignments.toLocaleString()} consignments
                           </small>
                         </span>
                         <span>
@@ -1358,7 +1359,7 @@ export default function CompanyWorkspace() {
             </span>
             <span>
               {session?.demo
-                ? "Public names. Synthetic private records."
+                ? "Explore a record. Inspect its evidence. Ask a deeper question."
                 : "Answers grounded in stored company evidence."}
             </span>
           </footer>
@@ -1396,7 +1397,7 @@ export default function CompanyWorkspace() {
               <span className="co-inspector-classification">
                 {selected.classification === "public_reference"
                   ? "Public reference · business context only"
-                  : "Synthetic demo record"}
+                  : "Company record"}
               </span>
               {selected.excerpt ? (
                 <blockquote>{selected.excerpt}</blockquote>
@@ -1531,8 +1532,8 @@ export default function CompanyWorkspace() {
                   ))
                 ) : (
                   <p>
-                    This is a synthetic operational linkage. No document-level
-                    provenance is attached to this relationship.
+                    This is an operational linkage. No document-level provenance
+                    is attached to this relationship.
                   </p>
                 )}
               </>

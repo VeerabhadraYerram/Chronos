@@ -2579,3 +2579,45 @@
   color: #855c24;
   border-radius: 6px;
 }
+
+.co-global-disclosure {
+  margin: 0;
+  padding: 10px 36px;
+  max-width: none;
+  background: #edf2e7;
+  color: #506348;
+  border-bottom: 1px solid #dce5d4;
+  font-size: 13px;
+  line-height: 1.6;
+}
+@media (max-width: 600px) {
+  .co-global-disclosure {
+    padding: 10px 18px;
+  }
+}
+
+.co-app .cg-edge-label {
+  width: 184px;
+  max-width: none;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+  min-height: 36px;
+}
+.cg-label-leader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+}
+.cg-label-leader path {
+  fill: none;
+  stroke: #82978a;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.cg-label-leader circle {
+  fill: #82978a;
+}

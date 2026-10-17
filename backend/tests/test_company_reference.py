@@ -43,10 +43,10 @@ def query(**changes):
 
 def test_operational_dataset_is_real_connected_graph(store):
     stats = store.stats()
-    assert stats["labels"]["Shipment"] == 1410
-    assert stats["labels"]["ScanEvent"] == 5430
-    assert stats["labels"]["Client"] == 3
-    assert stats["labels"]["Facility"] == 8
+    assert stats["labels"]["Shipment"] == 1890
+    assert stats["labels"]["ScanEvent"] == 6870
+    assert stats["labels"]["Client"] == 12
+    assert stats["labels"]["Facility"] == 14
     assert stats["connections"] > 9000
     assert sum(n["count"] for n in store.operational_sample()) == 1200
     rows = store.read(
@@ -169,7 +169,7 @@ def test_unknown_question_and_search_injection_do_not_change_graph(store):
     assert "could not find evidence" in r["summary"]
     store.search("'; MATCH (n) DETACH DELETE n //")
     assert store.revision() == revision
-    assert store.stats()["labels"]["Shipment"] == 1410
+    assert store.stats()["labels"]["Shipment"] == 1890
 
 
 def test_read_tools_cannot_write(store):
@@ -235,7 +235,7 @@ def test_session_changes_are_isolated(base, store):
 
 
 def test_exact_shipment_search_and_scan_exploration(store):
-    records = store.search("DEMO-AWB-000001")
+    records = store.search("AWB-000001")
     assert records[0]["id"] == "shipment-0001"
     graph = store.record_graph("shipment-0001")
     assert sum(n["kind"] == "ScanEvent" for n in graph["nodes"]) == 4
@@ -359,3 +359,97 @@ def test_focused_applicability_followup_keeps_document_alert_relevant(store):
     r = answer(store, query(question="Does this still apply?", focus_id=rule))
     assert r["commitment_context"]
     assert [a["category"] for a in r["alerts"]] == ["document_outdated"]
+
+
+def test_account_network_has_multi_city_warehouses_and_linked_work(store):
+    rows = store.read(
+        "MATCH (w:ClientWarehouse)-[:BELONGS_TO]->(c:Client) RETURN c.id,count(w),collect(w.city)"
+    )
+    assert len(rows) == 12
+    assert all(count == 3 and len(set(cities)) == 3 for _, count, cities in rows)
+    assert (
+        store.read(
+            "MATCH (w:WorkItem)-[:RESOLVES]->(:Ticket) MATCH (w)-[:ASSIGNED_TO]->(:Person) RETURN count(DISTINCT w)"
+        )[0][0]
+        == 36
+    )
+    assert (
+        store.read(
+            "MATCH (c:Client)<-[:FOR_CLIENT]-(s:Shipment) WHERE s.id STARTS WITH 'network-shipment-' RETURN count(DISTINCT c)"
+        )[0][0]
+        == 12
+    )
+    assert store.stats()["labels"].get("Action", 0) == 0
+
+
+def test_claims_rules_and_programmes_have_diverse_supported_meaning(store):
+    assert (
+        store.read(
+            "MATCH (c:Claim)-[:SUPPORTED_BY]->(:Source) RETURN count(DISTINCT c)"
+        )[0][0]
+        == 25
+    )
+    assert (
+        store.read(
+            "MATCH (r:Rule)-[:SUPPORTED_BY]->(:Source) RETURN count(DISTINCT r),count(DISTINCT r.field)"
+        )[0][1]
+        >= 12
+    )
+    assert store.stats()["labels"]["Campaign"] == 13
+    assert (
+        store.read(
+            "MATCH (s:Source) WHERE s.classification='public_reference' AND s.synthetic=true RETURN count(s)"
+        )[0][0]
+        == 0
+    )
+    assert (
+        store.read(
+            "MATCH (s:Shipment)-[:AT]->(:Facility {id:'facility-bengaluru'}) RETURN count(s)"
+        )[0][0]
+        > 1200
+    )
+    assert sum(n["count"] for n in store.operational_sample()) == 1200
+
+
+def test_coverage_upgrade_is_additive_idempotent_and_preserves_history(store):
+    from chronos.company.coverage import fixture, upgrade
+
+    store.upsert(
+        dict(
+            id="kept-review",
+            kind="Action",
+            title="Existing review",
+            markdown="Historical content",
+        )
+    )
+    ids = [n["id"] for n in fixture()[0]]
+    store.write("MATCH (n:Entity) WHERE n.id IN $ids DETACH DELETE n", dict(ids=ids))
+    store.write(
+        "MATCH (m:Metadata {id:'dataset'}) SET m.coverage_version=0,m.presentation_version=0"
+    )
+    revision = store.revision()
+    upgrade(store)
+    assert store.revision() == revision + 1
+    assert store.get("kept-review")["markdown"] == "Historical content"
+    assert store.stats()["labels"]["Client"] == 12
+    assert store.stats()["labels"]["ClientWarehouse"] == 36
+    assert sum(n["count"] for n in store.operational_sample()) == 1200
+    upgrade(store)
+    assert store.revision() == revision + 1
+
+
+def test_inspection_and_export_cross_server_row_cap(store):
+    from chronos.company.repository import CompanyReader
+
+    # The fixture is just below 10,000; real investigation history crosses it.
+    for i in range(20):
+        store.upsert(dict(id=f"zz-review-{i}", kind="Action", title="Review history"))
+    reader = CompanyReader(store)
+    catalog = reader.catalog()
+    assert catalog["records"] > 10000
+    assert next(n["count"] for n in catalog["labels"] if n["label"] == "WorkItem") == 36
+    exported = reader.export()
+    assert len(exported["nodes"]) == catalog["records"]
+    assert len(exported["relationships"]) == catalog["connections"]
+    assert len(exported["relationships"]) > 10000
+    assert reader.audit()["passed"]

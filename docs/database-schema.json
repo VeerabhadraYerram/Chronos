@@ -3,12 +3,12 @@
   "database": "FalkorDB",
   "disclosure": "Independent Delhivery reference schema. Public names; synthetic private operations, agreements and roles. Not Delhivery internal data.",
   "source": "backend/chronos/company/seed.py",
-  "initial_business_entities": 7333,
-  "initial_relationships": 11984,
+  "initial_business_entities": 9991,
+  "initial_relationships": 17207,
   "node_labels": [
     {
       "label": "CODCollection",
-      "initial_count": 15,
+      "initial_count": 39,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -72,7 +72,7 @@
     },
     {
       "label": "Campaign",
-      "initial_count": 1,
+      "initial_count": 13,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -81,12 +81,24 @@
         "search_text": "string"
       },
       "additional_native_properties": [
+        "client",
         "description",
+        "end_date",
         "ended_at",
+        "planned_pieces",
+        "programme_type",
+        "start_date",
+        "status",
         "synthetic"
       ],
       "payload_field_types": {
+        "client": [
+          "string"
+        ],
         "description": [
+          "string"
+        ],
+        "end_date": [
           "string"
         ],
         "ended_at": [
@@ -98,6 +110,18 @@
         "kind": [
           "string"
         ],
+        "planned_pieces": [
+          "integer"
+        ],
+        "programme_type": [
+          "string"
+        ],
+        "start_date": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
         "synthetic": [
           "boolean"
         ],
@@ -107,7 +131,6 @@
       },
       "required_in_initial_fixture": [
         "description",
-        "ended_at",
         "id",
         "kind",
         "synthetic",
@@ -119,12 +142,12 @@
         "title": "Havells weekend campaign",
         "synthetic": true,
         "ended_at": "2026-09-30",
-        "description": "Synthetic campaign; its end does not amend an agreement."
+        "description": "campaign; its end does not amend an agreement."
       }
     },
     {
       "label": "Claim",
-      "initial_count": 1,
+      "initial_count": 25,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -186,7 +209,8 @@
           "string"
         ],
         "value": [
-          "boolean"
+          "boolean",
+          "integer"
         ]
       },
       "required_in_initial_fixture": [
@@ -224,7 +248,7 @@
     },
     {
       "label": "Client",
-      "initial_count": 3,
+      "initial_count": 12,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -233,11 +257,20 @@
         "search_text": "string"
       },
       "additional_native_properties": [
+        "account_status",
+        "account_tier",
         "description",
         "sector",
+        "service_mix",
         "synthetic"
       ],
       "payload_field_types": {
+        "account_status": [
+          "string"
+        ],
+        "account_tier": [
+          "string"
+        ],
         "description": [
           "string"
         ],
@@ -248,6 +281,9 @@
           "string"
         ],
         "sector": [
+          "string"
+        ],
+        "service_mix": [
           "string"
         ],
         "synthetic": [
@@ -271,12 +307,12 @@
         "title": "Havells India",
         "synthetic": true,
         "sector": "Electrical goods",
-        "description": "Real company name; agreements and activity in this workspace are synthetic."
+        "description": "Electrical goods account."
       }
     },
     {
       "label": "ClientWarehouse",
-      "initial_count": 3,
+      "initial_count": 36,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -286,11 +322,19 @@
       },
       "additional_native_properties": [
         "city",
+        "client",
         "description",
-        "synthetic"
+        "state",
+        "status",
+        "synthetic",
+        "timezone",
+        "warehouse_type"
       ],
       "payload_field_types": {
         "city": [
+          "string"
+        ],
+        "client": [
           "string"
         ],
         "description": [
@@ -302,10 +346,22 @@
         "kind": [
           "string"
         ],
+        "state": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
         "synthetic": [
           "boolean"
         ],
+        "timezone": [
+          "string"
+        ],
         "title": [
+          "string"
+        ],
+        "warehouse_type": [
           "string"
         ]
       },
@@ -323,7 +379,7 @@
         "title": "Havells India pickup location",
         "synthetic": true,
         "city": "Bengaluru",
-        "description": "Synthetic registered pickup location"
+        "description": "registered pickup location"
       }
     },
     {
@@ -369,12 +425,12 @@
         "kind": "Company",
         "title": "Delhivery",
         "synthetic": true,
-        "description": "Independent reference demo using public business concepts. Not an internal system or affiliated product."
+        "description": "Company context for connected logistics, account and department records."
       }
     },
     {
       "label": "Decision",
-      "initial_count": 10,
+      "initial_count": 22,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -384,6 +440,7 @@
       },
       "additional_native_properties": [
         "approved",
+        "client",
         "description",
         "status",
         "synthetic"
@@ -391,6 +448,9 @@
       "payload_field_types": {
         "approved": [
           "boolean"
+        ],
+        "client": [
+          "string"
         ],
         "description": [
           "string"
@@ -428,7 +488,7 @@
     },
     {
       "label": "DeliveryException",
-      "initial_count": 60,
+      "initial_count": 252,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -438,6 +498,7 @@
       },
       "additional_native_properties": [
         "client",
+        "facility",
         "next_action",
         "reason",
         "status",
@@ -445,6 +506,9 @@
       ],
       "payload_field_types": {
         "client": [
+          "string"
+        ],
+        "facility": [
           "string"
         ],
         "id": [
@@ -492,7 +556,7 @@
     },
     {
       "label": "Facility",
-      "initial_count": 8,
+      "initial_count": 14,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -505,6 +569,7 @@
         "current_sunday_open",
         "description",
         "facility_type",
+        "state",
         "synthetic"
       ],
       "payload_field_types": {
@@ -524,6 +589,9 @@
           "string"
         ],
         "kind": [
+          "string"
+        ],
+        "state": [
           "string"
         ],
         "synthetic": [
@@ -549,14 +617,14 @@
         "title": "Bengaluru facility",
         "synthetic": true,
         "city": "Bengaluru",
-        "facility_type": "Demo processing centre",
+        "facility_type": "processing centre",
         "current_sunday_open": true,
-        "description": "Synthetic facility; no actual Delhivery warehouse identity or operating schedule is represented."
+        "description": "Receiving, processing and dispatch location."
       }
     },
     {
       "label": "Invoice",
-      "initial_count": 36,
+      "initial_count": 72,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -622,7 +690,6 @@
         "client",
         "currency",
         "department",
-        "description",
         "due_date",
         "id",
         "issue_date",
@@ -635,7 +702,7 @@
       "representative_record": {
         "id": "depth-invoice-000",
         "kind": "Invoice",
-        "title": "DEMO invoice 000",
+        "title": "invoice 000",
         "synthetic": true,
         "client": "havells",
         "amount_inr": 1200,
@@ -645,12 +712,12 @@
         "department": "Finance",
         "issue_date": "2026-10-12",
         "due_date": "2026-10-26",
-        "description": "Synthetic shipping invoice. No real tariff is represented."
+        "description": "shipping invoice. No real tariff is represented."
       }
     },
     {
       "label": "Manifest",
-      "initial_count": 45,
+      "initial_count": 81,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -659,10 +726,18 @@
         "search_text": "string"
       },
       "additional_native_properties": [
+        "client",
+        "dispatch_date",
         "status",
         "synthetic"
       ],
       "payload_field_types": {
+        "client": [
+          "string"
+        ],
+        "dispatch_date": [
+          "string"
+        ],
         "id": [
           "string"
         ],
@@ -689,7 +764,7 @@
       "representative_record": {
         "id": "manifest-00",
         "kind": "Manifest",
-        "title": "DEMO-MANIFEST-000",
+        "title": "MANIFEST-000",
         "synthetic": true,
         "status": "planned"
       }
@@ -750,17 +825,17 @@
       "representative_record": {
         "id": "depth-person-0-0",
         "kind": "Person",
-        "title": "DEMO Operations role 1",
+        "title": "Operations role 1",
         "synthetic": true,
         "role": "Lead",
         "department": "Operations",
         "identity_type": "fictional_role",
-        "description": "Synthetic role identity, not a real employee."
+        "description": "Current role, team membership and recorded subject expertise."
       }
     },
     {
       "label": "PickupRequest",
-      "initial_count": 81,
+      "initial_count": 117,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -771,8 +846,10 @@
       "additional_native_properties": [
         "client",
         "pickup_date",
+        "requested_pieces",
         "status",
-        "synthetic"
+        "synthetic",
+        "warehouse"
       ],
       "payload_field_types": {
         "client": [
@@ -787,6 +864,9 @@
         "pickup_date": [
           "string"
         ],
+        "requested_pieces": [
+          "integer"
+        ],
         "status": [
           "string"
         ],
@@ -794,6 +874,9 @@
           "boolean"
         ],
         "title": [
+          "string"
+        ],
+        "warehouse": [
           "string"
         ]
       },
@@ -808,7 +891,7 @@
       "representative_record": {
         "id": "pickup-000",
         "kind": "PickupRequest",
-        "title": "DEMO-PICKUP-000",
+        "title": "PICKUP-000",
         "synthetic": true,
         "status": "collected",
         "pickup_date": "2026-11-07"
@@ -816,7 +899,7 @@
     },
     {
       "label": "Policy",
-      "initial_count": 5,
+      "initial_count": 17,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -825,22 +908,34 @@
         "search_text": "string"
       },
       "additional_native_properties": [
+        "client",
         "department",
         "description",
+        "facility",
+        "status",
         "sunday_required",
         "synthetic"
       ],
       "payload_field_types": {
+        "client": [
+          "string"
+        ],
         "department": [
           "string"
         ],
         "description": [
           "string"
         ],
+        "facility": [
+          "string"
+        ],
         "id": [
           "string"
         ],
         "kind": [
+          "string"
+        ],
+        "status": [
           "string"
         ],
         "sunday_clients": [
@@ -872,12 +967,12 @@
         "sunday_clients": [
           "havells"
         ],
-        "description": "Current demo handbook still tells staff to keep Havells Sunday processing."
+        "description": "Current handbook still tells staff to keep Havells Sunday processing."
       }
     },
     {
       "label": "Remittance",
-      "initial_count": 15,
+      "initial_count": 39,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -941,7 +1036,7 @@
     },
     {
       "label": "Return",
-      "initial_count": 60,
+      "initial_count": 156,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -1005,7 +1100,7 @@
     },
     {
       "label": "Route",
-      "initial_count": 45,
+      "initial_count": 81,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -1016,6 +1111,7 @@
       "additional_native_properties": [
         "mode",
         "schedule",
+        "service_type",
         "status",
         "synthetic"
       ],
@@ -1030,6 +1126,9 @@
           "string"
         ],
         "schedule": [
+          "string"
+        ],
+        "service_type": [
           "string"
         ],
         "status": [
@@ -1055,12 +1154,12 @@
         "title": "Bengaluru → Mumbai",
         "synthetic": true,
         "mode": "Road",
-        "schedule": "Synthetic lane"
+        "schedule": "lane"
       }
     },
     {
       "label": "Rule",
-      "initial_count": 7,
+      "initial_count": 43,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -1126,7 +1225,8 @@
           "string"
         ],
         "value": [
-          "boolean"
+          "boolean",
+          "integer"
         ]
       },
       "required_in_initial_fixture": [
@@ -1156,12 +1256,12 @@
         "valid_to": "",
         "recorded_from": "2026-05-02T09:00:00Z",
         "recorded_to": "",
-        "description": "Accepted synthetic service commitment"
+        "description": "Accepted service commitment"
       }
     },
     {
       "label": "ScanEvent",
-      "initial_count": 5430,
+      "initial_count": 6870,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -1217,12 +1317,12 @@
         "synthetic": true,
         "event_at": "2026-11-07T20:00:00Z",
         "sequence": 0,
-        "description": "Synthetic operational event"
+        "description": "operational event"
       }
     },
     {
       "label": "Shipment",
-      "initial_count": 1410,
+      "initial_count": 1890,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -1238,10 +1338,12 @@
         "facility",
         "measured_weight_kg",
         "payment_mode",
+        "scenario_cohort",
         "service_type",
         "snapshot_at",
         "status",
-        "synthetic"
+        "synthetic",
+        "warehouse"
       ],
       "payload_field_types": {
         "arrival_at": [
@@ -1271,6 +1373,9 @@
         "payment_mode": [
           "string"
         ],
+        "scenario_cohort": [
+          "string"
+        ],
         "service_type": [
           "string"
         ],
@@ -1284,6 +1389,9 @@
           "boolean"
         ],
         "title": [
+          "string"
+        ],
+        "warehouse": [
           "string"
         ]
       },
@@ -1301,18 +1409,19 @@
       "representative_record": {
         "id": "shipment-0000",
         "kind": "Shipment",
-        "title": "DEMO-AWB-000000",
+        "title": "AWB-000000",
         "synthetic": true,
         "client": "havells",
         "facility": "facility-bengaluru",
         "arrival_at": "2026-11-08T08:00:00Z",
         "status": "received_at_facility",
-        "description": "Synthetic Sunday scenario consignment; not a live parcel."
+        "description": "Planned consignment in the Bengaluru scheduling cohort.",
+        "scenario_cohort": "bengaluru-scheduling"
       }
     },
     {
       "label": "Source",
-      "initial_count": 36,
+      "initial_count": 102,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -1397,13 +1506,13 @@
         "id": "public-services",
         "kind": "Source",
         "title": "Delhivery · published services",
-        "synthetic": true,
-        "excerpt": "Delhivery publishes express parcel delivery services. This establishes the business context, not the demo's private operating rules.",
+        "synthetic": false,
+        "excerpt": "Delhivery publishes express parcel delivery services. This establishes the business context, not the workspace's private operating rules.",
         "department": "Public",
         "source_type": "Public reference",
         "enabled": true,
         "timestamp": "2026-05-01T09:00:00Z",
-        "content_hash": "045a1c1bcb40db4fec910aa48824d01d23a327199ab948979c360b58122b6286",
+        "content_hash": "5e289be8f579991fbb15482cb9aeb4a0a86a18613e2aef0182c6fd19283ca8ee",
         "url": "https://www.delhivery.com/services/express-parcel",
         "classification": "public_reference"
       }
@@ -1456,7 +1565,7 @@
     },
     {
       "label": "Ticket",
-      "initial_count": 8,
+      "initial_count": 20,
       "common_native_properties": {
         "id": "string",
         "kind": "string",
@@ -1465,6 +1574,7 @@
         "search_text": "string"
       },
       "additional_native_properties": [
+        "client",
         "department",
         "description",
         "opened_at",
@@ -1473,6 +1583,9 @@
         "synthetic"
       ],
       "payload_field_types": {
+        "client": [
+          "string"
+        ],
         "department": [
           "string"
         ],
@@ -1506,7 +1619,6 @@
         "description",
         "id",
         "kind",
-        "opened_at",
         "priority",
         "status",
         "synthetic",
@@ -1580,12 +1692,82 @@
       "representative_record": {
         "id": "depth-vehicle-00",
         "kind": "Vehicle",
-        "title": "DEMO fleet unit 00",
+        "title": "fleet unit 00",
         "synthetic": true,
         "vehicle_type": "van",
         "capacity_kg": 1000,
         "status": "available",
         "facility": "facility-mumbai"
+      }
+    },
+    {
+      "label": "WorkItem",
+      "initial_count": 36,
+      "common_native_properties": {
+        "id": "string",
+        "kind": "string",
+        "title": "string",
+        "payload": "JSON-encoded string",
+        "search_text": "string"
+      },
+      "additional_native_properties": [
+        "client",
+        "department",
+        "description",
+        "due_at",
+        "status",
+        "synthetic"
+      ],
+      "payload_field_types": {
+        "client": [
+          "string"
+        ],
+        "department": [
+          "string"
+        ],
+        "description": [
+          "string"
+        ],
+        "due_at": [
+          "string"
+        ],
+        "id": [
+          "string"
+        ],
+        "kind": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "synthetic": [
+          "boolean"
+        ],
+        "title": [
+          "string"
+        ]
+      },
+      "required_in_initial_fixture": [
+        "client",
+        "department",
+        "description",
+        "due_at",
+        "id",
+        "kind",
+        "status",
+        "synthetic",
+        "title"
+      ],
+      "representative_record": {
+        "id": "work-havells-operations",
+        "kind": "WorkItem",
+        "title": "Havells India · Collect handling evidence",
+        "synthetic": true,
+        "client": "havells",
+        "status": "open",
+        "department": "Operations",
+        "due_at": "2026-10-18T12:00:00Z",
+        "description": "Pending internal review work; no external change has been executed."
       }
     }
   ],
@@ -1608,8 +1790,9 @@
   "relationship_types": [
     {
       "type": "AFFECTS",
-      "initial_count": 8,
+      "initial_count": 32,
       "endpoint_label_pairs": [
+        "Ticket -> Campaign",
         "Ticket -> DeliveryException",
         "Ticket -> Facility",
         "Ticket -> Invoice",
@@ -1624,8 +1807,9 @@
     },
     {
       "type": "APPLIES_AT",
-      "initial_count": 6,
+      "initial_count": 114,
       "endpoint_label_pairs": [
+        "Campaign -> Facility",
         "Claim -> Facility",
         "Decision -> Facility",
         "Policy -> Facility",
@@ -1637,7 +1821,7 @@
     },
     {
       "type": "ASSERTS",
-      "initial_count": 1,
+      "initial_count": 25,
       "endpoint_label_pairs": [
         "Policy -> Claim"
       ],
@@ -1646,9 +1830,20 @@
       }
     },
     {
-      "type": "AT",
-      "initial_count": 1431,
+      "type": "ASSIGNED_TO",
+      "initial_count": 36,
       "endpoint_label_pairs": [
+        "WorkItem -> Person"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
+      "type": "AT",
+      "initial_count": 1947,
+      "endpoint_label_pairs": [
+        "ClientWarehouse -> Facility",
         "Shipment -> Facility",
         "Vehicle -> Facility"
       ],
@@ -1658,7 +1853,7 @@
     },
     {
       "type": "BELONGS_TO",
-      "initial_count": 3,
+      "initial_count": 36,
       "endpoint_label_pairs": [
         "ClientWarehouse -> Client"
       ],
@@ -1668,7 +1863,7 @@
     },
     {
       "type": "BILLED_TO",
-      "initial_count": 36,
+      "initial_count": 72,
       "endpoint_label_pairs": [
         "Invoice -> Client"
       ],
@@ -1678,7 +1873,7 @@
     },
     {
       "type": "COLLECTED_BY",
-      "initial_count": 1410,
+      "initial_count": 1890,
       "endpoint_label_pairs": [
         "Shipment -> PickupRequest"
       ],
@@ -1688,7 +1883,7 @@
     },
     {
       "type": "COVERS",
-      "initial_count": 51,
+      "initial_count": 111,
       "endpoint_label_pairs": [
         "CODCollection -> Shipment",
         "Invoice -> Shipment"
@@ -1699,7 +1894,7 @@
     },
     {
       "type": "DESTINATION",
-      "initial_count": 45,
+      "initial_count": 81,
       "endpoint_label_pairs": [
         "Route -> Facility"
       ],
@@ -1709,7 +1904,7 @@
     },
     {
       "type": "DISCUSSES",
-      "initial_count": 8,
+      "initial_count": 20,
       "endpoint_label_pairs": [
         "Source -> Ticket"
       ],
@@ -1719,7 +1914,7 @@
     },
     {
       "type": "DOCUMENTED_IN",
-      "initial_count": 14,
+      "initial_count": 38,
       "endpoint_label_pairs": [
         "Campaign -> Source",
         "Decision -> Source",
@@ -1731,7 +1926,7 @@
     },
     {
       "type": "EXPLAINED_BY",
-      "initial_count": 1,
+      "initial_count": 13,
       "endpoint_label_pairs": [
         "Decision -> Source"
       ],
@@ -1741,10 +1936,12 @@
     },
     {
       "type": "FOR_CLIENT",
-      "initial_count": 1411,
+      "initial_count": 1940,
       "endpoint_label_pairs": [
+        "Campaign -> Client",
         "Claim -> Client",
-        "Shipment -> Client"
+        "Shipment -> Client",
+        "Ticket -> Client"
       ],
       "properties": {
         "source_ids": "array of Source IDs; empty for operational links without document provenance"
@@ -1752,7 +1949,7 @@
     },
     {
       "type": "FROM",
-      "initial_count": 81,
+      "initial_count": 117,
       "endpoint_label_pairs": [
         "PickupRequest -> ClientWarehouse"
       ],
@@ -1762,7 +1959,7 @@
     },
     {
       "type": "HAS_COMMITMENT",
-      "initial_count": 7,
+      "initial_count": 43,
       "endpoint_label_pairs": [
         "Client -> Rule",
         "Policy -> Rule"
@@ -1773,7 +1970,7 @@
     },
     {
       "type": "HAS_EXCEPTION",
-      "initial_count": 60,
+      "initial_count": 252,
       "endpoint_label_pairs": [
         "Shipment -> DeliveryException"
       ],
@@ -1783,7 +1980,7 @@
     },
     {
       "type": "HAS_SCAN",
-      "initial_count": 5430,
+      "initial_count": 6870,
       "endpoint_label_pairs": [
         "Shipment -> ScanEvent"
       ],
@@ -1793,8 +1990,9 @@
     },
     {
       "type": "KNOWS_ABOUT",
-      "initial_count": 24,
+      "initial_count": 60,
       "endpoint_label_pairs": [
+        "Person -> Policy",
         "Person -> Ticket"
       ],
       "properties": {
@@ -1813,7 +2011,7 @@
     },
     {
       "type": "ON_MANIFEST",
-      "initial_count": 1410,
+      "initial_count": 1890,
       "endpoint_label_pairs": [
         "Shipment -> Manifest"
       ],
@@ -1823,7 +2021,7 @@
     },
     {
       "type": "OPERATED_BY",
-      "initial_count": 8,
+      "initial_count": 14,
       "endpoint_label_pairs": [
         "Facility -> Team"
       ],
@@ -1833,7 +2031,7 @@
     },
     {
       "type": "ORIGIN",
-      "initial_count": 45,
+      "initial_count": 81,
       "endpoint_label_pairs": [
         "Route -> Facility"
       ],
@@ -1843,8 +2041,10 @@
     },
     {
       "type": "OWNED_BY",
-      "initial_count": 196,
+      "initial_count": 677,
       "endpoint_label_pairs": [
+        "Campaign -> Team",
+        "Client -> Team",
         "Decision -> Team",
         "DeliveryException -> Team",
         "Invoice -> Team",
@@ -1852,7 +2052,8 @@
         "Remittance -> Team",
         "Return -> Team",
         "Rule -> Team",
-        "Ticket -> Team"
+        "Ticket -> Team",
+        "WorkItem -> Team"
       ],
       "properties": {
         "source_ids": "array of Source IDs; empty for operational links without document provenance"
@@ -1870,7 +2071,7 @@
     },
     {
       "type": "PUBLIC_RELATIONSHIP",
-      "initial_count": 3,
+      "initial_count": 12,
       "endpoint_label_pairs": [
         "Client -> Company"
       ],
@@ -1880,7 +2081,7 @@
     },
     {
       "type": "RECONCILES",
-      "initial_count": 15,
+      "initial_count": 39,
       "endpoint_label_pairs": [
         "Remittance -> CODCollection"
       ],
@@ -1889,8 +2090,18 @@
       }
     },
     {
+      "type": "RESOLVES",
+      "initial_count": 36,
+      "endpoint_label_pairs": [
+        "WorkItem -> Ticket"
+      ],
+      "properties": {
+        "source_ids": "array of Source IDs; empty for operational links without document provenance"
+      }
+    },
+    {
       "type": "RETURN_OF",
-      "initial_count": 60,
+      "initial_count": 156,
       "endpoint_label_pairs": [
         "Return -> Shipment"
       ],
@@ -1900,14 +2111,15 @@
     },
     {
       "type": "SUPPORTED_BY",
-      "initial_count": 113,
+      "initial_count": 449,
       "endpoint_label_pairs": [
         "Claim -> Source",
         "Decision -> Source",
         "DeliveryException -> Source",
         "Invoice -> Source",
         "Rule -> Source",
-        "Ticket -> Source"
+        "Ticket -> Source",
+        "WorkItem -> Source"
       ],
       "properties": {
         "source_ids": "array of Source IDs; empty for operational links without document provenance"
@@ -1915,7 +2127,7 @@
     },
     {
       "type": "USES_ROUTE",
-      "initial_count": 45,
+      "initial_count": 81,
       "endpoint_label_pairs": [
         "Manifest -> Route"
       ],
@@ -1935,8 +2147,9 @@
     },
     {
       "type": "WHY",
-      "initial_count": 9,
+      "initial_count": 22,
       "endpoint_label_pairs": [
+        "Decision -> Campaign",
         "Decision -> Ticket",
         "Rule -> Decision"
       ],
