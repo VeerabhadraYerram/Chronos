@@ -16,9 +16,9 @@ A separately replayed approved **demo amendment** changes Havells to six-day pro
 
 ## Start and explore
 
-Follow the [root setup](../README.md#run-locally), then open `http://127.0.0.1:5173/`.
+Open the [live app](https://chronosgraph.onrender.com), or follow the [local setup](../README.md#run-locally) and open `http://127.0.0.1:5173/`. Local services can be stopped without affecting Render: the deployed frontend, API and FalkorDB run independently.
 
-1. Select **Guided demo**. Ask **Can we close the Bengaluru facility on Sundays?** The investigator retrieves the original agreement. The separate guided rehearsal produces the deterministic Havells conflict.
+1. Select **Guided walkthrough**. Ask **Can we close the Bengaluru facility on Sundays?** The investigator retrieves the original agreement. The separate guided rehearsal produces the deterministic Havells conflict.
 2. Read the small evidence trail. Each row is a real relationship; click a record or connection to inspect it. Switch to **Map** for a spatial view.
 3. Select a commitment and ask **Why does this exist?**, **Does this still apply?**, or a custom follow-up. **Explore connections** performs another bounded graph read. Exploration can show historical records; inspect their intervals.
 4. Replay **Introduce approved amendment**. Existing receipts become stale. Rerun for November 8, known by October 16: the investigator retrieves the amended agreement; the guided rehearsal confirms no modeled Sunday commitment conflict.
@@ -27,7 +27,7 @@ Follow the [root setup](../README.md#run-locally), then open `http://127.0.0.1:5
 7. Prepare and download a source-linked review packet from a current investigation. No external ticket or operating change is made.
 8. Search **Company records** for `DEMO-AWB-000001`, a source title or a department. Operational records have bounded graph inspection too.
 
-The AI investigator is enabled by default for new browser sessions when a server key is configured. Gemini is preferred, with Groq used when Gemini cannot complete the run. The successful provider, mode and tool trace are displayed. Graph-only search is explicitly labeled; its intent handling is limited to this workflow. Failure of both configured providers preserves the deterministic checks and displays a generic explanation. Natural language does not grant arbitrary database access or write authority.
+The AI investigator is enabled by default for new browser sessions when a server key is configured. The provider order is Groq → Gemini → OpenRouter free models. The successful provider, mode and tool trace are displayed. Graph-only retrieval is an explicitly selected separate mode. If every configured provider fails, the investigation states that no AI answer was generated; it does not substitute a canned explanation. The guided scheduling checks remain a separate deterministic operation. Natural language does not grant arbitrary database access or write authority.
 
 For the full field dictionary, physical storage layout, relational equivalents, lifecycle rules and Cypher examples, see [Database & schema](DATABASE.md).
 
@@ -35,7 +35,7 @@ For the full field dictionary, physical storage layout, relational equivalents, 
 
 The default investigator uses the [company-wide engine](COMPANY_ENGINE.md), rather than routing all questions through this example. Alerts describe missing evidence, conflicting retrieved accepted rules, unavailable selected evidence, actual provider fallback, or stale context. The guided rehearsal alone produces its explicit Sunday closure verdict. Historical receipts retain the context and alerts recorded when created.
 
-Select **Guided demo** to expose the sample replay and rehearsal controls. Their text comes from the dataset's tour configuration. Normal investigation does not show a Havells amendment card by default. The complete database is available through a [separate inspection link](INSPECTION.md).
+Select **Guided walkthrough** to expose the sample replay and rehearsal controls. Their text comes from the dataset's tour configuration. Normal investigation does not show a Havells amendment card by default. The complete database is available through a [separate inspection link](INSPECTION.md).
 
 ## Dataset and schema
 
@@ -110,8 +110,10 @@ Read tools call `GRAPH.RO_QUERY`; the model receives neither credentials nor arb
 
 ## Hosting boundary
 
-This implementation is running locally unless a deployment is separately linked. Sessions are synthetic-demo capabilities, not authentication or enterprise tenant isolation. The server caps reference-session creation at 40; sessions persist and no automatic expiry is claimed. Public deployment still requires infrastructure, provider spend/rate controls, lifecycle management and a review of the preserved legacy mutation routes. A single-process lock coordinates graph operations and currently serializes model calls. No high-concurrency or production readiness claim is made.
+The [live Render app](https://chronosgraph.onrender.com) serves the built frontend, API and loopback-only FalkorDB from one Free service. Local Docker is independent of that deployment. Local workspaces use persistent Docker storage and default to a 40-session cap; hosted workspaces are capped at six, expire after one hour of inactivity and reset on server restart. Cold starts and full database scans can be slow. See [deployment details](DEPLOYMENT.md) and [dated verification](VALIDATION.md#live-render-verification--october-17-2026).
 
-The original payments workflow remains at `/?demo=payments`. Its model and API documentation are marked as legacy scope.
+Session IDs are capabilities, not production authentication. The public entrypoint excludes the preserved payments API and OpenAPI docs. A single-process lock coordinates graph operations, but external inference does not hold it; revision changes can mark a resulting receipt stale. Readiness reads reference metadata without taking the workspace lock. Admission limits do not guarantee availability, provider quota or production security.
+
+The original payments workflow remains locally at `/?demo=payments`; it is excluded from the public evaluation entrypoint. Its model and API documentation are marked as legacy scope.
 
 See [Synthetic logistics depth](DATA_SCENARIOS.md) for the additional operational, finance, incident and people records, example investigations and limitations.

@@ -1,6 +1,28 @@
-# Local API reference
+# API reference
 
-> This page documents the preserved NovaPay payments prototype. The primary company workspace has its own [reference architecture, graph schema and API](DELHIVERY_REFERENCE.md).
+## Current company and public APIs
+
+Live base: `https://chronosgraph.onrender.com`. Local base: `http://127.0.0.1:8000`. The public server exposes the company workspace and separate database inspection API; it excludes the old NovaPay routes and OpenAPI documentation. Local development retains `/docs` for request schemas.
+
+| Method | Route | Purpose |
+| --- | --- | --- |
+| GET | `/healthz` | Public process liveness |
+| GET | `/readyz` | Public reference graph/schema readiness and provider configuration, without an inference call |
+| POST | `/api/company/session` | Create or reopen a capability-scoped visitor graph |
+| POST | `/api/company/ask` | General investigation with a question, focus and date context |
+| POST | `/api/company/explore` | Read a selected record, bounded neighbors and ownership |
+| POST | `/api/company/search` | Search stored records |
+| POST | `/api/company/simulate` | Explicit guided scheduling comparison in a disposable graph copy |
+| POST | `/api/company/events` | Allowlisted sample replay within the visitor workspace |
+| POST | `/api/company/packet` | Prepare a source-linked review draft from a current receipt |
+| GET | `/database` | Separate read-only inspection interface |
+| POST | `/api/database/{operation}` | Fixed catalog, rows, relationships, record, audit and export reads |
+
+Request models and implementation: [company/api.py](../backend/chronos/company/api.py), [inspection_api.py](../backend/chronos/company/inspection_api.py). Session IDs are capabilities, not authenticated accounts. Rate/body/AI admission limits, temporary hosted state and health boundaries are documented in [DEPLOYMENT.md](DEPLOYMENT.md). No endpoint accepts arbitrary model-generated Cypher.
+
+## Preserved local payments API
+
+The remaining sections document the older NovaPay workflow. Its routes are available only through the local development entrypoint, not the public evaluation server.
 
 [Architecture](ARCHITECTURE.md) · [Request models](../backend/chronos/models.py) · [Route implementation](../backend/chronos/app.py)
 

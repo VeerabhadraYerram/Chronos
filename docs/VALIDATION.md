@@ -36,7 +36,7 @@ A live Groq response on October 17 correctly reported 12 Client companies after 
 
 The account coverage extension verifies 12 clients, three distinct-city pickup warehouses per client, 36 assigned operational review items, 25 source-backed document statements, diverse accepted rule fields and additive migration with retained history. The scheduling simulation still uses exactly its original 1,200 consignments even though ordinary Bengaluru traffic is now present.
 
-A regression crosses the database server's 10,000-row response cap with saved history and verifies complete catalog counts and full node/relationship exports. Internal catalog, migration and audit reads page in 1,000-record batches.
+A regression crosses the database server's 10,000-row response cap with saved history and verifies complete catalog counts and full node/relationship exports. Internal full reads page below the server limit: catalog and native-field audit use 250-record pages, while other full reads default to 1,000-record pages.
 
 Two frontend geometry tests cover 100 coincident relationship labels, varied measured label heights, moving card obstacles and deterministic placement. Labels reserve padded rectangles against every card and previously placed label; when crowded, the search expands canvas space. Displaced labels retain dotted connectors. Browser checks on a real 11-record / 19-connection answer found zero label-to-label and label-to-card intersections before and after dragging and zooming. Fit View includes displaced labels. This prevents label occlusion; dense graphs still require pan/zoom for comfortable reading.
 
@@ -92,7 +92,7 @@ On October 16, 2026 a real Groq invocation investigated the unrelated Atlas Stud
 
 The extended suite covers actual plural client counts that change with inserted data; typed JSON read plans executing real database arithmetic; rejection of a generated number that contradicts a database count; provider order and free-model restriction; and stale receipts when knowledge changes during inference. A controlled stub verifies routing and validation, not model semantics.
 
-Live Groq generated the correct three-client count and the expanded fixture invoice sum of INR 153,450. A live OpenRouter free model generated the COD explanation, named Finance, and explicitly declined to infer cash loss, with source IDs from the retrieved graph. Some live attempts failed from rate limits, tool formatting or response validation; Gemini was also unavailable during some checks. These are examples, not an always-correct quality guarantee. The app retains an explicit unavailable state when every provider fails.
+Before the later 12-client coverage expansion, live Groq generated the then-correct three-client count and a fixture invoice sum of INR 153,450. A live OpenRouter free model generated the COD explanation, named Finance, and explicitly declined to infer cash loss, with source IDs from the retrieved graph. Some live attempts failed from rate limits, tool formatting or response validation; Gemini was also unavailable during some checks. These are examples, not an always-correct quality guarantee. The app retains an explicit unavailable state when every provider fails.
 
 The separate database portal and main workspace are manually checked at desktop and mobile widths. Long IDs, structured values and document bodies are previewed in compact table rows; complete fields remain in the detail inspector/export. All operational data remains synthetic. See [Data scenarios](DATA_SCENARIOS.md).
 

@@ -1,6 +1,46 @@
 # Architecture
 
-> This page documents the preserved NovaPay payments prototype. The primary company workspace has its own [reference architecture, graph schema and API](DELHIVERY_REFERENCE.md).
+## Current company workspace
+
+The deployed product is a React interface, FastAPI API and real FalkorDB running together on one Free Render service. Local development runs those components independently using Vite, Python and Docker. Stopping the local services does not affect Render.
+
+```mermaid
+flowchart LR
+    User --> UI[React investigation workspace]
+    UI --> API[Company API]
+    API --> Investigator[Graph retrieval and AI investigator]
+    Investigator --> Tools[Bounded read tools]
+    Investigator --> Providers[Groq → Gemini → OpenRouter free]
+    Tools --> Graph[(FalkorDB)]
+    API --> Receipts[Investigation receipts and review packets]
+    Receipts --> Graph
+    API --> Trial[Disposable graph-copy comparison]
+    Trial --> Graph
+    Portal[Separate database portal] --> API
+```
+
+Company facts, owners, source excerpts and accepted rules are read through parameterized `GRAPH.RO_QUERY` templates. An enabled model selects bounded reads and writes an explanation; it cannot submit arbitrary Cypher, change accepted policy or publish external work. Citation/ID and selected numeric checks reject some invalid outputs, but do not prove every sentence. The graph map contains question-specific selected evidence and stored edges.
+
+External inference releases the global workspace lock. Coordinated reads/writes and complete inspection scans still use a single-process lock; a revision change during inference marks the receipt stale. The health probe reads reference metadata independently of that lock. There is no multi-worker coordination or production authorization system.
+
+Local receipts persist in a Docker volume. Hosted visitor graphs reset on container restart and expire after one hour of inactivity; the Free deployment admits at most six active visitor workspaces. [Deployment boundaries](DEPLOYMENT.md) explain cold starts and admission limits.
+
+| Main implementation | Responsibility |
+| --- | --- |
+| [company/api.py](../backend/chronos/company/api.py) | Session API, focus validation, replays, simulation and review packets |
+| [company/investigation.py](../backend/chronos/company/investigation.py) | General question orchestration, evidence, alerts and saved receipts |
+| [company/agent.py](../backend/chronos/company/agent.py) | Provider chain, bounded tools and generated-response validation |
+| [company/repository.py](../backend/chronos/company/repository.py) | Search, applicable rules, aggregation, catalog, export and integrity reads |
+| [company/store.py](../backend/chronos/company/store.py) | Workspace copies, provenance relationships, graph traversal and lifecycle |
+| [company/engine.py](../backend/chronos/company/engine.py) | Scoped guided scheduling comparison |
+| [public.py](../backend/chronos/public.py) | Public entrypoint, request limits, health probes and static frontend |
+| [CompanyWorkspace.tsx](../frontend/src/CompanyWorkspace.tsx) | Main investigation, source inspection and contextual follow-up UI |
+
+See the [graph data dictionary](DATABASE.md), [actual Cypher](GRAPH_QUERIES.md), [company engine](COMPANY_ENGINE.md) and [reference workflow/API](DELHIVERY_REFERENCE.md).
+
+## Preserved payments architecture
+
+The remaining sections document the **local-only NovaPay payments prototype** and its distinct partner/retry-delay workflow. Its routes and navigation are excluded from the public evaluation build.
 
 [Repository overview](../README.md) · [Graph model](DATA_MODEL.md) · [API contract](API.md)
 

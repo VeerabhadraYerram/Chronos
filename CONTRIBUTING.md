@@ -10,7 +10,7 @@ Start with [the README](README.md), [architecture](docs/ARCHITECTURE.md), and [c
 4. Run `./scripts/check.sh` against the real local FalkorDB before submitting a change.
 5. Include the problem, resulting behavior, relevant validation, and any remaining limitations in the pull request.
 
-The checks do not call Gemini. If you change the agent loop, also perform a separate live invocation with your own key, inspect tool choices and citations, and describe that verification without including credentials or provider payloads.
+The automated checks do not make external AI-provider calls. If you change the agent loop, also perform a separate live invocation with your own key, inspect tool choices and citations, and describe that verification without including credentials or provider payloads.
 
 ## Implementation principles
 

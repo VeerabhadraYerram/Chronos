@@ -4,7 +4,18 @@
 
 Start with the **[Delhivery reference-workspace walkthrough](DELHIVERY_REFERENCE.md#start-and-explore)** for the main UI. The payments walkthrough below remains available at `/?demo=payments`.
 
-This guide distinguishes three things: the deterministic graph checks, the optional Gemini investigator, and manual interface verification. All included NovaPay records are fictional. There is no deployed demo or finished video linked at this milestone.
+The [live app](https://chronosgraph.onrender.com) and [database inspection portal](https://chronosgraph.onrender.com/database) are available. The final demo video remains outstanding; see the [submission checklist](SUBMISSION.md). The main Company Brain investigator uses Groq, Gemini and OpenRouter fallbacks. The preserved payments walkthrough below evaluates a separate local-only example. All private operating records are modeled.
+
+## Main Company Brain review
+
+1. Open the live app. If it is sleeping, allow about a minute for the Free service to wake. Create a fresh workspace if an explicit old share link has expired.
+2. Ask **How many external client companies are recorded?** The initial dataset has 12 Client records. Check the successful provider badge and retrieval trace; model availability is not guaranteed.
+3. Ask **Why is the SUGAR COD settlement mismatch being investigated, who owns it, and does it prove cash loss?** Inspect the actual supporting records. The intended evidence distinguishes an unmatched settlement under Finance review from proof of cash loss; missing outcomes must remain unknown.
+4. Click a graph record or relationship, inspect its source excerpt, expand its connections and ask a contextual follow-up. Evidence is scoped to the question; a count may show a bounded sample rather than every counted record.
+5. Use the [guided amendment walkthrough](DELHIVERY_REFERENCE.md#start-and-explore) to check effective versus recorded time and before/after comparison separately from general investigation.
+6. Open the [database portal](https://chronosgraph.onrender.com/database). Create a fresh copy for independent browsing, or enter the app's workspace ID to inspect the same saved investigation. Browse the Client table, record fields, relationships, schema/indexes and integrity results.
+
+A fresh reference has 9,991 business entities plus one Metadata record and 17,207 business relationships. Saved investigations and replays add records. Structural checks do not prove model semantics or source truth. Full scans may be slow on free hosting, but readiness probes run independently of the workspace lock. Local services are not needed for the deployed URL.
 
 ## Fastest audit
 
@@ -14,7 +25,7 @@ After the [local setup](../README.md#run-locally), run:
 ./scripts/check.sh
 ```
 
-No Gemini key or live company account is required. The command executes the integration suite, the isolated scenario below, the production build, and documentation checks. It requires real FalkorDB; it does not substitute graph mocks or prerecorded answers.
+No AI-provider key or live company account is required. The command executes the integration suite, the isolated scenario below, the production build, and documentation checks. It requires real FalkorDB; it does not substitute graph mocks or prerecorded answers.
 
 To run only the business scenario:
 
@@ -22,11 +33,11 @@ To run only the business scenario:
 PYTHONPATH=backend .venv/bin/python scripts/evaluate.py
 ```
 
-The evaluator creates a unique `chronos_audit_…` graph, verifies explicit expected outcomes, and removes that graph in `finally`. Scenario copies are removed too. No user graph name is accepted as an argument. This verifies graph behavior; it is not a Gemini quality benchmark.
+The evaluator creates a unique `chronos_audit_…` graph, verifies explicit expected outcomes, and removes that graph in `finally`. Scenario copies are removed too. No user graph name is accepted as an argument. This verifies graph behavior; it is not an LLM quality benchmark.
 
 ## Three-minute interface walkthrough
 
-Use a **fresh fixture** for this sequence. If the workspace has already replayed events, select a new server-side graph as described under [setup and troubleshooting](#setup-and-troubleshooting). Do not erase the existing graph.
+**Local preserved NovaPay workflow:** these partner/retry-delay controls are not part of the public main workspace. Use a **fresh fixture** for this sequence. If the workspace has already replayed events, select a new server-side graph as described under [setup and troubleshooting](#setup-and-troubleshooting). Do not erase the existing graph.
 
 | Step | Action | Expected evidence |
 | --- | --- | --- |
@@ -71,7 +82,7 @@ The integration suite also checks time boundaries, missing relationships, receip
 
 ### A fresh demo without losing previous work
 
-Stop the API, choose a new unused graph in the server environment, and restart:
+For the main company workspace, choose **New workspace**; it creates an isolated copy and preserves earlier active workspaces. For the local preserved payments workflow only, stop the API, choose a new unused graph in the server environment, and restart:
 
 ```sh
 FALKOR_GRAPH=chronos_review_01 ./scripts/dev.sh
@@ -81,7 +92,7 @@ Use a different suffix for another fresh run. An existing environment variable t
 
 ### Database unavailable
 
-Run `docker compose up -d --wait`. Verify the engine is running and port 6389 is free. The official container entrypoint uses `REDIS_ARGS`; Compose mounts its actual data directory, `/var/lib/falkordb/data`. No cloud account is needed.
+For local development, run `docker compose up -d --wait`. Verify the engine is running and port 6389 is free. The official container entrypoint uses `REDIS_ARGS`; Compose mounts its actual data directory, `/var/lib/falkordb/data`. No cloud account is needed.
 
 ### Port already in use
 
@@ -89,11 +100,13 @@ Stop the previous project dev command before starting another. The interface exp
 
 ### Events are disabled
 
-Sample events are intentionally one-shot within a fixture. Use a fresh graph name to reproduce the sequence. Resetting or deleting a user's graph is not part of the test workflow.
+Sample events are intentionally one-shot within a workspace. Create a new main workspace, or use a fresh graph name for the preserved payments workflow, to reproduce the sequence. Resetting or deleting a user's graph is not part of the test workflow.
 
 ### Gemini is unavailable
 
-The key is optional for the graph audit. For agent evaluation, check your account's model access and quota, and set `GEMINI_MODEL` if needed. Do not publish a key or raw provider error in an issue.
+For the main workspace, the configured provider chain is Groq → Gemini → OpenRouter free models. Check the actual provider badge and trace. If every provider fails, no AI answer is claimed. Provider configuration and limits are described in the [engine guide](COMPANY_ENGINE.md#provider-execution-and-answer-validation).
+
+For the preserved local payments workflow, the key is optional for the graph audit. For agent evaluation, check your account's model access and quota, and set `GEMINI_MODEL` if needed. Do not publish a key or raw provider error in an issue.
 
 ### Stale receipt or repair rejection
 

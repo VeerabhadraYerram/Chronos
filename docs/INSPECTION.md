@@ -1,8 +1,8 @@
 # Separate database inspection portal
 
-Open **[http://127.0.0.1:8000/database](http://127.0.0.1:8000/database)** after starting the backend. This is a separate page served by FastAPI; it is not a tab in the main investigation interface and does not require the Vite frontend to run.
+Open the **[live database portal](https://chronosgraph.onrender.com/database)**, or **[http://127.0.0.1:8000/database](http://127.0.0.1:8000/database)** after starting the local backend. This is a separate page served by FastAPI; it is not a tab in the main investigation interface and does not require the Vite frontend to run.
 
-Enter the workspace ID shown in the prototype's **About this workspace** dialog. Alternatively, create a fresh reference demo copy. **Copy inspection link** produces a URL whose fragment identifies this workspace. Reviewers opening that link see the same stored records and saved investigations, rather than an exported sample or screenshots. A local URL works only on the machine running the server; public reviewer access requires deployment of this backend.
+Enter the workspace ID shown in the prototype's **About this workspace** dialog. Alternatively, create a fresh reference demo copy. **Copy inspection link** produces a URL whose fragment identifies this workspace. Reviewers opening that link see the same stored records and saved investigations, rather than an exported sample or screenshots. A local URL works only on the machine running the server; use the live Render URL for public review. Hosted workspace links are temporary and can expire on restart or after an hour of inactivity. Use the permanent `/database` root link in submissions; reviewers can create a fresh workspace there.
 
 ## What reviewers can inspect
 

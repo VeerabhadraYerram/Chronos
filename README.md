@@ -16,13 +16,15 @@ ChronosGraph is an interactive company-memory investigator powered by **FalkorDB
 
 **Judges: [submission requirements and evidence](docs/SUBMISSION.md)** · **Track 03: Company Brain** · Demo video: pending
 
+[Documentation index](docs/README.md) provides reading paths for evaluators and developers, including current implementation and preserved planning material.
+
 **[Separate database inspection](docs/INSPECTION.md)** · **[Company-wide engine](docs/COMPANY_ENGINE.md)** · **[Explore the reference demo](docs/DELHIVERY_REFERENCE.md)** · **[Database & schema](docs/DATABASE.md)** · **[Cypher queries](docs/GRAPH_QUERIES.md)** · **[Evaluate locally](docs/EVALUATION.md)** · **[Competition fit](docs/COMPETITION_FIT.md)** · **[Validation](docs/VALIDATION.md)**
 
 ## The story
 
 Operations wants Sunday closure. Sales has recorded a Havells commitment. Account Management later records an amendment. The old handbook has not caught up. Finance has staffing assumptions. ChronosGraph connects the records so a reviewer can understand the active promise, inspect its reason and sources, and rehearse a scoped alternative.
 
-**Delhivery, Havells India, SUGAR Cosmetics and HPCL are real names. All operational records, agreements, employee roles, costs and policies here are synthetic.** This is an independent reference demo informed by public logistics documentation, not Delhivery's actual internal system, private database schema or an affiliated product. [Public references and exact boundaries](docs/DELHIVERY_REFERENCE.md#public-facts-versus-synthetic-records).
+**The workspace uses real company and client names. All private operational records, agreements, employee roles, costs and policies here are synthetic.** This is an independent reference demo informed by public logistics documentation, not Delhivery's actual internal system, private database schema or an affiliated product. [Public references and exact boundaries](docs/DELHIVERY_REFERENCE.md#public-facts-versus-synthetic-records).
 
 ## What you can do
 
@@ -59,9 +61,9 @@ npm --prefix frontend ci
 ./scripts/dev.sh
 ```
 
-Open **[http://127.0.0.1:5173](http://127.0.0.1:5173)**. No Gemini key is needed for graph checks, history, rehearsal, or repair drafts. The main workspace copies a separate reference seed into a visitor graph; it does not reset an existing workspace. The preserved NovaPay prototype is available at `/?demo=payments`.
+Open **[http://127.0.0.1:5173](http://127.0.0.1:5173)**. No AI-provider key is needed for graph checks, history, rehearsal, or repair drafts. The main workspace copies a separate reference seed into a visitor graph; it does not reset an existing workspace. The preserved NovaPay prototype is available at `/?demo=payments`.
 
-To enable the **Gemini agent**, copy `.env.example` to `.env` only if you do not already have one, add your own `GEMINI_API_KEY`, and restart the API. The main interface enables **AI investigator** when a provider key is configured. Groq is preferred when `GROQ_API_KEY` is configured (`GROQ_MODEL=openai/gpt-oss-120b`); Gemini is the backup. Groq uses bounded structured read plans validated by the server; Gemini uses native function calls. An optional `OPENROUTER_API_KEY` adds `openrouter/free` as a final fallback; paid OpenRouter model IDs are rejected. The receipt identifies the provider that actually completed the run. Keep the key server-side; `.env` is ignored. Model availability and quota depend on your account.
+To enable the **AI investigator**, copy `.env.example` to `.env` only if you do not already have one, add your own provider key, and restart the API. The main interface enables **AI investigator** when a provider key is configured. Groq is preferred when `GROQ_API_KEY` is configured (`GROQ_MODEL=openai/gpt-oss-120b`); Gemini is the backup. Groq uses bounded structured read plans validated by the server; Gemini uses native function calls. An optional `OPENROUTER_API_KEY` adds `openrouter/free` as a final fallback; paid OpenRouter model IDs are rejected. The receipt identifies the provider that actually completed the run. Keep the key server-side; `.env` is ignored. Model availability and quota depend on your account.
 
 | Service | Local address |
 | --- | --- |
@@ -76,7 +78,7 @@ Stop development servers with `Ctrl+C`. `docker compose stop` preserves database
 
 Select **Guided walkthrough**, then ask about Sunday closure in a fresh workspace. Inspect the Havells commitment and its evidence. Replay the approved synthetic amendment, then rerun before and after November 1 using different knowledge cutoffs. Compare full closure with a commitment-preserving alternative. [Step-by-step walkthrough](docs/DELHIVERY_REFERENCE.md#start-and-explore).
 
-For a repeatable audit without opening the UI or calling Gemini:
+For a repeatable audit without opening the UI or calling an external AI provider:
 
 ```sh
 ./scripts/check.sh
@@ -127,7 +129,7 @@ Applicable rules are selected from retrieved subjects and source evidence at the
 - **Ownership is implemented; expertise ranking is not.** Historical ownership and topology are not versioned.
 - **Updates are replayed sample events.** There are no live Slack, GitHub, Jira, or Notion connectors.
 - **Review packets are local drafts.** No message, ticket, agreement or operating schedule is published.
-- **This is a trusted local prototype.** Authentication, source-level permissions, crash-atomic ingestion, and multi-worker coordination are not implemented. [Security model →](SECURITY.md)
+- **This is an evaluation prototype.** Local development and the bounded public deployment do not implement enterprise authentication, source-level permissions, crash-atomic ingestion or multi-worker coordination. [Security model →](SECURITY.md)
 
 ## Project and development
 

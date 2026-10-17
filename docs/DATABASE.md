@@ -310,7 +310,7 @@ The actual explorer clamps depth to one or two hops, caps returned records and f
 | Operation | Database behavior |
 | --- | --- |
 | New workspace | Seeds the reference if absent, copies the graph, records a session registry entry |
-| Ask / follow-up | Reads applicable commitments and context; optionally runs bounded Gemini/Groq reads; persists a receipt and `USED` links |
+| Ask / follow-up | Reads applicable commitments and context; optionally runs bounded provider-selected reads; persists a receipt and `USED` links |
 | Expand a node | Reads neighbors and the relationships between returned nodes |
 | Approved amendment replay | Updates the original recorded interval, adds two rule versions and amendment evidence, links lineage, increments revision |
 | Evidence withdrawal replay | Disables the original supporting source; increments revision |
