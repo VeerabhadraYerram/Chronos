@@ -1,24 +1,24 @@
 # Company Brain fit
 
-The [official Graph Hacks brief](https://www.wemakedevs.org/hackathons/falkordb#tracks) was rechecked **October 17, 2026**. ChronosGraph targets Company Brain. The project connects company requirements, people, evidence, and follow-up work; the main trigger is a cross-department Sunday-processing decision in an independent Delhivery reference workspace. The original code-change demo is preserved separately.
+The [official Graph Hacks brief](https://www.wemakedevs.org/hackathons/falkordb#tracks) was rechecked **October 17, 2026**. ChronosGraph enters **Track 03: Company Brain**: connected company records, decisions, sources and ownership across departments.
 
-The main implementation is described in the [reference-workspace guide](DELHIVERY_REFERENCE.md): source-backed commitments, department ownership, approved synthetic updates, two clocks, interactive evidence exploration and isolated scheduling comparisons. All private operational records are synthetic; the schema is independently designed.
+The general investigator covers the recorded company knowledge; the guided Sunday-processing comparison demonstrates one scoped change workflow. The [reference-workspace guide](DELHIVERY_REFERENCE.md) explains the walkthrough and [data scenarios](DATA_SCENARIOS.md) describe broader finance, returns, compliance and operational examples. Private records and the schema are independently modeled, not Delhivery's actual internal data.
 
-## Preserved payments focus-to-evidence map
+## Organizer focus mapped to the current product
 
-| Organizer focus | Current implementation | How to inspect it | Boundary |
+| Organizer focus | Current implementation | Evidence | Boundary |
 | --- | --- | --- | --- |
-| Docs, tickets, and chats connected | Fictional runbook, incident ticket, and chat excerpts share a graph with decisions and partner requirements. | [Seed](../backend/chronos/seed.py), all-company graph, source inspector. | Seed and predefined replay; no live ingestion. |
-| Ownership and knowledge | `OWNS` traversal recommends the recorded system owner. | [Store.owners](../backend/chronos/store.py), repair reviewer. | Expertise discovery, contribution ranking, and availability are not implemented. |
-| Decision provenance | Applicable facts link to original excerpts; receipts preserve the context used. | [Engine](../backend/chronos/engine.py), source buttons, evidence graph. | Source-ID checks are not semantic proof or document authenticity. |
-| Knowledge stays current | Scoped migration changes the applicable minimum, flags the runbook, and invalidates old receipts. | [Evaluation steps 2–3](EVALUATION.md#three-minute-interface-walkthrough), temporal tests. | Replay is not continuous synchronization; only supported facts are temporal. |
-| Clear sources | Receipt source list and optional Gemini citations are bounded to the investigation's evidence. | [Agent validation](../backend/chronos/agent.py), source inspector. | Model explanations require review. |
+| Knowledge from docs, tickets and chats in one graph | Source excerpts connect with policies, claims, incidents, decisions and operational records. | [Database model](DATABASE.md), [retrieval and provenance queries](GRAPH_QUERIES.md), live record/source inspector. | Included records and replayed updates; no live ingestion connectors. |
+| Who owns what, and who knows what | Recorded ownership/operating-team edges, department and person records; contextual graph exploration. | `CompanyStore.owners` in [store.py](../backend/chronos/company/store.py), [ownership query](GRAPH_QUERIES.md#live-arithmetic-and-evidence-paths). | Ownership is implemented; expertise ranking and historical ownership are not. |
+| Tracing decisions back to their source | Question-specific evidence maps, source IDs, original excerpts, relationship inspection and saved investigation receipts. | [Evidence queries](GRAPH_QUERIES.md#live-arithmetic-and-evidence-paths), [general engine](COMPANY_ENGINE.md). | Valid source IDs do not prove that every generated sentence is correct or that a document is authentic. |
+| Keeping knowledge current as things change | Effective/recorded rule intervals, approved amendment replay, outdated-document alerts and stale receipts. | [Accepted-rule and claim queries](GRAPH_QUERIES.md#applicable-accepted-rules), [temporal tests](../backend/tests/test_company_reference.py). | Replays are labeled; continuous synchronization and temporal topology are not implemented. |
+| Answers with clear sources | Bounded graph retrieval, source inspection and a provider-labeled explanation; explicit unavailability if all providers fail. | [Cypher guide](GRAPH_QUERIES.md), [live verification](VALIDATION.md#live-render-verification--october-17-2026). | Source coverage and model semantics still require review; no always-correct claim. |
 
 ## Mandatory technology and agent behavior
 
-FalkorDB is the primary store for knowledge, relationships, temporal assertions, receipts, and actions. Both the checks and Gemini read tools query it. Rehearsal uses a real graph copy. The [architecture](ARCHITECTURE.md) shows those responsibilities and the [tests](VALIDATION.md#automated-coverage) demonstrate behavior changes when facts or relationships change.
+FalkorDB is the primary database for company knowledge, relationships, temporal rules, investigation receipts and review packets. The agent selects bounded server-owned read tools using `GRAPH.RO_QUERY`; it cannot execute arbitrary Cypher or access database credentials. Groq is preferred, Gemini is the next provider and OpenRouter free models are the final fallback. The receipt identifies the provider that completed the run. Graph-only retrieval is labeled separately.
 
-When enabled, Gemini selects read tools and produces an explanation. Graph-only mode is labeled separately. A configured key or a precomputed receipt is not presented as a fresh agent run. Secondary-track qualification and multi-agent capabilities are not claimed.
+The scheduling comparison uses a real `GRAPH.COPY`, scoped checks and disposable-copy cleanup. The [query guide](GRAPH_QUERIES.md) links this to the implementation. It is a modeled comparison, not a real operating action or general outage predictor. The older NovaPay example is preserved for local exploration; it is not the primary submitted workflow. Secondary-track qualification and multi-agent capabilities are not claimed.
 
 ## Public rules and submission boundary
 

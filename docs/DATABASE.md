@@ -23,7 +23,7 @@ This document describes an independently designed Delhivery reference prototype.
 
 `CHRONOS_COMPANY_GRAPH` can change the reference graph name. `FALKOR_GRAPH` controls the legacy payments graph; it does not redirect visitor sessions into that graph. Host, port, optional password and provider keys remain in the ignored root `.env`. No credential belongs in a database diagram or committed export.
 
-Session creation is capped at **40** per reference registry. No automatic expiry or production identity system is implemented. The registry's `DemoSession` records can be inherited by later copies but are excluded from business-entity counts and model exploration. A new workspace preserves earlier workspaces rather than resetting them.
+Local session creation defaults to a cap of **40** per reference registry, with no automatic expiry. The free Render deployment explicitly sets a cap of **6** and expires registered visitor graphs after **one hour of inactivity**; server restarts also reset hosted visitor data. See [deployment boundaries](DEPLOYMENT.md). No production identity system is implemented. The registry's `DemoSession` records can be inherited by later copies but are excluded from business-entity counts and model exploration. A new workspace preserves earlier active workspaces rather than resetting them.
 
 ## 3. Initial dataset size
 

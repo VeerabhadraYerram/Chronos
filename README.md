@@ -14,6 +14,8 @@ ChronosGraph is an interactive company-memory investigator powered by **FalkorDB
 
 **[Live website](https://chronosgraph.onrender.com)** · **[Live database inspection](https://chronosgraph.onrender.com/database)**
 
+**Judges: [submission requirements and evidence](docs/SUBMISSION.md)** · **Track 03: Company Brain** · Demo video: pending
+
 **[Separate database inspection](docs/INSPECTION.md)** · **[Company-wide engine](docs/COMPANY_ENGINE.md)** · **[Explore the reference demo](docs/DELHIVERY_REFERENCE.md)** · **[Database & schema](docs/DATABASE.md)** · **[Cypher queries](docs/GRAPH_QUERIES.md)** · **[Evaluate locally](docs/EVALUATION.md)** · **[Competition fit](docs/COMPETITION_FIT.md)** · **[Validation](docs/VALIDATION.md)**
 
 ## The story
@@ -83,6 +85,24 @@ For a repeatable audit without opening the UI or calling Gemini:
 This runs the real FalkorDB integration suite, an isolated business-scenario evaluation, the production frontend build, and local documentation-link checks. Each evaluation creates and removes its own disposable graph. Your demo graph is preserved. [Individual commands and recorded evidence →](docs/VALIDATION.md)
 
 ## How FalkorDB shapes the answer
+
+The core graph data model connects business records to their authority, provenance and owners:
+
+```mermaid
+flowchart LR
+    Client -->|HAS_COMMITMENT| Rule
+    Rule -->|SUPPORTED_BY| Source
+    Policy -->|ASSERTS| Claim
+    Claim -->|SUPPORTED_BY| Source
+    Decision -->|EXPLAINED_BY| Source
+    Facility -->|OPERATED_BY| Team
+    Shipment -->|FOR_CLIENT| Client
+    Shipment -->|AT| Facility
+```
+
+Rules carry effective and recorded time intervals; source records hold original excerpts. This is a selected model view, not the complete schema. See the [full data dictionary](docs/DATABASE.md), [machine-readable schema](docs/database-schema.json), and [actual Cypher queries](docs/GRAPH_QUERIES.md).
+
+The request path is:
 
 ```mermaid
 flowchart LR
