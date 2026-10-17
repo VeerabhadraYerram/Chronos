@@ -10,9 +10,9 @@
 
 **Ask why a company decision exists. Check whether it still applies. Follow the evidence, then compare the proposed change.**
 
-ChronosGraph is an interactive company-memory investigator powered by **FalkorDB** and an optional **Gemini / Groq** tool loop. Its core investigates records across company departments. A guided logistics fixture demonstrates one understandable decision: **can the Bengaluru facility close on Sundays?**
+ChronosGraph is an interactive company-memory investigator powered by **FalkorDB** and an optional **Groq / Gemini / OpenRouter** tool loop. Its core investigates records across company departments. A guided logistics fixture demonstrates one understandable decision: **can the Bengaluru facility close on Sundays?**
 
-**[Separate database inspection](docs/INSPECTION.md)** · **[Company-wide engine](docs/COMPANY_ENGINE.md)** · **[Explore the reference demo](docs/DELHIVERY_REFERENCE.md)** · **[Database & schema](docs/DATABASE.md)** · **[Evaluate locally](docs/EVALUATION.md)** · **[Competition fit](docs/COMPETITION_FIT.md)** · **[Validation](docs/VALIDATION.md)**
+**[Separate database inspection](docs/INSPECTION.md)** · **[Company-wide engine](docs/COMPANY_ENGINE.md)** · **[Explore the reference demo](docs/DELHIVERY_REFERENCE.md)** · **[Database & schema](docs/DATABASE.md)** · **[Cypher queries](docs/GRAPH_QUERIES.md)** · **[Evaluate locally](docs/EVALUATION.md)** · **[Competition fit](docs/COMPETITION_FIT.md)** · **[Validation](docs/VALIDATION.md)**
 
 ## The story
 
@@ -28,9 +28,9 @@ Operations wants Sunday closure. Sales has recorded a Havells commitment. Accoun
 - Rehearse full Sunday closure versus preserved client exceptions in a **real FalkorDB graph copy**.
 - Inspect before/after processing, queued sample consignments and explicitly synthetic cost assumptions.
 - Search a graph containing **9,991 initial entities and 17,207 relationships**, including 1,890 consignments and 6,870 tracking events across multiple operational states.
-- Reopen persistent investigations and download a review packet. No real company action is published.
+- Reopen saved investigations and download a review packet (local volume-backed storage persists; the free-hosted instance resets on restart). No real company action is published.
 
-Each visitor gets a separate demo graph. The selected AI provider uses bounded read tools when enabled; graph-only mode shows stored facts/excerpts when AI is disabled; if both providers fail, the interface explicitly says no AI answer was generated. The guided scheduling simulator retains deterministic checks. Unfamiliar questions are limited by the recorded evidence; this is not unrestricted enterprise question answering.
+Each visitor gets a separate demo graph. The selected AI provider uses bounded read tools when enabled; graph-only mode shows stored facts/excerpts when AI is disabled; if every configured provider fails, the interface explicitly says no AI answer was generated. The guided scheduling simulator retains deterministic checks. Unfamiliar questions are limited by the recorded evidence; this is not unrestricted enterprise question answering.
 
 <details>
   <summary><strong>View the actual investigation and comparison workspace</strong></summary>
@@ -43,7 +43,7 @@ Each visitor gets a separate demo graph. The selected AI provider uses bounded r
 
 Requirements: **Python 3.13**, **Node.js 20.19+**, **npm**, and **Docker with Compose**. Development was verified on macOS ARM64; CI is configured for Ubuntu. The image supports AMD64 and ARM64.
 
-The repository is currently private. Cloning and reviewing CI require an authorized GitHub account until it is made public for submission.
+The repository is public for judge review.
 
 ```sh
 git clone https://github.com/VeerabhadraYerram/Chronos.git ChronosGraph
@@ -70,7 +70,7 @@ Stop development servers with `Ctrl+C`. `docker compose stop` preserves database
 
 ## Reproduce the result
 
-Select **Guided demo**, then ask about Sunday closure in a fresh workspace. Inspect the Havells commitment and its evidence. Replay the approved synthetic amendment, then rerun before and after November 1 using different knowledge cutoffs. Compare full closure with a commitment-preserving alternative. [Step-by-step walkthrough](docs/DELHIVERY_REFERENCE.md#start-and-explore).
+Select **Guided walkthrough**, then ask about Sunday closure in a fresh workspace. Inspect the Havells commitment and its evidence. Replay the approved synthetic amendment, then rerun before and after November 1 using different knowledge cutoffs. Compare full closure with a commitment-preserving alternative. [Step-by-step walkthrough](docs/DELHIVERY_REFERENCE.md#start-and-explore).
 
 For a repeatable audit without opening the UI or calling Gemini:
 
@@ -118,3 +118,7 @@ Start with [contributing guidance](CONTRIBUTING.md), [architecture](docs/ARCHITE
 ChronosGraph source and documentation are available under the [MIT License](LICENSE). Third-party packages, FalkorDB, and external model services retain their respective licenses and terms.
 
 See [Synthetic logistics depth](docs/DATA_SCENARIOS.md) for the expanded dataset, connected investigation examples and what remains simulated.
+
+## Live evaluation deployment
+
+The [Render Blueprint](render.yaml) packages the frontend, Python API and an internal FalkorDB instance on one Free service. Follow [deployment steps](docs/DEPLOYMENT.md) and the [submission release checklist](docs/SUBMISSION.md). Hosting is not verified until its live URL passes the documented checks.

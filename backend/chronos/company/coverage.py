@@ -2,12 +2,19 @@
 
 import hashlib
 import json
+import os
 import re
 from collections import defaultdict
 
 VERSION = 1
 PRESENTATION_VERSION = 1
 DISCLOSURE = "Independent reference workspace: real organisation names, with synthetic private accounts, terms, locations and operations. This is not Delhivery's internal database."
+
+
+def workspace_disclosure():
+    temporary = " Free hosting: saved investigations may reset when the server sleeps or restarts; workspaces also expire after one hour without use."
+    return DISCLOSURE + (temporary if os.getenv("CHRONOS_EPHEMERAL") == "1" else "")
+
 
 # Public publications establish business context, never these private account terms.
 ACCOUNTS = [

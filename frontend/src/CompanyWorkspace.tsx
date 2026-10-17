@@ -29,7 +29,7 @@ import {
   ExternalLink,
   PanelRightClose,
 } from "lucide-react";
-import { api } from "./api";
+import { api, ApiError } from "./api";
 import CompanyGraph, { relationLabel } from "./CompanyGraph";
 import type {
   CompanyEntity,
@@ -137,9 +137,29 @@ export default function CompanyWorkspace() {
       ? null
       : new URLSearchParams(window.location.search).get("workspace") ||
         localStorage.getItem("chronos-company-session");
-    const result = await api<CompanySession>("/company/session", {
-      session_id: stored,
-    });
+    let result: CompanySession;
+    let expired = false;
+    try {
+      result = await api<CompanySession>("/company/session", {
+        session_id: stored,
+      });
+    } catch (error) {
+      if (
+        !(error instanceof ApiError) ||
+        error.status !== 404 ||
+        !stored ||
+        new URLSearchParams(window.location.search).has("workspace")
+      )
+        throw error;
+      result = await api<CompanySession>("/company/session", {
+        session_id: null,
+      });
+      expired = true;
+    }
+    if (expired)
+      setNotice(
+        "Your previous evaluation workspace expired. A new workspace is ready; earlier investigations are unavailable.",
+      );
     localStorage.setItem("chronos-company-session", result.session_id);
     setSession(result);
     setGuided(false);
@@ -376,9 +396,11 @@ export default function CompanyWorkspace() {
           <button onClick={() => setHelp(true)}>
             <ShieldCheck size={15} /> About this workspace
           </button>
-          <a href="/?demo=payments">
-            Original payments prototype <ArrowUpRight size={11} />
-          </a>
+          {import.meta.env.VITE_PUBLIC_EVALUATION !== "1" && (
+            <a href="/?demo=payments">
+              Original payments prototype <ArrowUpRight size={11} />
+            </a>
+          )}
         </div>
       </aside>
       <main className="co-main">
@@ -523,7 +545,9 @@ export default function CompanyWorkspace() {
               <span>
                 {error}
                 {!session &&
-                  " Start Docker and the API, then reconnect. If a saved workspace is missing, create a new one."}
+                  (import.meta.env.VITE_PUBLIC_EVALUATION === "1"
+                    ? " The free service may be restarting. Reconnect shortly, or create a new workspace if your link expired."
+                    : " Start Docker and the API, then reconnect. If a saved workspace is missing, create a new one.")}
               </span>
               <button onClick={() => void task("connect", () => load())}>
                 Reconnect

@@ -1,3 +1,12 @@
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+  }
+}
+
 export async function api<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(
     "/api" + path,
@@ -20,7 +29,7 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
     } catch {
       message = "Backend unavailable. Start the API server.";
     }
-    throw new Error(message);
+    throw new ApiError(message, response.status);
   }
   return response.json() as Promise<T>;
 }

@@ -420,16 +420,39 @@ class CompanyStore(Store):
         return CompanyStore(name)
 
 
+def expire_evaluation_sessions(base):
+    """Opt-in only for the explicitly temporary public evaluation deployment."""
+    if os.getenv("CHRONOS_EPHEMERAL") != "1":
+        return
+    ttl = max(300, int(os.getenv("CHRONOS_SESSION_TTL_SECONDS", "3600")))
+    cutoff = time.time() - ttl
+    for id, seen in base.read(
+        "MATCH (s:DemoSession) RETURN s.id,coalesce(s.last_seen,s.created)"
+    ):
+        if (
+            not re.fullmatch(r"session-[a-f0-9]{32}", id)
+            or seen is None
+            or seen >= cutoff
+        ):
+            continue
+        name = SESSION_PREFIX + id.removeprefix("session-")
+        if name in base.db.list_graphs():
+            CompanyStore(name).graph.delete()
+        base.write("MATCH (s:DemoSession {id:$id}) DETACH DELETE s", dict(id=id))
+
+
 def new_session():
     with LOCK:
         base = CompanyStore(BASE_NAME)
         base.seed()
+        expire_evaluation_sessions(base)
         policy = base.get("policy-schedule")
         if "sunday_clients" not in policy:
             policy["sunday_clients"] = ["havells"]
             base.upsert(policy)
         sessions = base.read("MATCH (s:DemoSession) RETURN count(s)")[0][0]
-        if sessions >= 40:
+        limit = max(1, min(40, int(os.getenv("CHRONOS_MAX_SESSIONS", "40"))))
+        if sessions >= limit:
             raise HTTPException(
                 429,
                 "Demo capacity reached. Please reuse an existing workspace or try later.",
@@ -450,6 +473,14 @@ def session_store(id):
     if not re.fullmatch(r"[a-f0-9]{32}", id):
         raise HTTPException(400, "Invalid demo session.")
     store = CompanyStore(SESSION_PREFIX + id)
+    if os.getenv("CHRONOS_EPHEMERAL") == "1":
+        base = CompanyStore(BASE_NAME)
+        if base.name in base.db.list_graphs():
+            expire_evaluation_sessions(base)
+            base.write(
+                "MATCH (s:DemoSession {id:$id}) SET s.last_seen=$now",
+                dict(id="session-" + id, now=time.time()),
+            )
     if store.name not in store.db.list_graphs():
         raise HTTPException(404, "Workspace not found. Start a new demo workspace.")
     store.ensure_schema()

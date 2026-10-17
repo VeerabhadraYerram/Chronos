@@ -9,7 +9,7 @@ from fastapi import HTTPException
 
 from .schema import NATIVE_FIELDS
 from .timeutil import canonical
-from .coverage import DISCLOSURE
+from .coverage import workspace_disclosure
 
 VISIBLE = "(n:Entity OR n:Metadata) AND coalesce(n.kind,'Metadata') <> 'DemoSession'"
 EDGE_VISIBLE = "a.kind <> 'DemoSession' AND b.kind <> 'DemoSession'"
@@ -100,7 +100,7 @@ class CompanyReader:
             metadata=metadata,
             records=len(rows),
             connections=sum(r[3] for r in relations),
-            disclosure=DISCLOSURE,
+            disclosure=workspace_disclosure(),
         )
 
     def rows(self, label, query="", offset=0, limit=50):

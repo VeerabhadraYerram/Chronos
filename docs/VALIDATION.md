@@ -95,3 +95,11 @@ The extended suite covers actual plural client counts that change with inserted 
 Live Groq generated the correct three-client count and the expanded fixture invoice sum of INR 153,450. A live OpenRouter free model generated the COD explanation, named Finance, and explicitly declined to infer cash loss, with source IDs from the retrieved graph. Some live attempts failed from rate limits, tool formatting or response validation; Gemini was also unavailable during some checks. These are examples, not an always-correct quality guarantee. The app retains an explicit unavailable state when every provider fails.
 
 The separate database portal and main workspace are manually checked at desktop and mobile widths. Long IDs, structured values and document bodies are previewed in compact table rows; complete fields remain in the detail inspector/export. All operational data remains synthetic. See [Data scenarios](DATA_SCENARIOS.md).
+
+## Free Render evaluation package
+
+The existing 74-test milestone is supplemented by six deployment-boundary tests: static frontend/inspection availability, excluded shared legacy APIs, origin/body/rate controls, a global AI admission budget, database/provider readiness and opt-in expiry limited to registered temporary visitor graphs. All six pass against the finalized code; the existing tests passed in the full run. The two frontend layout tests and production build pass inside the Docker build.
+
+A local ARM64 smoke test ran the submission container under a 512 MiB limit. It loaded the reference-only RDB, returned healthy readiness with 12 clients, passed the full structural audit, and produced a live Groq investigation. Direct Groq and OpenRouter checks also completed successfully. Temporary-workspace recovery was verified in the browser after replacing the disposable container. This is local container verification, not proof of Render deployment, AMD64 resource behavior or provider availability at judging time.
+
+The free Render Blueprint provisions one web service, with the frontend, API and loopback-only actual FalkorDB. No paid disk or database is declared. Cold starts, ephemeral storage, one-hour inactive-workspace expiry and public capacity limits are documented in [deployment instructions](DEPLOYMENT.md). A live Render URL and final demo video remain separate release checks.

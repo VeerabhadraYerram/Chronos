@@ -12,7 +12,7 @@ from ..store import LOCK
 from .store import new_session, session_store
 from .engine import simulate, prepare
 from .investigation import answer
-from .coverage import DISCLOSURE
+from .coverage import workspace_disclosure
 
 router = APIRouter(prefix="/api/company")
 
@@ -121,7 +121,7 @@ def session(request: Session):
                 amendment_loaded=bool(store.get("source-amendment")),
                 receipts=[r for r in store.receipts() if r.get("domain") == "company"],
                 disclosure=(
-                    DISCLOSURE
+                    workspace_disclosure()
                     if store.demo_config()
                     else store.read(
                         'MATCH (m:Metadata {id:"dataset"}) RETURN coalesce(m.dataset_description,"Company evidence workspace; inspect source classifications")'
