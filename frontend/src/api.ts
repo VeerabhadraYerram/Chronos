@@ -27,7 +27,7 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
           ? data.detail
           : "Please check the selected inputs.";
     } catch {
-      message = "Backend unavailable. Start the API server.";
+      message = "The server is temporarily unavailable. Please reconnect in a moment.";
     }
     throw new ApiError(message, response.status);
   }

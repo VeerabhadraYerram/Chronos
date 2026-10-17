@@ -16,7 +16,7 @@ from starlette.concurrency import run_in_threadpool
 from .company.api import router as company_router
 from .company.inspection_api import router as inspection_router
 from .company.store import CompanyStore, BASE_NAME
-from .store import LOCK
+from .company.schema import VERSION
 
 
 class EvaluationLimits:
@@ -173,10 +173,15 @@ def create_app(static_dir=None, **limits):
     @app.get("/readyz")
     async def ready():
         def check():
-            with LOCK:
-                store = CompanyStore(BASE_NAME)
-                store.seed()
-                return store.revision()
+            # The image already contains the reference graph. A probe must neither
+            # migrate it nor queue behind long, locked workspace inspections.
+            store = CompanyStore(BASE_NAME)
+            rows = store.read(
+                'MATCH (m:Metadata {id:"dataset"}) RETURN m.revision,m.schema_version'
+            )
+            if not rows or rows[0][1] != VERSION:
+                raise HTTPException(503, "Reference graph is not ready.")
+            return rows[0][0]
 
         try:
             revision = await run_in_threadpool(check)

@@ -61,10 +61,10 @@ def test_readiness_requires_database_and_provider(tmp_path, monkeypatch):
             pass
 
         def seed(self):
-            pass
+            raise AssertionError("Readiness must not seed or migrate data")
 
-        def revision(self):
-            return 4
+        def read(self, query):
+            return [[4, 4]]
 
     monkeypatch.setattr(module, "CompanyStore", DB)
     for key in ("GROQ_API_KEY", "GEMINI_API_KEY", "OPENROUTER_API_KEY"):
@@ -73,6 +73,31 @@ def test_readiness_requires_database_and_provider(tmp_path, monkeypatch):
     assert client.get("/readyz").status_code == 503
     monkeypatch.setenv("GROQ_API_KEY", "configured-test-value")
     assert client.get("/readyz").json()["database"] == "FalkorDB"
+
+
+def test_readiness_does_not_wait_for_workspace_inspection(tmp_path, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    from chronos.store import LOCK
+
+    module = importlib.import_module("chronos.public")
+
+    class DB:
+        def __init__(self, name):
+            pass
+
+        def read(self, query):
+            return [[1, 4]]
+
+    monkeypatch.setattr(module, "CompanyStore", DB)
+    monkeypatch.setenv("GROQ_API_KEY", "configured-test-value")
+    client = public(tmp_path)
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        LOCK.acquire()
+        try:
+            response = executor.submit(client.get, "/readyz").result(timeout=2)
+            assert response.status_code == 200
+        finally:
+            LOCK.release()
 
 
 def test_session_expiry_is_explicitly_opt_in(tmp_path, monkeypatch):
