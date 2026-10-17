@@ -145,12 +145,13 @@ async function connect(fresh = false) {
   }
   const data = await r.json();
   session = data.session_id;
+  view = "overview";
+  offset = 0;
+  label = "";
   $("workspace").value = session;
   localStorage.setItem("chronos-inspection-session", session);
   history.replaceState(null, "", "#workspace=" + session);
-  $("browser").hidden = false;
   await refresh();
-  $("connect").hidden = true;
 }
 async function refresh() {
   catalog = await api("catalog");
@@ -253,6 +254,8 @@ async function refresh() {
   );
   $("relation").value = relation;
   await render();
+  $("browser").hidden = false;
+  $("connect").hidden = true;
 }
 async function render() {
   document

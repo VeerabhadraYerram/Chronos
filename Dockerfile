@@ -9,6 +9,7 @@ RUN npm test && npm run build
 FROM falkordb/falkordb:v4.22.1@sha256:b0bdcac2cbaff989e77cb0610439b7a9289e86de033ccbbd4368b66fb680ae7a AS graph
 
 FROM python:3.13-slim-trixie
+ENV FALKOR_SOCKET_TIMEOUT_SECONDS=30 FALKOR_READ_TIMEOUT_MS=10000 FALKOR_WRITE_TIMEOUT_MS=10000
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/app/backend CHRONOS_STATIC_DIR=/app/frontend/dist
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 libstdc++6 libsystemd0 libcap2 libzstd1 && rm -rf /var/lib/apt/lists/*

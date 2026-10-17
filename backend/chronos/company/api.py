@@ -73,7 +73,10 @@ def safe_store(id):
     try:
         return session_store(id)
     except (RedisError, OSError):
-        raise HTTPException(503, "FalkorDB is unavailable. Start the project database.")
+        raise HTTPException(
+            503,
+            "The database could not complete this workspace request. Please retry shortly.",
+        )
 
 
 @router.post("/session")
@@ -129,7 +132,10 @@ def session(request: Session):
                 ),
             )
     except (RedisError, OSError):
-        raise HTTPException(503, "FalkorDB is unavailable. Start the project database.")
+        raise HTTPException(
+            503,
+            "The database could not complete this workspace request. Please retry shortly.",
+        )
 
 
 @router.post("/ask")

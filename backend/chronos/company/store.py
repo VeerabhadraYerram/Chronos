@@ -117,16 +117,17 @@ class CompanyStore(Store):
         if not rows or rows[0][0] != 1:
             raise ValueError("Both relationship endpoints must exist")
 
-    def read_all(self, ordered_query, params=None):
+    def read_all(self, ordered_query, params=None, page_size=1000):
         """Internal ordered templates only; page below the server result cap."""
+        assert 1 <= page_size <= 1000
         rows, offset = [], 0
         while True:
             page = self.read(
-                ordered_query + " SKIP $page_offset LIMIT 1000",
-                dict(params or {}, page_offset=offset),
+                ordered_query + " SKIP $page_offset LIMIT $page_limit",
+                dict(params or {}, page_offset=offset, page_limit=page_size),
             )
             rows.extend(page)
-            if len(page) < 1000:
+            if len(page) < page_size:
                 return rows
             offset += len(page)
 

@@ -4,7 +4,7 @@
 
 The new real-FalkorDB suite covers the 1,200-consignment graph, active commitments, required relationships, effective/recorded boundaries, source withdrawal, isolated graph-copy previews, cost provenance, idempotent replay, stale review rejection, recorded reasons, unknown questions, parameterized input, read-only tools, contextual exploration, API validation and session isolation. See [test_company_reference.py](../backend/tests/test_company_reference.py).
 
-The original 16 tests below are preserved. Together with 35 reference-workspace tests and 23 inspection/general-engine tests, the suite has **74 passing tests** at this implementation milestone. The frontend production build and two geometry tests also pass. Provider-fallback routing is tested with a controlled transport stub; live-provider status is recorded separately, not inferred from that stub. These checks do not prove model semantic correctness, real logistics outcomes, public deployment or exact replication of Delhivery's private systems.
+The original 16 tests below are preserved. Together with 35 reference-workspace tests, 23 inspection/general-engine tests and six public-deployment tests, the suite has **80 passing tests** at this implementation milestone. The frontend production build and two geometry tests also pass. Provider-fallback routing is tested with a controlled transport stub; live-provider status is recorded separately, not inferred from that stub. These checks do not prove model semantic correctness, real logistics outcomes, public deployment or exact replication of Delhivery's private systems.
 
 
 [Run the evaluation](EVALUATION.md) · [CI workflow](../.github/workflows/ci.yml) · [Live GitHub runs](https://github.com/VeerabhadraYerram/Chronos/actions/workflows/ci.yml)
@@ -21,7 +21,7 @@ The script requires installed dependencies and a reachable real database. It use
 
 | Check | Command | Local result |
 | --- | --- | --- |
-| Integration suite | `PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q` | 74 passed |
+| Integration suite | `PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q` | 80 passed |
 | Business scenario | `PYTHONPATH=backend .venv/bin/python scripts/evaluate.py` | 12 expected outcomes checked |
 | Frontend | `npm --prefix frontend run build` | TypeScript check and production build passed |
 | Documentation | `.venv/bin/python scripts/check_docs.py` | Local links, heading anchors, and image targets checked |
@@ -103,3 +103,11 @@ The existing 74-test milestone is supplemented by six deployment-boundary tests:
 A local ARM64 smoke test ran the submission container under a 512 MiB limit. It loaded the reference-only RDB, returned healthy readiness with 12 clients, passed the full structural audit, and produced a live Groq investigation. Direct Groq and OpenRouter checks also completed successfully. Temporary-workspace recovery was verified in the browser after replacing the disposable container. This is local container verification, not proof of Render deployment, AMD64 resource behavior or provider availability at judging time.
 
 The free Render Blueprint provisions one web service, with the frontend, API and loopback-only actual FalkorDB. No paid disk or database is declared. Cold starts, ephemeral storage, one-hour inactive-workspace expiry and public capacity limits are documented in [deployment instructions](DEPLOYMENT.md). A live Render URL and final demo video remain separate release checks.
+
+## Live Render verification — October 17, 2026
+
+The public [app](https://chronosgraph.onrender.com) and [inspection portal](https://chronosgraph.onrender.com/database) returned HTTPS 200; `/readyz` confirmed real FalkorDB readiness. Groq answered the external-client count with 12. A separate SUGAR cash-reconciliation investigation completed through the free OpenRouter fallback, identified Finance ownership and distinguished an unmatched settlement from evidence of loss. The latter took about 105 seconds across provider attempts; free-provider answers are not consistently fast or always available.
+
+The live evidence map contained eight relationship labels with zero measured label/label or label/card intersections. Clicking a relationship opened its actual supporting records. The inspection portal initially encountered database errors, then recovered on retry; catalog loading took about 9.5 seconds on the deployed free instance. A follow-up patch reduces catalog transfer to payloads and native key names in 250-record pages, retains complete schema discovery, raises bounded hosted database timeouts, and fixes a half-connected portal state after an initial error. This patch requires a manual Render redeployment; its local integration results do not imply it is already running on the public URL. A 512 MiB container restricted to 0.1 CPU completed repeated catalog reads with 9,992 records and 36 work items, and passed the structural audit. Full scans remained slow (about 21–32 seconds in that constrained local test); no faster hosted latency is claimed.
+
+The final demo video and authenticated organizer submission remain outstanding.

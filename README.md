@@ -12,6 +12,8 @@
 
 ChronosGraph is an interactive company-memory investigator powered by **FalkorDB** and an optional **Groq / Gemini / OpenRouter** tool loop. Its core investigates records across company departments. A guided logistics fixture demonstrates one understandable decision: **can the Bengaluru facility close on Sundays?**
 
+**[Live website](https://chronosgraph.onrender.com)** · **[Live database inspection](https://chronosgraph.onrender.com/database)**
+
 **[Separate database inspection](docs/INSPECTION.md)** · **[Company-wide engine](docs/COMPANY_ENGINE.md)** · **[Explore the reference demo](docs/DELHIVERY_REFERENCE.md)** · **[Database & schema](docs/DATABASE.md)** · **[Cypher queries](docs/GRAPH_QUERIES.md)** · **[Evaluate locally](docs/EVALUATION.md)** · **[Competition fit](docs/COMPETITION_FIT.md)** · **[Validation](docs/VALIDATION.md)**
 
 ## The story
@@ -121,4 +123,4 @@ See [Synthetic logistics depth](docs/DATA_SCENARIOS.md) for the expanded dataset
 
 ## Live evaluation deployment
 
-The [Render Blueprint](render.yaml) packages the frontend, Python API and an internal FalkorDB instance on one Free service. Follow [deployment steps](docs/DEPLOYMENT.md) and the [submission release checklist](docs/SUBMISSION.md). Hosting is not verified until its live URL passes the documented checks.
+The [Render Blueprint](render.yaml) packages the frontend, Python API and an internal FalkorDB instance on one Free service. Follow [deployment steps](docs/DEPLOYMENT.md) and the [submission release checklist](docs/SUBMISSION.md). The hosted app and live AI runs have been verified; see the dated [validation record](docs/VALIDATION.md) for observed behavior and free-hosting limitations.

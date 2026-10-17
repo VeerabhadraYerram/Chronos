@@ -39,16 +39,24 @@ class Store:
             host=os.getenv("FALKOR_HOST", "127.0.0.1"),
             port=int(os.getenv("FALKOR_PORT", "6389")),
             password=os.getenv("FALKOR_PASSWORD") or None,
-            socket_timeout=5,
+            socket_timeout=float(os.getenv("FALKOR_SOCKET_TIMEOUT_SECONDS", "5")),
             socket_connect_timeout=3,
         )
         self.graph = self.db.select_graph(self.name)
 
     def read(self, query, params=None):
-        return self.graph.ro_query(query, params or {}, timeout=2500).result_set
+        return self.graph.ro_query(
+            query,
+            params or {},
+            timeout=int(os.getenv("FALKOR_READ_TIMEOUT_MS", "2500")),
+        ).result_set
 
     def write(self, query, params=None):
-        return self.graph.query(query, params or {}, timeout=5000).result_set
+        return self.graph.query(
+            query,
+            params or {},
+            timeout=int(os.getenv("FALKOR_WRITE_TIMEOUT_MS", "5000")),
+        ).result_set
 
     def upsert(self, n):
         if n["kind"] not in KINDS:

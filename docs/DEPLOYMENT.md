@@ -2,7 +2,7 @@
 
 The [Render Blueprint](../render.yaml) creates **one Free web service** containing the built React frontend, Python API and real FalkorDB. No Vercel deployment, paid database or disk is required. The database listens only on `127.0.0.1` inside the container. This is an evaluation deployment, not durable production hosting.
 
-A live URL is not established until Render reports healthy and the browser checks below pass. The public repository is [VeerabhadraYerram/Chronos](https://github.com/VeerabhadraYerram/Chronos).
+The live app is [chronosgraph.onrender.com](https://chronosgraph.onrender.com); the separate portal is [database inspection](https://chronosgraph.onrender.com/database). They were checked on October 17, 2026; see [validation](VALIDATION.md) for scope. The public repository is [VeerabhadraYerram/Chronos](https://github.com/VeerabhadraYerram/Chronos).
 
 ## Free-hosting trade-offs
 
@@ -29,7 +29,7 @@ The [public entrypoint](../backend/chronos/public.py) serves the frontend and co
 
 One process/replica coordinates graph changes. API admission limits: 90 requests/minute/client, 12 workspace requests/minute/client, 8 AI calls/minute/client, 120 AI calls/hour globally, 64 KiB request bodies and two simultaneous AI investigations. Counters are process-local and reset on restart; they are not a billing guarantee or distributed anti-abuse service. Render must be the only public ingress because forwarded client addresses are trusted from its proxy. Configure provider spend/quota controls separately.
 
-The free Blueprint allows six active isolated workspaces. Reference data is unchanged when a visitor workspace expires. Expiry is opt-in via `CHRONOS_EPHEMERAL=1`; it is disabled for the user's persistent local workspace. Restarting free hosting removes all container data, and the clean reference is loaded again. The service cannot guarantee availability, provider quota, source truth or semantic correctness.
+The free Blueprint allows six active isolated workspaces. Reference data is unchanged when a visitor workspace expires. Expiry is opt-in via `CHRONOS_EPHEMERAL=1`; it is disabled for the user's persistent local workspace. Restarting free hosting removes all container data, and the clean reference is loaded again. Catalog discovery reads payloads and native key names in 250-record pages, preserving complete field coverage while avoiding duplicate native values. Hosted database reads/writes are bounded to 10 seconds and socket waits to 30 seconds; local defaults remain 2.5/5/5 seconds. These are not inference timeouts. The service cannot guarantee availability, provider quota, source truth or semantic correctness.
 
 `/healthz` is process liveness. `/readyz` checks reachable seeded FalkorDB and at least one configured provider key. It does not invoke a model or prove current quota. A successful live investigation is a separate release check.
 

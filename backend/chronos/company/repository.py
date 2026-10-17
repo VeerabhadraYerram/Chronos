@@ -33,19 +33,25 @@ class CompanyReader:
         self.store = store
 
     def catalog(self):
+        metadata = self.store.read(
+            'MATCH (m:Metadata {id:"dataset"}) RETURN properties(m)'
+        )[0][0]
+        # Schema discovery needs payloads and native key names, not duplicate values
+        # and search_text for every property of all 10,000 records.
         rows = self.store.read_all(
-            f"MATCH (n) WHERE {VISIBLE} RETURN properties(n) ORDER BY n.id"
+            f"MATCH (n) WHERE {VISIBLE} RETURN n.id,coalesce(n.kind,'Metadata'),n.payload,keys(n) ORDER BY n.id",
+            page_size=250,
         )
         labels = {}
-        for (props,) in rows:
-            node = unpack(props)
+        for id, label, raw, native_keys in rows:
+            record = json.loads(raw) if raw else metadata
             item = labels.setdefault(
-                node["label"],
-                dict(label=node["label"], count=0, fields={}, native_fields=set()),
+                label,
+                dict(label=label, count=0, fields={}, native_fields=set()),
             )
             item["count"] += 1
-            item["native_fields"].update(node["properties"])
-            for field, value in node["record"].items():
+            item["native_fields"].update(native_keys)
+            for field, value in record.items():
                 typ = (
                     "null"
                     if value is None
@@ -72,9 +78,6 @@ class CompanyReader:
         indexes = self.store.read(
             "CALL db.indexes() YIELD label,properties,types,status RETURN label,properties,types,status"
         )
-        metadata = self.store.read(
-            'MATCH (m:Metadata {id:"dataset"}) RETURN properties(m)'
-        )[0][0]
         return dict(
             labels=sorted(labels.values(), key=lambda x: x["label"]),
             relationships=[
@@ -91,9 +94,9 @@ class CompanyReader:
             ],
             company=next(
                 (
-                    json.loads(props["payload"])
-                    for (props,) in rows
-                    if props.get("kind") == "Company"
+                    json.loads(raw)
+                    for id, label, raw, native_keys in rows
+                    if label == "Company"
                 ),
                 None,
             ),
@@ -385,7 +388,8 @@ class CompanyReader:
             )
         )
         rows = self.store.read_all(
-            "MATCH (n:Entity) WHERE n.kind<>'DemoSession' RETURN properties(n) ORDER BY n.id"
+            "MATCH (n:Entity) WHERE n.kind<>'DemoSession' RETURN properties(n) ORDER BY n.id",
+            page_size=250,
         )
         mismatches = 0
         for (props,) in rows:
