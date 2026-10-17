@@ -18,4 +18,4 @@ OS and architecture, Python/Node versions, and FalkorDB image version.
 
 ## Sanitized evidence
 
-Relevant screenshot, receipt status, or test output. Handle sensitive reports through SECURITY.md.
+Relevant screenshot, receipt status, or test output. Handle sensitive reports as described in README.md#security-and-limitations.

@@ -1,6 +1,6 @@
 # Database, schema, and data dictionary
 
-[Project overview](../README.md) · [Company walkthrough](DELHIVERY_REFERENCE.md) · [Machine-readable schema](database-schema.json) · [Integration tests](../backend/tests/test_company_reference.py)
+[Project overview](../README.md) · [Product walkthrough](../README.md#guided-change-walkthrough) · [Machine-readable schema](database-schema.json) · [Integration tests](../backend/tests/test_company_reference.py)
 
 ## 1. What database do we use?
 
@@ -23,7 +23,7 @@ This document describes an independently designed Delhivery reference prototype.
 
 `CHRONOS_COMPANY_GRAPH` can change the reference graph name. `FALKOR_GRAPH` controls the legacy payments graph; it does not redirect visitor sessions into that graph. Host, port, optional password and provider keys remain in the ignored root `.env`. No credential belongs in a database diagram or committed export.
 
-Local session creation defaults to a cap of **40** per reference registry, with no automatic expiry. The free Render deployment explicitly sets a cap of **6** and expires registered visitor graphs after **one hour of inactivity**; server restarts also reset hosted visitor data. See [deployment boundaries](DEPLOYMENT.md). No production identity system is implemented. The registry's `DemoSession` records can be inherited by later copies but are excluded from business-entity counts and model exploration. A new workspace preserves earlier active workspaces rather than resetting them.
+Local session creation defaults to a cap of **40** per reference registry, with no automatic expiry. The free Render deployment explicitly sets a cap of **6** and expires registered visitor graphs after **one hour of inactivity**; server restarts also reset hosted visitor data. See [deployment boundaries](../README.md#deployment). No production identity system is implemented. The registry's `DemoSession` records can be inherited by later copies but are excluded from business-entity counts and model exploration. A new workspace preserves earlier active workspaces rather than resetting them.
 
 ## 3. Initial dataset size
 
@@ -89,7 +89,7 @@ All scalar domain fields with safe property names are now mirrored as native Fal
 - Versioned migrations add native projections/indexes/constraints without reseeding a workspace, changing its business revision, deleting facts, or clearing history. Failed constraint construction is surfaced rather than marked operational.
 - New records include mandatory identity fields at creation. Application relationship writes require existing endpoints. The trusted importer validates source references and accepted-rule support. These are not database-enforced foreign-key or business-domain constraints.
 
-The [separate inspection portal](INSPECTION.md) exposes complete business tables, relationships, observed fields, native properties, structural checks and JSON export. The [general engine](COMPANY_ENGINE.md) discovers the actual workspace schema rather than assuming this reference dataset.
+The [separate inspection portal](#database-inspection) exposes complete business tables, relationships, observed fields, native properties, structural checks and JSON export. The [general investigator](../README.md#architecture-and-agent-behavior) discovers the actual workspace schema rather than assuming this reference dataset.
 
 ## 5. Domain data dictionary
 
@@ -235,75 +235,9 @@ The query also requires client→rule→facility and rule→source relationships
 
 Ownership, topology and source availability are not fully versioned. Withdrawing a source affects later historical queries too. The two-clock implementation should not be described as complete historical reconstruction of the company.
 
-## 9. Read-only Cypher examples
+## 9. Cypher implementation
 
-These examples match the implemented storage layout. Parameters are supplied separately by the backend; model text is never interpolated into queries.
-
-### Inspect the schema's current population
-
-```cypher
-MATCH (n:Entity)
-RETURN n.kind, count(n)
-ORDER BY n.kind
-```
-
-### Find supported temporal commitments
-
-```cypher
-MATCH (c:Client)-[:HAS_COMMITMENT]->(r:Rule)
-      -[:APPLIES_AT]->(f:Facility {id:'facility-bengaluru'})
-MATCH (r)-[:SUPPORTED_BY]->(s:Source)
-WHERE r.field='sunday_processing_required'
-  AND r.status='accepted'
-  AND ($client='all' OR c.id=$client)
-  AND r.valid_from <= $effective
-  AND (r.valid_to='' OR $effective < r.valid_to)
-  AND r.recorded_from <= $known
-  AND (r.recorded_to='' OR $known < r.recorded_to)
-RETURN c.payload, r.payload, s.payload
-LIMIT 30
-```
-
-The engine decodes `s.payload` to check `enabled`, and `r.payload` to read `value`. The source node's existence alone is not proof that evidence is available.
-
-### Count affected sample consignments through relationships
-
-```cypher
-MATCH (s:Shipment)-[:AT]->(:Facility {id:'facility-bengaluru'})
-MATCH (s)-[:FOR_CLIENT]->(c:Client)
-WHERE $client='all' OR c.id=$client
-RETURN c.id, c.title, count(s)
-ORDER BY c.title
-```
-
-### Inspect one consignment's ordered scan history
-
-```cypher
-MATCH (:Shipment {id:$shipment_id})-[:HAS_SCAN]->(e:ScanEvent)
-RETURN e.id, e.payload
-ORDER BY e.id
-```
-
-The seed's event IDs end in the sequence number. `sequence` and `event_at` are also native properties.
-
-### Trace a recorded reason back to its source
-
-```cypher
-MATCH (r:Rule)-[:WHY]->(d:Decision)-[:EXPLAINED_BY]->(s:Source)
-WHERE r.id IN $active_rule_ids
-RETURN d.payload, s.payload
-LIMIT 8
-```
-
-### Inspect relationship provenance
-
-```cypher
-MATCH (a:Entity {id:$record_id})-[r]->(b:Entity)
-RETURN a.id, type(r), b.id, coalesce(r.source_ids, [])
-LIMIT 30
-```
-
-The actual explorer clamps depth to one or two hops, caps returned records and filters high-volume operational labels out of the general evidence view. Shipment inspection has a separate bounded path for scan and operational neighbors.
+The [dedicated query guide](GRAPH_QUERIES.md) collects the actual source-linked templates for search, temporal rules, claims, aggregation, ownership, evidence paths and structural checks. Queries are executed by FalkorDB, not by a frontend relationship engine.
 
 ## 10. Reads, writes, and invalidation
 
@@ -331,7 +265,7 @@ The model cannot accept policies, replay amendments, approve agreements, change 
 - [Investigator](../backend/chronos/company/agent.py): read tools, graph selection and citation bounds.
 - [Integration tests](../backend/tests/test_company_reference.py): real-database checks with disposable graphs.
 
-Run `./scripts/check.sh` after completing the [local setup](../README.md#run-locally). It runs the real FalkorDB suite, the preserved payments evaluator, frontend build, and documentation checks without calling either AI provider. Never reset the user's demo graph to run tests.
+Run `./scripts/check.sh` after completing the [local setup](../README.md#run-locally). It runs the real FalkorDB suite, the preserved payments evaluator, frontend build, and documentation checks without external AI-provider calls. Never reset the user's demo graph to run tests.
 
 The [machine-readable dictionary](database-schema.json) is generated from the initial fixture and includes field names/types, counts, representative records, and relationship endpoint types. It is a schema description, not a live runtime export or database-enforced migration.
 
@@ -345,4 +279,50 @@ Generator: [export_schema.py](../scripts/export_schema.py).
 
 The logistics fixture includes 25 explicit `Claim` records for handling and billing statements across 12 accounts, linked through `Policy → ASSERTS → Claim → SUPPORTED_BY → Source`. General investigation compares its subject/field/value with applicable accepted rules. Existing reference workspaces receive this fixture extension once and conservatively invalidate earlier receipts; this is separate from the physical schema migration.
 
-See [Synthetic logistics depth](DATA_SCENARIOS.md) for the additional operational, finance, incident and people records, example investigations and limitations.
+
+
+## Operational situations
+
+The dataset covers selected logistics cases, not every real process. The 1,200 planned November consignments support the Sunday comparison; another 210 October consignments cover seven other cities/statuses and another 480 connect all 12 accounts to their pickup warehouses. Ordinary traffic does not alter the explicitly selected comparison cohort.
+
+| Situation | Evidence path | Example question |
+| --- | --- | --- |
+| COD mismatch | Decision → incident ticket → settlement → cash collection → shipment; Finance owns review | Why is the SUGAR COD mismatch being investigated? Does it prove cash loss? |
+| Weight dispute | Decision → ticket → invoice → shipment with declared/measured weights; Finance and Operations have distinct roles | Who owns the Havells weight dispute, and what evidence is needed before a credit? |
+| Failed delivery | Shipment → delivery exception → account team; reason and next action are explicit | What delivery exceptions are recorded, and who handles them? |
+| Damaged return | Decision → ticket → return → shipment; Warehouse owns inspection | Why is the Chennai return awaiting inspection? |
+| Capacity review | Decision → ticket → Mumbai facility → Operations | Is additional Mumbai staffing approved or still pending? |
+| Scan ingestion gap | Decision → ticket → affected shipment; Technology owns investigation | Does a missing scan mean the parcel is lost? |
+| Weather contingency | Proposed decision → ticket → route → facilities; Transport owns review | Is the Kolkata reroute approved? |
+| Packaging hold | Decision → ticket → exception → shipment; Compliance owns review | Who reviews the HPCL packaging hold? |
+
+
+Campaign records describe client programmes such as festive replenishment, regional rollout and returns improvement; they explain rationale but never override policy. WorkItems are assigned operational review work. Actions are only actual user-created review packets, so a fresh graph has none. Claims are document statements compared against accepted rules, not prewritten responses. Tour metadata and past receipts are excluded from company-fact discovery.
+
+## Database inspection
+
+Open the [live portal](https://chronosgraph.onrender.com/database), or `http://127.0.0.1:8000/database` locally. Choose **Create workspace** for an independent copy, or enter the main app's workspace ID from **About this workspace** to inspect the same history. A copied fragment link grants access to that modeled workspace; it is not production authentication and can expire. Use the permanent `/database` root URL for submission.
+
+Tables use compact previews; clicking a record exposes all decoded fields, native properties and paginated connections. Search returns exact filtered counts. Pages use 50 records in the UI and accept at most 100. Schema/indexes and integrity views show actual database state; observed fields are not all mandatory constraints. The portal excludes the session registry, credentials and other visitors' graphs.
+
+Fixed operations are `catalog`, `rows`, `relationships`, `record`, `audit` and `export`, through `POST /api/database/{operation}`. There is no arbitrary Cypher or edit/delete console. Reads use `GRAPH.RO_QUERY`; workspace creation uses the separate session API and reopening may apply non-destructive schema migration. JSON export assembles complete pages, including beyond the server's 10,000-row cap, and refuses more than 25,000 nodes or 50,000 relationships. The process lock covers this application's export, not writes from another process. Source hashes and structural checks do not prove factual truth.
+
+## Import another company
+
+The trusted local importer accepts JSON `nodes` and `relationships`, validates identities/endpoints/source references and accepted-rule support, calculates source hashes and creates a new graph without clearing existing data:
+
+```sh
+PYTHONPATH=backend .venv/bin/python scripts/import_company.py datasets/atlas-studio.json
+```
+
+The command prints app and inspection URLs. The unrelated fictional Atlas Studio fixture tests Finance approval, Marketing ownership and invoice arithmetic without logistics assumptions. Nodes require `id`, `kind` and `title`; safe scalar fields are mirrored natively for generic aggregation, while nested fields stay in the complete payload. Sources need an excerpt, enabled flag and timezone-aware timestamp. Accepted rules need subject/field/value, both time intervals and a supporting source edge. [Importer](../scripts/import_company.py) · [fixture](../datasets/atlas-studio.json) · [tests](../backend/tests/test_database_inspection.py).
+
+This is a trusted developer operation, not a public document uploader, automatic extraction service or model-controlled policy write.
+
+## Public references and boundaries
+
+Delhivery's public [express-parcel service](https://www.delhivery.com/services/express-parcel), [order lifecycle](https://help.delhivery.com/docs/update-forward-order), [developer FAQ](https://one.delhivery.com/developer-portal/document/b2c/detail/faq), [delivery-exception guide](https://help.delhivery.com/docs/exception-ndr), [return-to-origin guide](https://help.delhivery.com/docs/courier-returnrto) and [COD guide](https://help.delhivery.com/docs/cod-remittance) inform entity types and terminology.
+
+Historical account context comes from its [Q1 FY24 release](https://www.delhivery.com/uploads/2023/08/PressRelease.pdf), [FY24 annual report](https://www.delhivery.com/uploads/2024/08/Annual_Report_FY24.pdf) and [press archive](https://www.delhivery.com/company/press-release). Public business relationships do not establish our invented agreements, warehouse locations, staff responsibilities, incidents, amounts or policy terms. No private Delhivery schema, employee directory, shipment feed or client contract was obtained.
+
+Operational snapshots and current relationships are not historical reconstructions. A missing scan is not proof of parcel loss, a settlement discrepancy is not proof of cash loss, and a proposal is not approval. The investigator must preserve these distinctions, but generated explanations still require review.

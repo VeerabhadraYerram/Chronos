@@ -2,54 +2,48 @@
   <img src="docs/assets/chronosgraph-banner.svg" alt="ChronosGraph — company decision memory" width="1200" />
 </p>
 
-<p align="center">
-  <a href="https://github.com/VeerabhadraYerram/Chronos/actions/workflows/ci.yml">CI checks</a>
-  &nbsp; <a href="LICENSE">MIT License</a>
-  &nbsp; · &nbsp; Company Brain prototype
-</p>
+**Ask why a company decision exists. Check whether it still applies. Follow the evidence.**
 
-**Ask why a company decision exists. Check whether it still applies. Follow the evidence, then compare the proposed change.**
+ChronosGraph is a **Company Brain** investigator powered by **FalkorDB**. An operations or account manager can ask about policies, incidents, commitments and ownership, inspect the records behind the answer, then investigate further by clicking the evidence graph.
 
-ChronosGraph is an interactive company-memory investigator powered by **FalkorDB** and an optional **Groq / Gemini / OpenRouter** tool loop. Its core investigates records across company departments. A guided logistics fixture demonstrates one understandable decision: **can the Bengaluru facility close on Sundays?**
+**[Live application](https://chronosgraph.onrender.com)** · **[Separate database inspection](https://chronosgraph.onrender.com/database)** · **[CI](https://github.com/VeerabhadraYerram/Chronos/actions/workflows/ci.yml)**
 
-**[Live website](https://chronosgraph.onrender.com)** · **[Live database inspection](https://chronosgraph.onrender.com/database)**
+There are two supporting guides: **[Database & schema](docs/DATABASE.md)** and **[Cypher queries](docs/GRAPH_QUERIES.md)**. Setup, walkthrough, architecture, hosting, validation and submission status are below.
 
-**Judges: [submission requirements and evidence](docs/SUBMISSION.md)** · **Track 03: Company Brain** · Demo video: pending
+**Data disclosure:** company and client names are real; private agreements, incidents, operational records, locations, roles and amounts are fictional. This is an independent reference implementation, not Delhivery's internal database or an affiliated product. [Public references and boundaries](docs/DATABASE.md#public-references-and-boundaries).
 
-[Documentation index](docs/README.md) provides reading paths for evaluators and developers, including current implementation and preserved planning material.
+## Try the product
 
-**[Separate database inspection](docs/INSPECTION.md)** · **[Company-wide engine](docs/COMPANY_ENGINE.md)** · **[Explore the reference demo](docs/DELHIVERY_REFERENCE.md)** · **[Database & schema](docs/DATABASE.md)** · **[Cypher queries](docs/GRAPH_QUERIES.md)** · **[Evaluate locally](docs/EVALUATION.md)** · **[Competition fit](docs/COMPETITION_FIT.md)** · **[Validation](docs/VALIDATION.md)**
+1. Open the live app. Free hosting can take about a minute to wake.
+2. Ask **How many external client companies are recorded?** The initial dataset has 12 Client records; the count is computed in FalkorDB.
+3. Ask **Why is the SUGAR COD settlement mismatch being investigated, who owns it, and does it prove cash loss?** Inspect the records and source excerpts. A mismatch under Finance review is not proof of loss; an unknown outcome must remain unknown.
+4. Click a graph record or relationship, inspect its provenance, expand its connections and ask a follow-up. The evidence graph is specific to the investigation; aggregates may show a bounded sample of the counted population.
+5. Open the separate database portal and choose **Create workspace** to inspect a fresh copy. To inspect the same investigation as the app, enter the ID from **About this workspace**. Browse full fields, relationships, schema/indexes, integrity checks or JSON export.
 
-## The story
-
-Operations wants Sunday closure. Sales has recorded a Havells commitment. Account Management later records an amendment. The old handbook has not caught up. Finance has staffing assumptions. ChronosGraph connects the records so a reviewer can understand the active promise, inspect its reason and sources, and rehearse a scoped alternative.
-
-**The workspace uses real company and client names. All private operational records, agreements, employee roles, costs and policies here are synthetic.** This is an independent reference demo informed by public logistics documentation, not Delhivery's actual internal system, private database schema or an affiliated product. [Public references and exact boundaries](docs/DELHIVERY_REFERENCE.md#public-facts-versus-synthetic-records).
-
-## What you can do
-
-- Ask a free-text question; inspect a small graph-derived evidence trail or spatial map.
-- Click a record or relationship, inspect provenance, expand connections and ask contextual follow-ups.
-- Compare effective time with knowledge time; approved sample amendments preserve the earlier belief.
-- Rehearse full Sunday closure versus preserved client exceptions in a **real FalkorDB graph copy**.
-- Inspect before/after processing, queued sample consignments and explicitly synthetic cost assumptions.
-- Search a graph containing **9,991 initial entities and 17,207 relationships**, including 1,890 consignments and 6,870 tracking events across multiple operational states.
-- Reopen saved investigations and download a review packet (local volume-backed storage persists; the free-hosted instance resets on restart). No real company action is published.
-
-Each visitor gets a separate demo graph. The selected AI provider uses bounded read tools when enabled; graph-only mode shows stored facts/excerpts when AI is disabled; if every configured provider fails, the interface explicitly says no AI answer was generated. The guided scheduling simulator retains deterministic checks. Unfamiliar questions are limited by the recorded evidence; this is not unrestricted enterprise question answering.
+The graph contains **9,991 initial business entities and 17,207 relationships**, plus one Metadata record: 12 clients, 36 pickup warehouses, 14 facilities, 1,890 shipments, 6,870 scans, decisions, policies, tickets, finance records and assigned work. [Full dictionary and operational examples](docs/DATABASE.md).
 
 <details>
-  <summary><strong>View the actual investigation and comparison workspace</strong></summary>
-  <img src="docs/assets/company-investigation.jpg" alt="Actual reference workspace showing an amended commitment, source evidence and an operating handbook needing review" width="1200" />
-  <img src="docs/assets/company-comparison.jpg" alt="Actual graph-copy comparison of Sunday processing before and after proposed closure, including per-client commitments and synthetic cost assumptions" width="1200" />
-  <p>Captured local UI states. Real organization names; synthetic operating records and agreements.</p>
+  <summary>Actual investigation and comparison screenshots</summary>
+  <img src="docs/assets/company-investigation.jpg" alt="Recorded reference-workspace investigation with source evidence" width="1200" />
+  <img src="docs/assets/company-comparison.jpg" alt="Scoped graph-copy comparison of operating schedules" width="1200" />
+  <p>Captured local UI states; modeled company operations.</p>
 </details>
+
+### Guided change walkthrough
+
+The guided example asks whether Bengaluru can close on Sundays. Operations wants closure, but a Havells agreement requires Sunday processing. Ending a sales campaign or proposing closure does not amend that agreement.
+
+1. Create a fresh workspace, select **Guided walkthrough**, and ask **Can we close the Bengaluru facility on Sundays?** Inspect the agreement, recorded reason and owner. The separate rehearsal checks the modeled commitment conflict.
+2. Replay **Introduce approved amendment**. This changes the commitment effective **November 1, 2026**, recorded **October 15 at 09:00 UTC**; earlier receipts become stale.
+3. Investigate effective November 8, known by October 16: the amended agreement applies. Effective October 25 still requires Sunday processing. A knowledge cutoff of October 14 preserves the earlier belief, even for a November effective date.
+4. Run the before/after comparison and compare full closure with preserving client commitments. It uses a real disposable `GRAPH.COPY` and leaves the base revision unchanged.
+5. Prepare and download a source-linked review packet from a current investigation. No real schedule, contract, ticket or message is changed.
+
+The scheduling model uses its original 1,200-consignment cohort. Processing is not delivery; staffing figures are explicit assumptions, not measured savings or predictions of real logistics outcomes.
 
 ## Run locally
 
-Requirements: **Python 3.13**, **Node.js 20.19+**, **npm**, and **Docker with Compose**. Development was verified on macOS ARM64; CI is configured for Ubuntu. The image supports AMD64 and ARM64.
-
-The repository is public for judge review.
+Requirements: **Python 3.13**, **Node.js 20.19+**, **npm**, and **Docker with Compose**. Local verification used macOS ARM64; CI uses Ubuntu and a pinned FalkorDB image.
 
 ```sh
 git clone https://github.com/VeerabhadraYerram/Chronos.git ChronosGraph
@@ -61,34 +55,35 @@ npm --prefix frontend ci
 ./scripts/dev.sh
 ```
 
-Open **[http://127.0.0.1:5173](http://127.0.0.1:5173)**. No AI-provider key is needed for graph checks, history, rehearsal, or repair drafts. The main workspace copies a separate reference seed into a visitor graph; it does not reset an existing workspace. The preserved NovaPay prototype is available at `/?demo=payments`.
-
-To enable the **AI investigator**, copy `.env.example` to `.env` only if you do not already have one, add your own provider key, and restart the API. The main interface enables **AI investigator** when a provider key is configured. Groq is preferred when `GROQ_API_KEY` is configured (`GROQ_MODEL=openai/gpt-oss-120b`); Gemini is the backup. Groq uses bounded structured read plans validated by the server; Gemini uses native function calls. An optional `OPENROUTER_API_KEY` adds `openrouter/free` as a final fallback; paid OpenRouter model IDs are rejected. The receipt identifies the provider that actually completed the run. Keep the key server-side; `.env` is ignored. Model availability and quota depend on your account.
-
-| Service | Local address |
+| Component | Local address |
 | --- | --- |
-| Interface | `http://127.0.0.1:5173` |
-| Separate database inspection | `http://127.0.0.1:8000/database` |
-| API / interactive reference | `http://127.0.0.1:8000/docs` |
+| Frontend | `http://127.0.0.1:5173` |
+| Database inspection | `http://127.0.0.1:8000/database` |
+| API and request schemas | `http://127.0.0.1:8000/docs` |
 | FalkorDB | `127.0.0.1:6389` |
 
-Stop development servers with `Ctrl+C`. `docker compose stop` preserves database data. Deleting the named volume deletes the local demo knowledge and receipts. [Setup, fresh workspaces, and troubleshooting →](docs/EVALUATION.md#setup-and-troubleshooting)
+For AI answers, copy `.env.example` to the ignored root `.env` **only if one does not already exist**, configure your own provider keys, and restart the API. Provider order is **Groq → Gemini → OpenRouter free models**. OpenRouter has one additional bounded attempt; paid model IDs are rejected. The successful provider appears on the receipt. Without a provider, explicitly labeled graph-only retrieval, history and guided checks remain available locally.
 
-## Reproduce the result
+Stop development servers with `Ctrl+C`; `docker compose stop` preserves the database volume. Deleting that volume deletes local records. **New workspace** creates an isolated copy without clearing earlier active workspaces. The older local NovaPay regression example remains at `/?demo=payments`; it is excluded from the public evaluation build.
 
-Select **Guided walkthrough**, then ask about Sunday closure in a fresh workspace. Inspect the Havells commitment and its evidence. Replay the approved synthetic amendment, then rerun before and after November 1 using different knowledge cutoffs. Compare full closure with a commitment-preserving alternative. [Step-by-step walkthrough](docs/DELHIVERY_REFERENCE.md#start-and-explore).
+If local database access fails, check Docker and port 6389. If ports 8000/5173 are occupied, stop an earlier project dev command first. Provider failures require checking your own quota/model access; do not share raw provider errors or keys. A stale receipt needs a new investigation before preparing a review packet.
 
-For a repeatable audit without opening the UI or calling an external AI provider:
+## Architecture and agent behavior
 
-```sh
-./scripts/check.sh
+```mermaid
+flowchart LR
+    UI[React workspace] --> API[FastAPI]
+    API --> Agent[Company investigator]
+    Agent --> Tools[Bounded read tools]
+    Agent --> Providers[Groq / Gemini / OpenRouter]
+    Tools --> Graph[(FalkorDB)]
+    API --> Receipts[Receipts and review packets]
+    Receipts --> Graph
+    API --> Copy[Disposable comparison graph]
+    Portal[Separate database portal] --> API
 ```
 
-This runs the real FalkorDB integration suite, an isolated business-scenario evaluation, the production frontend build, and local documentation-link checks. Each evaluation creates and removes its own disposable graph. Your demo graph is preserved. [Individual commands and recorded evidence →](docs/VALIDATION.md)
-
-## How FalkorDB shapes the answer
-
-The core graph data model connects business records to their authority, provenance and owners:
+The core graph model is:
 
 ```mermaid
 flowchart LR
@@ -102,47 +97,80 @@ flowchart LR
     Shipment -->|AT| Facility
 ```
 
-Rules carry effective and recorded time intervals; source records hold original excerpts. This is a selected model view, not the complete schema. See the [full data dictionary](docs/DATABASE.md), [machine-readable schema](docs/database-schema.json), and [actual Cypher queries](docs/GRAPH_QUERIES.md).
+The investigator searches actual stored records, traverses relationships, selects accepted rules at effective/recorded times, and can request database counts or numeric aggregations. Groq/OpenRouter use validated structured read plans; Gemini uses native function calls. All use server-owned parameterized `GRAPH.RO_QUERY` templates, not arbitrary model-generated Cypher. The frontend displays returned evidence rather than computing business verdicts.
 
-The request path is:
+Source/record IDs and selected numeric answers are validated, but this does not prove every generated sentence. A chat proposal cannot override accepted policy. If every provider fails, the app explicitly reports that no AI answer was generated; it does not substitute a canned answer. Prior receipts and walkthrough configuration are excluded from company-fact discovery.
 
-```mermaid
-flowchart LR
-    UI[Investigation workspace] --> API[FastAPI]
-    API --> Checks[Scoped constraint checks]
-    API --> Agent[Optional AI investigator]
-    Agent --> Tools[Bounded read tools]
-    Checks --> Graph[(FalkorDB)]
-    Tools --> Graph
-    API --> Records[Receipts and approved drafts]
-    Records --> Graph
-    API --> Scenario[(Temporary graph copy)]
+External inference does not hold the global workspace lock. Coordinated graph operations and complete scans still use a single-process lock; revision changes can mark an in-flight investigation stale. Ownership/topology are current relationships, not historical reconstructions.
+
+| Implementation | Responsibility |
+| --- | --- |
+| [company/api.py](backend/chronos/company/api.py) | `/api/company/session`, `ask`, `explore`, `search`, `simulate`, `events`, `packet`; request schemas |
+| [investigation.py](backend/chronos/company/investigation.py), [agent.py](backend/chronos/company/agent.py) | General investigation, evidence, relevant alerts and provider execution |
+| [repository.py](backend/chronos/company/repository.py), [store.py](backend/chronos/company/store.py) | Cypher, schema discovery, arithmetic, provenance, session lifecycle and copies |
+| [engine.py](backend/chronos/company/engine.py) | Scoped guided scheduling comparison |
+| [inspection_api.py](backend/chronos/company/inspection_api.py) | Fixed `/api/database/{operation}` reads: catalog, rows, relationships, record, audit, export |
+| [public.py](backend/chronos/public.py) | Public entrypoint, static frontend, limits and health probes |
+
+## Deployment
+
+The [Render Blueprint](render.yaml) runs the frontend, Python backend and actual FalkorDB in **one Free web service**. There is no Vercel or external database dependency. FalkorDB binds only to the container's loopback address. **Stopping your local frontend, backend, Docker or computer does not affect the deployed link.**
+
+To reproduce deployment, connect this repository and `render.yaml` through Render's **New → Blueprint**. Confirm exactly one **Free** web service and no paid disk/database. Add provider keys only in secret environment settings. At least one configured key is required for readiness; this does not verify quota or key validity. Wait for Live status, then test an actual question, source inspection and database audit. Automatic deploys are off; deploy tested code manually. Build locally with `docker build -t chronosgraph-evaluation:local .` if needed.
+
+The build creates a reference-only FalkorDB snapshot from the fixture without secrets or visitor history. The non-root runtime starts an internal database and API together. `/healthz` is liveness; `/readyz` reads reference metadata/schema without the workspace lock or seeding/migrating data. OpenAPI and legacy payments routes are excluded publicly.
+
+Free hosting sleeps after 15 idle minutes and can take about a minute to wake. Hosted visitor graphs are **temporary**: they reset on server restart and expire after an hour of inactivity. Capacity is six active workspaces; local defaults are 40 with persistent Docker storage. Submit the permanent `/database` link, not an expiring workspace fragment.
+
+Public admission limits are 90 API requests/minute/client, 12 session requests/minute/client, 8 AI requests/minute/client, 120 AI requests/hour globally, two simultaneous AI investigations and 64 KiB bodies. Counters reset on process restart; they are not a distributed abuse defense or billing cap. Use provider/hosting spend controls. Full scans may be slow and free quotas can interrupt answers.
+
+## Testing and recorded validation
+
+```sh
+./scripts/check.sh
 ```
 
-Applicable rules are selected from retrieved subjects and source evidence at the selected effective and recorded times. Generic search, ownership, schema discovery and database aggregations work with imported company records. Sources and owners come from relationships. Receipts and in-app actions are written back to FalkorDB. The frontend's graph filter changes presentation only; it does not compute verdicts. [Follow the implementation →](docs/DELHIVERY_REFERENCE.md#architecture-and-api)
+This runs the real FalkorDB integration suite, an isolated business-scenario evaluation, the frontend build and documentation checks. It uses uniquely named disposable graphs, preserves the user's workspace, and does not call external AI providers. Graph layout tests can also be run with `npm --prefix frontend test`.
 
-## Scope and limitations
+**Local verification, October 18, 2026:** 81 backend tests, 12 isolated business-scenario checks and two graph-layout tests passed; production build and documentation checks passed. Coverage includes temporal boundaries, withdrawn sources, required relationships, graph-copy isolation, stale receipts, generic counts/arithmetic, imported-company ownership, complete inspection/export, provider routing/validation and public limits. [Tests](backend/tests) · [CI workflow](.github/workflows/ci.yml).
 
-- **The general investigator is not an arbitrary change simulator.** Scenario predictions require an explicit model; graph excerpts and LLM prose are not operational approval.
-- **“No modeled conflict” in the guided simulator covers the selected Sunday-processing commitments.** It does not establish logistics feasibility, final delivery dates or production safety.
-- **Source-ID validation is not semantic proof.** AI explanations still need review; they cannot override the deterministic assessment.
-- **Ownership is implemented; expertise ranking is not.** Historical ownership and topology are not versioned.
-- **Updates are replayed sample events.** There are no live Slack, GitHub, Jira, or Notion connectors.
-- **Review packets are local drafts.** No message, ticket, agreement or operating schedule is published.
-- **This is an evaluation prototype.** Local development and the bounded public deployment do not implement enterprise authentication, source-level permissions, crash-atomic ingestion or multi-worker coordination. [Security model →](SECURITY.md)
+**Live checks, October 17:** Groq returned 12 external clients; an OpenRouter free fallback explained the SUGAR reconciliation issue, named Finance and declined to infer cash loss. Runs took about 18 and 105 seconds respectively, not performance guarantees. The public portal displayed 9,992 records and 17,207 relationships; all eight implemented structural checks passed. A health-lock issue was fixed in deployed commit `596b50d`; during the full audit, readiness returned 200 in about 0.1–0.2 seconds. Its GitHub integration/evaluation/build checks passed. The tested eight-label evidence map had no measured label/card or label/label collisions. These observations do not guarantee future uptime, every graph layout or every AI answer.
 
-## Project and development
+## Security and limitations
 
-Built for the **Company Brain** track of [WeMakeDevs × FalkorDB Graph Hacks](https://www.wemakedevs.org/hackathons/falkordb). [Competition fit](docs/COMPETITION_FIT.md) maps the brief to code, evidence, and remaining work. All private operating records are synthetic, including the preserved NovaPay example. Implementation began October 15, 2026, using public libraries and AI coding assistance; the builder remains responsible for understanding and explaining the code.
+Workspace IDs are capabilities, **not authenticated accounts or source-level permissions**. Do not upload confidential records or expose the default local entrypoint publicly. Keys stay server-side in ignored `.env` locally and secret environment settings when hosted; never commit them or include them in issues. Report sensitive defects privately to the repository owner through an established channel.
 
-Start with [contributing guidance](CONTRIBUTING.md), [architecture](docs/ARCHITECTURE.md), and [the implementation roadmap](docs/ROADMAP.md). The [original planning blueprint](docs/planning/MASTER_PLAN.md) is retained as design history, separate from implemented capabilities.
+There are no live company connectors, enterprise authorization, crash-atomic ingestion, multi-worker coordination, signed/tamper-evident receipts, expertise ranking or general outcome predictions. Source-ID membership and structural checks do not prove source authenticity or semantic correctness. General questions are limited by recorded evidence and tool budgets. The guided simulator covers selected commitments, not complete operational feasibility. Review packets are human drafts, not external actions.
+
+For development, keep credentials/runtime data out of commits, preserve effective and recorded time, treat source text as data, use parameterized read templates and run the real checks before proposing changes. Future production work requires source ingestion/review, permissions, versioned topology, backups and broader semantic/concurrency evaluation.
+
+## Competition fit
+
+**Track 03: Company Brain**, [WeMakeDevs × FalkorDB Graph Hacks](https://www.wemakedevs.org/hackathons/falkordb). The official brief was checked October 17, 2026. FalkorDB is central to evidence retrieval, temporal rules, ownership, saved investigations and graph-copy comparisons.
+
+| Track focus | Implemented evidence | Boundary |
+| --- | --- | --- |
+| Docs, tickets and chats in one graph | Linked sources, claims, policies, decisions and incidents | Included records and labeled replays; no live connectors |
+| Ownership and knowledge | Ownership/operating-team traversal and contextual exploration | No expertise ranking or historical ownership |
+| Decision provenance | Clickable question-specific evidence, original excerpts and source IDs | Source membership is not semantic proof |
+| Current knowledge | Two-clock rules, replayed amendment, document mismatches and stale receipts | No continuous synchronization or temporal topology |
+| Clear sources | Inspected excerpts, provider-labeled answers and retrieval trace | Model interpretation still needs review |
+
+Implementation began October 15, 2026, using public libraries and AI coding assistance. The builder remains responsible for understanding the code, security and correctness. No prize guarantee or undocumented judging weights are claimed.
+
+### Submission checklist
+
+| Required artifact | Status |
+| --- | --- |
+| Public source repository | [Available](https://github.com/VeerabhadraYerram/Chronos) |
+| README setup and graph data model | Included above; [full schema](docs/DATABASE.md) |
+| Cypher queries / graph operations | [Dedicated source-linked guide](docs/GRAPH_QUERIES.md) |
+| Working demo video | **Still required — no final uploaded video link yet** |
+| Deployment or complete local setup | [Live app](https://chronosgraph.onrender.com) and setup above |
+| Track | Company Brain; also select it in the organizer form |
+
+Deadline: **October 18, 2026, 11:59 PM IST**, per the checked event brief. Record/watch/upload the video, add its accessible link here, recheck the live app and CI, then complete the organizer's team details and submission form. Repository readiness does not prove that the form was submitted. Confirm any additional signed-in panel requirements.
 
 ## License
 
-ChronosGraph source and documentation are available under the [MIT License](LICENSE). Third-party packages, FalkorDB, and external model services retain their respective licenses and terms.
-
-See [Synthetic logistics depth](docs/DATA_SCENARIOS.md) for the expanded dataset, connected investigation examples and what remains simulated.
-
-## Live evaluation deployment
-
-The [Render Blueprint](render.yaml) packages the frontend, Python API and an internal FalkorDB instance on one Free service. Follow [deployment steps](docs/DEPLOYMENT.md) and the [submission release checklist](docs/SUBMISSION.md). The hosted app and live AI runs have been verified; see the dated [validation record](docs/VALIDATION.md) for observed behavior and free-hosting limitations.
+Source and documentation use the [MIT License](LICENSE). Third-party packages, FalkorDB and external services retain their own licenses and terms.

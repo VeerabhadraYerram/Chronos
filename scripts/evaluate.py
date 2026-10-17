@@ -129,7 +129,7 @@ if __name__ == "__main__":
                 {
                     "passed": False,
                     "error_type": type(error).__name__,
-                    "help": "Start FalkorDB and install the pinned dependencies; see docs/EVALUATION.md.",
+                    "help": "Start FalkorDB and install the pinned dependencies; see README.md#run-locally.",
                 }
             ),
             file=sys.stderr,
