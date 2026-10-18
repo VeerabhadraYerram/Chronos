@@ -366,6 +366,9 @@ def test_structured_model_plans_execute_real_read_templates(atlas, monkeypatch):
     def completion(messages, tools, **options):
         schema = options["schema"]["properties"]
         if "summary" in schema:
+            final_request = json.loads(messages[-1]["content"])
+            assert final_request["question"] == request.question
+            assert final_request["verified_calculations"]
             assert "32500" in json.dumps(messages)
             return dict(
                 content=json.dumps(
@@ -516,6 +519,11 @@ def test_unknown_ai_answer_does_not_expand_to_initial_company_graph(atlas, monke
 
     def completion(messages, tools, **options):
         if "summary" in options["schema"]["properties"]:
+            final_request = json.loads(messages[-1]["content"])
+            assert final_request["question"] == request.question
+            assert final_request["focus_id"] == request.focus_id
+            assert final_request["effective_at"] == request.effective_at
+            assert "count or sum" not in final_request["task"]
             return dict(
                 content=json.dumps(
                     dict(

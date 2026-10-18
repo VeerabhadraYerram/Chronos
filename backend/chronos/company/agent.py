@@ -382,9 +382,17 @@ def investigate(store, request, receipt, provider="gemini"):
                 role="user",
                 content=json.dumps(
                     dict(
+                        question=request.question,
+                        focus_id=request.focus_id,
+                        effective_at=request.effective_at,
+                        known_at=request.known_at,
                         verified_calculations=calculations,
                         requested_calculation=receipt.get("aggregates", []),
-                        instruction="For a count or sum question, state the requested calculation from the verified database result. Company is the focal workspace; Client is an external company. Do not substitute the focal company count for a client count.",
+                        task=(
+                            "Answer the question above using the retrieved evidence. For a count or sum question, state the requested calculation from the verified database result. Company is the focal workspace; Client is an external company. Do not substitute the focal company count for a client count."
+                            if calculations
+                            else "Answer the question above using only the retrieved evidence. Preserve its selected record and date context. If evidence is missing, explain what is missing."
+                        ),
                     )
                 ),
             )
