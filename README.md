@@ -8,6 +8,8 @@ ChronosGraph is a **Company Brain** investigator powered by **FalkorDB**. An ope
 
 **[Live application](https://chronosgraph.onrender.com)** · **[Separate database inspection](https://chronosgraph.onrender.com/database)** · **[CI](https://github.com/VeerabhadraYerram/Chronos/actions/workflows/ci.yml)**
 
+> **First visit may load slowly:** this application uses Render's free hosting. The server sleeps after 15 minutes without traffic and can take about a minute to wake. Keep the page open while it starts; the application then connects automatically. Database inspection and AI requests have their own loading time. [Render's cold-start documentation](https://render.com/docs/free#spinning-down-on-idle).
+
 There are two supporting guides: **[Database & schema](docs/DATABASE.md)** and **[Cypher queries](docs/GRAPH_QUERIES.md)**. Setup, walkthrough, architecture, hosting, validation and submission status are below.
 
 **Data disclosure:** company and client names are real; private agreements, incidents, operational records, locations, roles and amounts are fictional. This is an independent reference implementation, not Delhivery's internal database or an affiliated product. [Public references and boundaries](docs/DATABASE.md#public-references-and-boundaries).
@@ -21,6 +23,21 @@ There are two supporting guides: **[Database & schema](docs/DATABASE.md)** and *
 5. Click **Explore database** in the top bar. A separate read-only portal opens automatically in a new tab for **the same workspace**, including its investigation history. While FalkorDB loads, a loading state replaces the workspace-ID form; workspace selection remains available for changing workspaces or recovering an expired link. Browse full fields, relationships, schema/indexes, eight structural checks or JSON export. The permanent [database link](https://chronosgraph.onrender.com/database) can also create a fresh workspace.
 
 The graph contains **9,991 initial business entities and 17,207 relationships**, plus one Metadata record: 12 clients, 36 pickup warehouses, 14 facilities, 1,890 shipments, 6,870 scans, decisions, policies, tickets, finance records and assigned work. [Full dictionary and operational examples](docs/DATABASE.md).
+
+### Try questions beyond the scheduling example
+
+Use **Investigate** for these questions in the live workspace. Click returned records, **Ask about this**, or **Explore database** to check the connected data yourself. These are suggested questions over stored facts, not a menu of prewritten AI answers.
+
+| Area | Question to try | Evidence to inspect |
+| --- | --- | --- |
+| Account inventory | How many companies are we dealing with? | The initial graph has 12 `Client` records; inspect the Client table and database aggregate. |
+| Finance arithmetic | What is the total invoice amount in INR? | The initial 72 Invoice records sum to INR 300,150 in `amount_inr`; verify stored amounts rather than infer revenue. |
+| Operations ownership | Who owns the Bengaluru facility? | Facility → `OPERATED_BY` → Operations. |
+| Finance incident | Why is the SUGAR COD settlement mismatch being investigated, and who owns the review? | Ticket, linked team discussion, Finance ownership and settlement record. A mismatch does not establish cash loss. |
+| Transport approval | Is the Kolkata weather reroute approved? | The weather-contingency ticket and chat describe a proposal, with Transport review; they do not approve a reroute. |
+| Warehouse handling | Why does the Chennai return need inspection? | The return-quality ticket and procedure require inspection; they do not approve a refund or compensation. |
+
+The investigator discovers the workspace schema and can retrieve sources, traverse ownership, count records and calculate stored numeric values across departments. The hosted site contains the included reference workspace; it has no public document uploader or live company connectors. Developers can also [import the unrelated Atlas Studio fixture](docs/DATABASE.md#import-another-company), which exercises Finance and Marketing without the logistics schema. Generated answers depend on provider availability and still need source review; direct database inspection remains available independently.
 
 <details>
   <summary>Actual investigation and comparison screenshots</summary>
@@ -39,7 +56,7 @@ The guided example asks whether Bengaluru can close on Sundays. Operations wants
 4. In **Demo rehearsal**, compare full closure with **Preserve commitments**. For October 25, full closure conflicts with Havells; preserving commitments keeps its processing running while queuing the other two clients for Monday. For November 8 after the amendment, full closure has no modeled commitment conflict. Each comparison uses a real disposable `GRAPH.COPY` and leaves the base revision unchanged.
 5. Separately prepare and download a source-linked review packet from a current investigation. No real schedule, contract, ticket or message is changed.
 
-The scheduling model uses its original **1,200-consignment, three-client cohort**, rather than every shipment or all 12 clients. Processing is not delivery; staffing figures are explicit assumptions, not measured savings or predictions of real logistics outcomes. Amendment ingestion is a labeled replay, not a live company integration.
+**Scope of the rehearsal:** this is a deterministic scheduling comparison over its original **1,200-consignment, three-client cohort**, rather than an open-ended autonomous planner or a simulation of every shipment and all 12 clients. Its checks read accepted commitments from FalkorDB; its workflow is specifically implemented for the included scheduling scenario. The general investigator above is a separate capability. Processing is not delivery; staffing figures are explicit assumptions, not measured savings or predictions of real logistics outcomes. Amendment ingestion is a labeled replay, not a live company integration.
 
 ## Run locally
 
