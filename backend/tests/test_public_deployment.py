@@ -23,7 +23,7 @@ def test_public_entrypoint_excludes_legacy_mutations_and_docs(tmp_path):
     root = client.get("/")
     assert root.status_code == 200 and "ChronosGraph" in root.text
     assert "frame-ancestors 'none'" in root.headers["content-security-policy"]
-    assert client.get("/healthz").json() == {"status": "running"}
+    assert client.get("/healthz").json()["status"] == "running"
     assert client.get("/database").status_code == 200
     assert (
         client.post("/api/company/session", json={"session_id": "bad"}).status_code
@@ -73,6 +73,28 @@ def test_readiness_requires_database_and_provider(tmp_path, monkeypatch):
     assert client.get("/readyz").status_code == 503
     monkeypatch.setenv("GROQ_API_KEY", "configured-test-value")
     assert client.get("/readyz").json()["database"] == "FalkorDB"
+
+
+def test_workspace_creation_retry_reuses_one_registered_graph(monkeypatch):
+    import uuid
+    from chronos.company import store as company_store
+    from chronos.company.api import Session, session
+
+    base = company_store.CompanyStore("chronos_bootstrap_test_" + uuid.uuid4().hex)
+    bootstrap = uuid.uuid4().hex
+    child = company_store.CompanyStore(company_store.SESSION_PREFIX + bootstrap)
+    monkeypatch.setattr(company_store, "BASE_NAME", base.name)
+    monkeypatch.delenv("CHRONOS_EPHEMERAL", raising=False)
+    try:
+        first = session(Session(request_id=bootstrap))
+        second = session(Session(request_id=bootstrap))
+        assert first["session_id"] == second["session_id"] == bootstrap
+        assert base.read("MATCH (s:DemoSession) RETURN count(s)")[0][0] == 1
+        assert first["stats"]["entities"] == second["stats"]["entities"]
+    finally:
+        for store in (child, base):
+            if store.name in store.db.list_graphs():
+                store.graph.delete()
 
 
 def test_readiness_does_not_wait_for_workspace_inspection(tmp_path, monkeypatch):

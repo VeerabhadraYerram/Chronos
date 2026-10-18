@@ -168,7 +168,10 @@ def create_app(static_dir=None, **limits):
 
     @app.get("/healthz")
     def live():
-        return {"status": "running"}
+        return {
+            "status": "running",
+            "build": os.getenv("RENDER_GIT_COMMIT", "local")[:40],
+        }
 
     @app.get("/readyz")
     async def ready():
@@ -194,7 +197,12 @@ def create_app(static_dir=None, **limits):
             raise HTTPException(
                 503, "Configure an AI provider before opening evaluation."
             )
-        return {"status": "ready", "database": "FalkorDB", "revision": revision}
+        return {
+            "status": "ready",
+            "database": "FalkorDB",
+            "revision": revision,
+            "build": os.getenv("RENDER_GIT_COMMIT", "local")[:40],
+        }
 
     directory = Path(static_dir or os.getenv("CHRONOS_STATIC_DIR", "frontend/dist"))
     if not (directory / "index.html").is_file():

@@ -1,0 +1,45 @@
+name: Judging uptime
+
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/judging-uptime.yml]
+  schedule:
+    - cron: "3-58/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: judging-uptime
+  cancel-in-progress: false
+
+jobs:
+  readiness:
+    # A public-repository, standard runner check; no provider keys or AI requests.
+    # Set JUDGING_MONITOR_DISABLED=true to stop it. Scheduling is best effort.
+    if: vars.JUDGING_MONITOR_DISABLED != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check the deployed API and FalkorDB
+        env:
+          SERVICE_URL: https://chronosgraph.onrender.com
+        run: |
+          python - <<'PY'
+          import json, os, time, urllib.request
+          started = time.monotonic()
+          for attempt in range(3):
+              try:
+                  with urllib.request.urlopen(os.environ['SERVICE_URL'] + '/readyz', timeout=45) as response:
+                      data = json.load(response)
+                      assert response.status == 200
+                      assert data.get('status') == 'ready' and data.get('database') == 'FalkorDB'
+                  print('Readiness passed in %.1f seconds; this does not test AI availability.' % (time.monotonic() - started))
+                  break
+              except Exception:
+                  if attempt == 2:
+                      raise SystemExit('The deployed readiness check failed after three attempts. Inspect Render service logs.')
+                  time.sleep(8)
+          PY

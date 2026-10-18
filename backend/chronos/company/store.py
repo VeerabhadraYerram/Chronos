@@ -442,11 +442,22 @@ def expire_evaluation_sessions(base):
         base.write("MATCH (s:DemoSession {id:$id}) DETACH DELETE s", dict(id=id))
 
 
-def new_session():
+def new_session(request_id=None):
     with LOCK:
+        if request_id is not None and not re.fullmatch(r"[a-f0-9]{32}", request_id):
+            raise HTTPException(400, "Invalid workspace request.")
         base = CompanyStore(BASE_NAME)
         base.seed()
         expire_evaluation_sessions(base)
+        if request_id:
+            registered = base.get("session-" + request_id)
+            existing = SESSION_PREFIX + request_id in base.db.list_graphs()
+            if registered and existing:
+                return request_id
+            if existing:
+                raise HTTPException(
+                    409, "Workspace creation was interrupted. Start a new workspace."
+                )
         policy = base.get("policy-schedule")
         if "sunday_clients" not in policy:
             policy["sunday_clients"] = ["havells"]
@@ -458,7 +469,7 @@ def new_session():
                 429,
                 "Demo capacity reached. Please reuse an existing workspace or try later.",
             )
-        id = uuid.uuid4().hex
+        id = request_id or uuid.uuid4().hex
         base.copy_to(SESSION_PREFIX + id)
         base.upsert(
             dict(id="session-" + id, kind="DemoSession", title="Demo workspace")

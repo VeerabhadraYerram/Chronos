@@ -4,6 +4,28 @@ import json
 import os
 import urllib.error
 import urllib.request
+import time
+from contextlib import contextmanager
+from contextvars import ContextVar
+
+_deadline = ContextVar("company_provider_deadline", default=None)
+
+
+@contextmanager
+def time_budget(seconds):
+    token = _deadline.set(time.monotonic() + max(0, seconds))
+    try:
+        yield
+    finally:
+        _deadline.reset(token)
+
+
+def remaining_timeout(default):
+    end = _deadline.get()
+    remaining = min(default, end - time.monotonic()) if end is not None else default
+    if remaining < 0.1:
+        raise ProviderUnavailable("budget")
+    return remaining
 
 
 class ProviderUnavailable(Exception):
@@ -51,7 +73,7 @@ def groq_completion(messages, tools, first=False, final=False, schema=None):
         },
     )
     try:
-        with urllib.request.urlopen(req, timeout=25) as response:
+        with urllib.request.urlopen(req, timeout=remaining_timeout(25)) as response:
             parsed = json.load(response)
         return parsed["choices"][0]["message"]
     except urllib.error.HTTPError as error:
@@ -119,7 +141,7 @@ def openrouter_completion(messages, tools, first=False, final=False, schema=None
         },
     )
     try:
-        with urllib.request.urlopen(req, timeout=35) as response:
+        with urllib.request.urlopen(req, timeout=remaining_timeout(35)) as response:
             parsed = json.load(response)
         message = parsed["choices"][0]["message"]
         message["_model"] = str(parsed.get("model", model))[:160]

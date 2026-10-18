@@ -1,14 +1,8 @@
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    readonly status: number,
-  ) {
-    super(message);
-  }
-}
+import { fetchJson } from "./transport.mjs";
+export { ApiError, waitForBackend } from "./transport.mjs";
 
 export async function api<T>(path: string, body?: unknown): Promise<T> {
-  const response = await fetch(
+  return await fetchJson(
     "/api" + path,
     body === undefined
       ? {}
@@ -17,19 +11,6 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         },
-  );
-  if (!response.ok) {
-    let message = "Request failed";
-    try {
-      const data = await response.json();
-      message =
-        typeof data.detail === "string"
-          ? data.detail
-          : "Please check the selected inputs.";
-    } catch {
-      message = "The server is temporarily unavailable. Please reconnect in a moment.";
-    }
-    throw new ApiError(message, response.status);
-  }
-  return response.json() as Promise<T>;
+    path === "/company/ask" ? 115000 : 60000,
+  ) as T;
 }

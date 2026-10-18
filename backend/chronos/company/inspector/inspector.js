@@ -132,10 +132,25 @@ async function connect(fresh = false) {
   const id = fresh ? "" : $("workspace").value.trim();
   if (!fresh && !/^[a-f0-9]{32}$/.test(id))
     throw new Error("Enter a valid workspace ID, or create a workspace.");
+  // Read-only readiness retries can wake a sleeping service. Never replay the
+  // workspace POST implicitly; a lost response must not create duplicate copies.
+  const end = Date.now() + 105000;
+  while (true) {
+    try {
+      const ready = await fetch("/readyz", { signal: AbortSignal.timeout(6000) });
+      if (ready.status === 404) break; // Local development entrypoint.
+      if (ready.ok && (await ready.json()).status === "ready") break;
+    } catch {}
+    if (Date.now() >= end) throw new Error("The service is taking longer to start. Please retry shortly.");
+    message("Waiting for the database. Free hosting can take about a minute to wake…");
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+  }
+  message("Opening your inspection workspace…");
   const r = await fetch("/api/company/session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ session_id: id || null }),
+    signal: AbortSignal.timeout(60000),
   });
   if (!r.ok) {
     const d = await r.json();

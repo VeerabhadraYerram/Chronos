@@ -29,7 +29,7 @@ import {
   ExternalLink,
   PanelRightClose,
 } from "lucide-react";
-import { api, ApiError } from "./api";
+import { api, ApiError, waitForBackend } from "./api";
 import CompanyGraph, { relationLabel } from "./CompanyGraph";
 import type {
   CompanyEntity,
@@ -68,6 +68,8 @@ export default function CompanyWorkspace() {
   const [client, setClient] = useState("all");
   const [gemini, setGemini] = useState(false);
   const [busy, setBusy] = useState("");
+  const [connectionMessage, setConnectionMessage] = useState("");
+  const [waitingSeconds, setWaitingSeconds] = useState(0);
   const [error, setError] = useState("");
   const [receipt, setReceipt] = useState<CompanyReceipt | null>(null);
   const [trail, setTrail] = useState<CompanyReceipt[]>([]);
@@ -90,6 +92,7 @@ export default function CompanyWorkspace() {
   const [help, setHelp] = useState(false);
   const [notice, setNotice] = useState("");
   const initialized = useRef(false);
+  const bootstrapId = useRef<string | null>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const context = {
     effective_at: effective + "T12:00:00Z",
@@ -133,16 +136,31 @@ export default function CompanyWorkspace() {
     }
   }
   async function load(fresh = false) {
+    if (import.meta.env.VITE_PUBLIC_EVALUATION === "1") {
+      await waitForBackend(setConnectionMessage);
+    }
+    if (fresh) bootstrapId.current = null;
     const stored = fresh
       ? null
       : new URLSearchParams(window.location.search).get("workspace") ||
         localStorage.getItem("chronos-company-session");
     let result: CompanySession;
     let expired = false;
+    async function open(id: string | null) {
+      if (!id && !bootstrapId.current) bootstrapId.current = crypto.randomUUID().replaceAll("-", "");
+      const body = { session_id: id, request_id: id ? null : bootstrapId.current };
+      for (let attempt = 0; ; attempt++) {
+        try {
+          return await api<CompanySession>("/company/session", body);
+        } catch (failure) {
+          if (!(failure instanceof ApiError) || ![0, 502, 503, 504].includes(failure.status) || attempt >= 2) throw failure;
+          setConnectionMessage("The database is reconnecting. Retrying your workspace safely…");
+          await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+        }
+      }
+    }
     try {
-      result = await api<CompanySession>("/company/session", {
-        session_id: stored,
-      });
+      result = await open(stored);
     } catch (error) {
       if (
         !(error instanceof ApiError) ||
@@ -151,9 +169,8 @@ export default function CompanyWorkspace() {
         new URLSearchParams(window.location.search).has("workspace")
       )
         throw error;
-      result = await api<CompanySession>("/company/session", {
-        session_id: null,
-      });
+      bootstrapId.current = null;
+      result = await open(null);
       expired = true;
     }
     if (expired)
@@ -161,6 +178,7 @@ export default function CompanyWorkspace() {
         "Your previous evaluation workspace expired. A new workspace is ready; earlier investigations are unavailable.",
       );
     localStorage.setItem("chronos-company-session", result.session_id);
+    bootstrapId.current = null;
     setSession(result);
     setGuided(false);
     setClient("all");
@@ -179,6 +197,13 @@ export default function CompanyWorkspace() {
     initialized.current = true;
     void task("connect", () => load());
   }, []);
+  useEffect(() => {
+    setWaitingSeconds(0);
+    if (!busy) return;
+    const started = Date.now();
+    const timer = window.setInterval(() => setWaitingSeconds(Math.floor((Date.now() - started) / 1000)), 1000);
+    return () => window.clearInterval(timer);
+  }, [busy]);
   useEffect(() => {
     const escape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -539,6 +564,16 @@ export default function CompanyWorkspace() {
               </>
             )}
           </div>
+          {(busy === "connect" || busy === "ask") && (
+            <div role="status" className="co-progress" aria-live="polite">
+              <LoaderCircle className="co-spin" size={20} />
+              <div>
+                <strong>{busy === "connect" ? (connectionMessage || "Connecting to company memory…") : "Investigating your question…"}</strong>
+                <p>{busy === "ask" ? "The AI is working with the company records. Keep this page open while it completes." : "Your workspace will open automatically when the service is ready."}</p>
+              </div>
+              <span aria-hidden="true">{waitingSeconds}s</span>
+            </div>
+          )}
           {error && (
             <div role="alert" className="co-error">
               <ShieldAlert size={18} />
@@ -778,10 +813,12 @@ export default function CompanyWorkspace() {
                         </div>
                       </div>
                     )}
-                  {(receipt.stale || changed) && (
+                  {(receipt.stale || changed || receipt.mode === "ai_unavailable") && (
                     <div className="co-stale">
                       <Clock3 size={14} />
-                      {receipt.stale
+                      {receipt.mode === "ai_unavailable"
+                        ? "The AI could not complete this attempt. You can inspect the retrieved evidence and try again."
+                        : receipt.stale
                         ? "Knowledge changed. Rerun this investigation before using its conclusion."
                         : "The dates or client changed. Rerun to update this answer."}
                       <button
@@ -790,7 +827,7 @@ export default function CompanyWorkspace() {
                           void ask(receipt.title, receipt.request.focus_id)
                         }
                       >
-                        Rerun
+                        {receipt.mode === "ai_unavailable" ? "Try again" : "Rerun"}
                       </button>
                     </div>
                   )}

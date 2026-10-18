@@ -408,6 +408,85 @@ def test_structured_model_plans_execute_real_read_templates(atlas, monkeypatch):
     )
 
 
+def test_agent_schema_reads_live_native_fields_without_payload_export(
+    atlas, monkeypatch
+):
+    s, id = atlas
+    reader = CompanyReader(s)
+    monkeypatch.setattr(
+        s,
+        "read_all",
+        lambda *a, **k: (_ for _ in ()).throw(
+            AssertionError("No paginated payload export for tool discovery")
+        ),
+    )
+    observed = reader.tool_schema()
+    invoice = next(x for x in observed["labels"] if x["label"] == "Invoice")
+    assert invoice["count"] == 2 and "amount_inr" in invoice["native_fields"]
+    assert not ({"payload", "search_text", "content_hash"} & set(invoice["fields"]))
+    s.upsert(
+        dict(
+            id="dynamic-field",
+            kind="Client",
+            title="A new account",
+            review_window_hours=18,
+        )
+    )
+    updated = reader.tool_schema()
+    assert (
+        "review_window_hours"
+        in next(x for x in updated["labels"] if x["label"] == "Client")["fields"]
+    )
+    assert not {"DemoSession", "Receipt", "Action", "Metadata"} & {
+        x["label"] for x in updated["labels"]
+    }
+
+
+def test_provider_deadline_limits_calls_and_resets_context(monkeypatch):
+    from chronos.company import providers
+
+    clock = [10.0]
+    monkeypatch.setattr(providers.time, "monotonic", lambda: clock[0])
+    with providers.time_budget(4):
+        assert providers.remaining_timeout(25) == 4
+        clock[0] = 14.1
+        with pytest.raises(providers.ProviderUnavailable):
+            providers.remaining_timeout(25)
+    assert providers.remaining_timeout(25) == 25
+
+
+def test_planner_can_finish_from_actual_initial_evidence(atlas, monkeypatch):
+    from chronos.company import agent, providers
+
+    s, id = atlas
+    request = q(id, "What is the Spring campaign?")
+    receipt = answer(s, request)
+    assert receipt["graph"]["nodes"]
+    calls = []
+
+    def completion(messages, tools, **options):
+        final = "summary" in options["schema"]["properties"]
+        calls.append(final)
+        return dict(
+            content=json.dumps(
+                dict(
+                    summary="No additional supported conclusion was selected.",
+                    source_ids=[],
+                    graph_ids=[],
+                    followups=[],
+                )
+                if final
+                else dict(tool="finish", arguments="{}")
+            )
+        )
+
+    monkeypatch.setenv("GROQ_API_KEY", "test-placeholder-not-real")
+    monkeypatch.setattr(providers, "groq_completion", completion)
+    result = agent.investigate(s, request, receipt, "groq")
+    assert calls == [False, True]
+    assert result["graph"] == {"nodes": [], "edges": []}
+
+
 def test_generated_count_contradiction_is_rejected(atlas, monkeypatch):
     from chronos.company import agent, providers
 

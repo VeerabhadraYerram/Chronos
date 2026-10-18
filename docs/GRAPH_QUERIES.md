@@ -2,6 +2,15 @@
 
 FalkorDB is the execution engine. These are the core parameterized patterns used by ChronosGraph, with their source implementations linked below. Agent tools execute bounded server-owned templates using `GRAPH.RO_QUERY`; a model cannot submit arbitrary Cypher or select a different visitor graph. Backend-controlled seeding, receipts, replays and graph-copy operations use write commands separately.
 
+For tool discovery, [CompanyReader.tool_schema](../backend/chronos/company/repository.py) computes observed labels, counts and native property keys inside FalkorDB, without transferring every JSON payload. A second query returns observed relationship types and endpoint labels. This is a fresh database read, not a cached business answer:
+
+```cypher
+MATCH (n:Entity) WHERE NOT n.kind IN $private
+RETURN n.kind, count(n), collect(DISTINCT keys(n)) ORDER BY n.kind
+```
+
+Private bookkeeping labels and internal payload/search properties are removed before the result is supplied to the model. The full reviewer catalog still inspects stored payload fields separately.
+
 ## Reviewer map
 
 | User task | Graph operation | Implementation |

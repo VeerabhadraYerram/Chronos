@@ -32,6 +32,40 @@ class CompanyReader:
     def __init__(self, store):
         self.store = store
 
+    def tool_schema(self):
+        """Small live schema for AI tools, without exporting every record payload.
+
+        Counts and field names are calculated inside FalkorDB on each call, so
+        another workspace, an import, or a revision cannot reuse stale metadata.
+        The complete reviewer catalog remains available separately.
+        """
+        rows = self.store.read(
+            "MATCH (n:Entity) WHERE NOT n.kind IN $private "
+            "RETURN n.kind,count(n),collect(DISTINCT keys(n)) ORDER BY n.kind",
+            dict(private=sorted(PRIVATE)),
+        )
+        labels = []
+        for label, count, key_sets in rows:
+            fields = sorted(
+                {key for keys in key_sets for key in keys}
+                - {"payload", "search_text", "stale", "created", "content_hash"}
+            )
+            labels.append(
+                dict(label=label, count=count, fields=fields, native_fields=fields)
+            )
+        relations = self.store.read(
+            "MATCH (a:Entity)-[r]->(b:Entity) "
+            "WHERE NOT a.kind IN $private AND NOT b.kind IN $private "
+            "RETURN DISTINCT type(r),a.kind,b.kind ORDER BY type(r),a.kind,b.kind",
+            dict(private=sorted(PRIVATE)),
+        )
+        return dict(
+            labels=labels,
+            relationships=[
+                dict(type=t, source_label=a, target_label=b) for t, a, b in relations
+            ],
+        )
+
     def catalog(self):
         metadata = self.store.read(
             'MATCH (m:Metadata {id:"dataset"}) RETURN properties(m)'

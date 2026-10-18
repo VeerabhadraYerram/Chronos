@@ -19,6 +19,7 @@ router = APIRouter(prefix="/api/company")
 
 class Session(BaseModel):
     session_id: str | None = Field(default=None, max_length=32)
+    request_id: str | None = Field(default=None, pattern="^[a-f0-9]{32}$")
 
 
 class Query(BaseModel):
@@ -83,7 +84,7 @@ def safe_store(id):
 def session(request: Session):
     try:
         with LOCK:
-            id = request.session_id or new_session()
+            id = request.session_id or new_session(request.request_id)
             store = safe_store(id)
             sources = [
                 r[0]

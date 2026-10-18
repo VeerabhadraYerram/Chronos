@@ -39,7 +39,7 @@ def investigate(store, request, receipt, provider="gemini"):
         return nodes
 
     reader = CompanyReader(store)
-    catalog = reader.catalog()
+    catalog = reader.tool_schema()
     labels = [x["label"] for x in catalog["labels"] if x["label"] not in PRIVATE]
     native_fields = sorted(
         {
@@ -326,7 +326,7 @@ def investigate(store, request, receipt, provider="gemini"):
             plan = decode(planned.get("content"))
             name = plan.get("tool")
             if name == "finish":
-                if trace:
+                if trace or receipt["graph"]["nodes"] or receipt.get("aggregates"):
                     break
                 name, args = "describe_schema", {}
             else:
@@ -400,6 +400,8 @@ def investigate(store, request, receipt, provider="gemini"):
         message = completion(messages, [], final=True, schema=response_schema)
         final = decode(message.get("content"))
     else:
+        from .providers import remaining_timeout
+
         config = types.GenerateContentConfig(
             system_instruction=instruction,
             tools=[types.Tool(function_declarations=tools)],
@@ -420,6 +422,10 @@ def investigate(store, request, receipt, provider="gemini"):
             )
         ]
         for _ in range(5):
+            config.http_options = types.HttpOptions(
+                timeout=int(remaining_timeout(20) * 1000),
+                retry_options=types.HttpRetryOptions(attempts=1),
+            )
             response = client.models.generate_content(
                 model=os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite"),
                 contents=history,
@@ -448,7 +454,11 @@ def investigate(store, request, receipt, provider="gemini"):
             history.append(types.Content(role="tool", parts=parts))
     if (
         not isinstance(final, dict)
-        or (not any(t.get("ok", True) for t in trace) and not receipt.get("aggregates"))
+        or (
+            not any(t.get("ok", True) for t in trace)
+            and not receipt.get("aggregates")
+            and not receipt["graph"]["nodes"]
+        )
         or not isinstance(final.get("summary"), str)
         or len(final["summary"]) > 5000
     ):
@@ -551,17 +561,27 @@ def investigate(store, request, receipt, provider="gemini"):
 
 def run_investigator(store, request, receipt):
     """Groq, Gemini, then free OpenRouter. No fabricated answer on failure."""
+    from .providers import time_budget
+
     attempted = []
+    deadline = time.monotonic() + max(
+        10, min(120, float(os.getenv("CHRONOS_AI_BUDGET_SECONDS", "75")))
+    )
     for provider, key in [
         ("groq", "GROQ_API_KEY"),
         ("gemini", "GEMINI_API_KEY"),
         ("openrouter", "OPENROUTER_API_KEY"),
-        ("openrouter", "OPENROUTER_API_KEY"),
     ]:
         if not os.getenv(key):
             continue
+        remaining = deadline - time.monotonic()
+        if remaining < 1:
+            break
         try:
-            result = investigate(store, request, receipt, provider)
+            # Reserve most of the request budget for the final free provider.
+            allowance = min(remaining, 15 if provider in {"groq", "gemini"} else 45)
+            with time_budget(allowance):
+                result = investigate(store, request, receipt, provider)
             if attempted:
                 result["provider_note"] = (
                     ", ".join(p.title() for p in attempted)

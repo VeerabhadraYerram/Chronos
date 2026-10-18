@@ -19,6 +19,19 @@
   line-height: 1.5;
   isolation: isolate;
 }
+.co-progress {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 22px;
+  margin-bottom: 20px;
+  border: 1px solid #cbd9cb;
+  border-radius: 12px;
+  background: #edf3e9;
+  color: #294b3a;
+}
+.co-progress p { margin: 4px 0 0; font-size: 15px; }
+.co-progress > span { margin-left: auto; font-variant-numeric: tabular-nums; }
 .co-app * {
   box-sizing: border-box;
 }
