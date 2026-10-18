@@ -296,6 +296,37 @@
   padding: 7px 10px;
   border-radius: 5px;
 }
+.co-database-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 1px solid #b8ccbc;
+  border-radius: 7px;
+  background: #edf3e9;
+  color: #294b3a !important;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.co-database-link:hover {
+  background: #e0ebda;
+  border-color: #91ad98;
+}
+@media (max-width: 650px) {
+  .co-database-link {
+    gap: 6px;
+    padding: 7px 9px;
+    font-size: 14px;
+  }
+  .co-database-newtab {
+    display: none;
+  }
+}
 .co-page {
   max-width: 1450px;
   margin: auto;

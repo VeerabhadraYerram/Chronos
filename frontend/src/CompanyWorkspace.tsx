@@ -27,6 +27,7 @@ import {
   SlidersHorizontal,
   RotateCcw,
   ExternalLink,
+  Database,
   PanelRightClose,
 } from "lucide-react";
 import { api, ApiError, waitForBackend } from "./api";
@@ -449,7 +450,18 @@ export default function CompanyWorkspace() {
             Workspace <ChevronRight size={12} />
             <strong>{companyName}</strong>
           </div>
-          <span className="co-demo-pill">COMPANY WORKSPACE</span>
+          <a
+            className="co-database-link"
+            href={session ? `/database#workspace=${encodeURIComponent(session.session_id)}` : "/database"}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Explore database (opens in a new tab)"
+            title="Inspect this workspace's records, relationships, and schema in the read-only database explorer"
+          >
+            <Database size={18} aria-hidden="true" />
+            Explore database
+            <ArrowUpRight size={15} aria-hidden="true" className="co-database-newtab" />
+          </a>
           <button
             title="Create a fresh, separate workspace"
             disabled={!!busy}
@@ -1687,9 +1699,9 @@ export default function CompanyWorkspace() {
               <strong>Workspace ID:</strong> <code>{session?.session_id}</code>
             </p>
             <p>
-              This identifier can be entered in the separate database inspection
-              portal. It grants access to this synthetic workspace; it is not
-              production authentication.
+              “Explore database” in the top bar opens the separate read-only
+              inspector for this same workspace. Its link grants access to this
+              synthetic workspace; it is not production authentication.
             </p>
             <p>
               <strong>Two clocks:</strong> “Effective on” selects when a
