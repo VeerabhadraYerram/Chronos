@@ -107,7 +107,7 @@ The fields below appear in decoded records; scalar values are also mirrored nati
 | `PickupRequest` | `status`, `pickup_date` | A collected synthetic pickup request linked to a client warehouse |
 | `Shipment` | `client`, `facility`, `arrival_at`, `status`, `description` | November scenario or October snapshot consignment; traversals establish its client and location |
 | `ScanEvent` | `event_at`, `sequence`, `description` | Ordered synthetic event in a consignment's history |
-| `Rule` | `client`, `facility`, `field`, `value`, `status`, four interval bounds | Accepted temporal commitment; modeled fields include `sunday_processing_required` and four source-supported review controls; values are typed |
+| `Rule` | `client`, `facility`, `field`, `value`, `status`, four interval bounds | Accepted temporal commitment; 19 modeled fields cover scheduling, pickup cutoffs, billing, COD, returns and handling/review controls; values are typed |
 | `Source` | `excerpt`, `source_type`, `department`, `timestamp`, `enabled`, `content_hash`, optional `classification`, `url` | Inspectable source text, provenance category, current availability and content hash |
 | `Decision` | `description`, `approved` | Accepted decision context or an explicitly unapproved proposal |
 | `Policy` | `sunday_required`, `sunday_clients`, `description` | Current handbook configuration; `sunday_clients` drives the baseline Sunday-processing preview |
@@ -154,7 +154,7 @@ Each relationship is directed. The `source_ids` property is a list of supporting
 | Receipt | `USED` | Source | Source used in the company investigation |
 | Receipt | `PROPOSES` | Action | Prepared human-review packet |
 
-These are seed conventions, not database-enforced cardinalities. In this fixture each shipment has one client, one current facility, one pickup request, one manifest, and four scans. The model does not imply all real logistics systems use those cardinalities.
+These are seed conventions, not database-enforced cardinalities. In this fixture each shipment has one client, one current facility, one pickup request and one manifest. The 1,200 scheduling-cohort shipments have four scans each; the other 690 have three each, totaling 6,870 scans. The model does not imply all real logistics systems use those cardinalities.
 
 ```mermaid
 flowchart LR
