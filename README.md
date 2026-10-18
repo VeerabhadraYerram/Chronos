@@ -18,7 +18,7 @@ There are two supporting guides: **[Database & schema](docs/DATABASE.md)** and *
 2. Ask **How many external client companies are recorded?** The initial dataset has 12 Client records; the count is computed in FalkorDB.
 3. Ask **Why is the SUGAR COD settlement mismatch being investigated, who owns it, and does it prove cash loss?** Inspect the records and source excerpts. A mismatch under Finance review is not proof of loss; an unknown outcome must remain unknown.
 4. Click a graph record or relationship, inspect its provenance, expand its connections and ask a follow-up. The evidence graph is specific to the investigation; aggregates may show a bounded sample of the counted population.
-5. Open the separate database portal and choose **Create workspace** to inspect a fresh copy. To inspect the same investigation as the app, enter the ID from **About this workspace**. Browse full fields, relationships, schema/indexes, integrity checks or JSON export.
+5. Click **Explore database** in the top bar. A separate read-only portal opens in a new tab for **the same workspace**, including its investigation history. Browse full fields, relationships, schema/indexes, eight structural checks or JSON export. The permanent [database link](https://chronosgraph.onrender.com/database) can also create a fresh workspace.
 
 The graph contains **9,991 initial business entities and 17,207 relationships**, plus one Metadata record: 12 clients, 36 pickup warehouses, 14 facilities, 1,890 shipments, 6,870 scans, decisions, policies, tickets, finance records and assigned work. [Full dictionary and operational examples](docs/DATABASE.md).
 
@@ -33,13 +33,13 @@ The graph contains **9,991 initial business entities and 17,207 relationships**,
 
 The guided example asks whether Bengaluru can close on Sundays. Operations wants closure, but a Havells agreement requires Sunday processing. Ending a sales campaign or proposing closure does not amend that agreement.
 
-1. Create a fresh workspace, select **Guided walkthrough**, and ask **Can we close the Bengaluru facility on Sundays?** Inspect the agreement, recorded reason and owner. The separate rehearsal checks the modeled commitment conflict.
-2. Replay **Introduce approved amendment**. This changes the commitment effective **November 1, 2026**, recorded **October 15 at 09:00 UTC**; earlier receipts become stale.
-3. Investigate effective November 8, known by October 16: the amended agreement applies. Effective October 25 still requires Sunday processing. A knowledge cutoff of October 14 preserves the earlier belief, even for a November effective date.
-4. Run the before/after comparison and compare full closure with preserving client commitments. It uses a real disposable `GRAPH.COPY` and leaves the base revision unchanged.
-5. Prepare and download a source-linked review packet from a current investigation. No real schedule, contract, ticket or message is changed.
+1. Create a fresh workspace, select **Guided walkthrough**, and ask **What does the Havells agreement require?** Read the answer, switch between **Map** and **Readable trail**, and inspect the agreement, recorded reason and owner.
+2. Select a record and click **Ask about this**. The selected-record chip anchors your follow-up; ask **Why did we promise Sunday processing to Havells?** The new answer has its own evidence subgraph. Breadcrumbs return to the earlier investigation and its saved context. **Inspect retrieval trace** distinguishes model-selected reads from the server policy check.
+3. Replay **Introduce approved amendment**. This changes the commitment effective **November 1, 2026**, recorded **October 15 at 09:00 UTC**; earlier receipts become stale. Click **Rerun** to reassess. For November 8 as known on October 16, the amended agreement applies; the unchanged handbook can now trigger a document-disagreement alert. A knowledge cutoff of October 14 preserves the earlier belief, even for a November effective date.
+4. In **Demo rehearsal**, compare full closure with **Preserve commitments**. For October 25, full closure conflicts with Havells; preserving commitments keeps its processing running while queuing the other two clients for Monday. For November 8 after the amendment, full closure has no modeled commitment conflict. Each comparison uses a real disposable `GRAPH.COPY` and leaves the base revision unchanged.
+5. Separately prepare and download a source-linked review packet from a current investigation. No real schedule, contract, ticket or message is changed.
 
-The scheduling model uses its original 1,200-consignment cohort. Processing is not delivery; staffing figures are explicit assumptions, not measured savings or predictions of real logistics outcomes.
+The scheduling model uses its original **1,200-consignment, three-client cohort**, rather than every shipment or all 12 clients. Processing is not delivery; staffing figures are explicit assumptions, not measured savings or predictions of real logistics outcomes. Amendment ingestion is a labeled replay, not a live company integration.
 
 ## Run locally
 
@@ -89,6 +89,9 @@ The core graph model is:
 flowchart LR
     Client -->|HAS_COMMITMENT| Rule
     Rule -->|SUPPORTED_BY| Source
+    Rule -->|APPLIES_AT| Facility
+    Rule -->|OWNED_BY| Team
+    Rule -->|WHY| Decision
     Policy -->|ASSERTS| Claim
     Claim -->|SUPPORTED_BY| Source
     Decision -->|EXPLAINED_BY| Source
@@ -99,7 +102,9 @@ flowchart LR
 
 The investigator searches actual stored records, traverses relationships, selects accepted rules at effective/recorded times, and can request database counts or numeric aggregations. Groq/OpenRouter use validated structured read plans; Gemini uses native function calls. All use server-owned parameterized `GRAPH.RO_QUERY` templates, not arbitrary model-generated Cypher. The frontend displays returned evidence rather than computing business verdicts.
 
-**Follow a question through the graph:** the agent discovers the live schema, selects a validated read tool such as `search_records`, `explore_record` or `read_applicable_rules`, and receives records from FalkorDB. Applicable rules are checked against both effective and recorded time. The AI synthesizes an answer from those retrieved records; the evidence map and **Inspect retrieval trace** expose the supporting IDs, relationships and executed read steps. Changing an accepted rule changes the available evidence and marks prior investigations stale. See the [actual Cypher templates](docs/GRAPH_QUERIES.md).
+**Two views of the same stored evidence:** the knowledge graph is the nodes and relationships stored and queried in FalkorDB. The evidence graph is a question-specific view of retrieved records and their actual stored connections, drawn by React Flow. It is not a whole-company summary or a visualization of the model's private reasoning. Switch to the readable trail, filter record types, expand the map, zoom/fit or drag nodes; select a node or relationship to inspect excerpts, provenance and dates. Explicit connection exploration may also reveal historical context, so check its applicability.
+
+**Follow a question through the graph:** the agent discovers the live schema, selects a validated read tool such as `search_records`, `explore_record` or `read_applicable_rules`, and receives records from FalkorDB. If retrieved evidence contains a Rule, Policy or Claim, the server first refreshes applicable accepted rule values and supporting sources for both selected clocks. The AI synthesizes an answer from retrieved evidence. The evidence inspector exposes records and relationships; **Inspect retrieval trace** lists executed tools, row counts and durations, identifying the automatic **Server policy check** separately. Tool durations include backend work and database reads; they are not database-only benchmarks. Changing an accepted rule changes the available evidence and marks prior investigations stale. See the [actual Cypher templates](docs/GRAPH_QUERIES.md).
 
 Source/record IDs and selected numeric answers are validated, but this does not prove every generated sentence. A chat proposal cannot override accepted policy. If every provider fails, the app explicitly reports that no AI answer was generated; it does not substitute a canned answer. Prior receipts and walkthrough configuration are excluded from company-fact discovery.
 
@@ -120,7 +125,7 @@ The [Render Blueprint](render.yaml) runs the frontend, Python backend and actual
 
 To reproduce deployment, connect this repository and `render.yaml` through Render's **New → Blueprint**. Confirm exactly one **Free** web service and no paid disk/database. Add provider keys only in secret environment settings. At least one configured key is required for readiness; this does not verify quota or key validity. Wait for Live status, then test an actual question, source inspection and database audit. Code pushes deploy automatically after the repository CI checks pass; use a manual deploy only for a deliberately selected tested revision. Build locally with `docker build -t chronosgraph-evaluation:local .` if needed.
 
-The build creates a reference-only FalkorDB snapshot from the fixture without secrets or visitor history. The non-root runtime starts an internal database and API together. `/healthz` is liveness; `/readyz` reads reference metadata/schema without the workspace lock or seeding/migrating data. OpenAPI and legacy payments routes are excluded publicly. Subsequent code pushes deploy after the repository's CI checks pass.
+The build creates a reference-only FalkorDB snapshot from the fixture without secrets or visitor history. The non-root runtime starts an internal database and API together. `/healthz` is liveness; `/readyz` reads reference metadata/schema without the workspace lock or seeding/migrating data. OpenAPI and legacy payments routes are excluded publicly.
 
 The public UI waits for readiness, displays actual elapsed waiting time and retries transient workspace connection failures. New-workspace requests carry a random capability/request ID so retrying the same request reuses one graph. AI questions, replays and other business requests are never automatically resubmitted after a lost response. AI failures retain the retrieved evidence and offer an explicit retry.
 
@@ -142,7 +147,7 @@ This runs the real FalkorDB integration suite, an isolated business-scenario eva
 
 **Local verification, October 18, 2026:** 87 backend tests, 12 isolated business-scenario checks and ten frontend tests passed; production build and documentation checks passed. Coverage includes temporal boundaries, withdrawn sources, required relationships, graph-copy isolation, stale receipts, generic counts/arithmetic, imported-company ownership, complete inspection/export, provider routing/deadlines, live tool-schema discovery, idempotent workspace creation, connection recovery, graph layout and public limits. [Tests](backend/tests) · [CI workflow](.github/workflows/ci.yml).
 
-**Live checks, October 17:** Groq returned 12 external clients; an OpenRouter free fallback explained the SUGAR reconciliation issue, named Finance and declined to infer cash loss. Runs took about 18 and 105 seconds respectively, not performance guarantees. The public portal displayed 9,992 records and 17,207 relationships; all eight implemented structural checks passed. A health-lock issue was fixed in deployed commit `596b50d`; during the full audit, readiness returned 200 in about 0.1–0.2 seconds. Its GitHub integration/evaluation/build checks passed. The tested eight-label evidence map had no measured label/card or label/label collisions. These observations do not guarantee future uptime, every graph layout or every AI answer.
+**Recorded checks, October 18:** deployed application revision `fa72a8f` passed GitHub's real FalkorDB, frontend and documentation jobs, and returned ready. An amended-agreement investigation correctly returned Monday–Saturday processing for November 8 as known on October 16. The recorded rehearsal demonstrated the October 25 conflict, the actual **Preserve commitments** interaction and the November 8 amended result. The inspected recording workspace contained 10,005 records and 17,257 relationships after replay/history activity, with zero violations across eight structural checks; those are workspace observations, not fixed seed counts. Earlier live checks exercised Groq and an OpenRouter free fallback. These observations do not guarantee future uptime, every graph layout or every AI answer.
 
 ## Security and limitations
 
@@ -173,11 +178,13 @@ Implementation began October 15, 2026, using public libraries and AI coding assi
 | Public source repository | [Available](https://github.com/VeerabhadraYerram/Chronos) |
 | README setup and graph data model | Included above; [full schema](docs/DATABASE.md) |
 | Cypher queries / graph operations | [Dedicated source-linked guide](docs/GRAPH_QUERIES.md) |
-| Working demo video | **Still required — no final uploaded video link yet** |
+| Working demo video | Three-minute 1080p silent cut and narration script prepared locally; **narration, upload and accessible public video link still pending** |
 | Deployment or complete local setup | [Live app](https://chronosgraph.onrender.com) and setup above |
 | Track | Company Brain; also select it in the organizer form |
 
-Deadline: **October 18, 2026, 11:59 PM IST**, per the checked event brief. Record/watch/upload the video, add its accessible link here, recheck the live app and CI, then complete the organizer's team details and submission form. Repository readiness does not prove that the form was submitted. Confirm any additional signed-in panel requirements.
+The prepared recording shows the application from 00:18, evidence inspection and graph controls through 01:19, contextual follow-up through 01:41, amendment reassessment through 02:02, graph-copy rehearsal through 02:27, then the database inspector and closing. It uses working-product captures; waits and unsuccessful takes were edited out, with explanatory architecture graphics and cursor emphasis added. It is not a continuous latency benchmark.
+
+Deadline: **October 18, 2026, 11:59 PM IST**, per the checked event brief. Add narration, watch and upload the final cut, add its accessible link here, recheck the live app and CI, then complete the organizer's team details and submission form. Repository readiness does not prove that the form was submitted. Confirm any additional signed-in panel requirements.
 
 ## License
 

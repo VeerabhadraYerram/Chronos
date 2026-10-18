@@ -15,7 +15,7 @@ This document describes an independently designed Delhivery reference prototype.
 | Graph or component | Purpose | Lifetime / boundary |
 | --- | --- | --- |
 | `chronos_delhivery_reference_v1` | Shared reference seed, plus a demo-session creation registry | Seeded once; operating knowledge is not changed by visitor replay |
-| `chronos_delhivery_demo_<random ID>` | One visitor's company workspace | Persisted; isolated mutations and receipts; opaque capability ID kept in browser local storage |
+| `chronos_delhivery_demo_<random ID>` | One visitor's company workspace | Isolated mutations and receipts; persistent locally, temporary on free Render; opaque capability ID kept in browser local storage |
 | `chronos_company_trial_<random ID>` | Before/after rehearsal | Real `GRAPH.COPY`; removed in `finally` after comparison |
 | `chronos_reference_test_<random ID>` | Integration-test fixture copies | Disposable; never the user's demo graph |
 | `chronos_novapay` or configured legacy name | Preserved payments prototype | Separate from the main company workspace |
@@ -244,7 +244,7 @@ The [dedicated query guide](GRAPH_QUERIES.md) collects the actual source-linked 
 | Operation | Database behavior |
 | --- | --- |
 | New workspace | Seeds the reference if absent, copies the graph, records a session registry entry |
-| Ask / follow-up | Reads applicable commitments and context; optionally runs bounded provider-selected reads; persists a receipt and `USED` links |
+| Ask / follow-up | Reads question-specific context; refreshes applicable rules when policy records are retrieved; runs bounded provider-selected reads when AI is enabled; persists a receipt and `USED` links |
 | Expand a node | Reads neighbors and the relationships between returned nodes |
 | Approved amendment replay | Updates the original recorded interval, adds two rule versions and amendment evidence, links lineage, increments revision |
 | Evidence withdrawal replay | Disables the original supporting source; increments revision |
@@ -255,6 +255,8 @@ The [dedicated query guide](GRAPH_QUERIES.md) collects the actual source-linked 
 The copy operation has a small bounded retry for a transient “could not fork” failure. It never substitutes a frontend or in-memory clone. Replay operations span multiple writes, coordinated by a process lock; they do not claim crash-atomic transactions or multi-worker coordination.
 
 The model cannot accept policies, replay amendments, approve agreements, change a graph name or publish actions through its read tools. Those application operations remain separate from source text and model explanations.
+
+**Ask about this** carries the selected record ID and parent investigation into the next question, alongside effective/recorded times. The receipt stores its retrieved evidence snapshot; breadcrumbs restore the actual parent chain. Prior generated summaries are not treated as company facts or reused as policy authority. A later revision marks earlier receipts stale; rerunning requires an explicit user action.
 
 ## 11. Source of truth and reproduction
 
@@ -301,9 +303,9 @@ Campaign records describe client programmes such as festive replenishment, regio
 
 ## Database inspection
 
-Open the [live portal](https://chronosgraph.onrender.com/database), or `http://127.0.0.1:8000/database` locally. Choose **Create workspace** for an independent copy, or enter the main app's workspace ID from **About this workspace** to inspect the same history. A copied fragment link grants access to that modeled workspace; it is not production authentication and can expire. Use the permanent `/database` root URL for submission.
+Click **Explore database** in the main application's top bar to open the separate portal in a new tab for the **same workspace**. Its `#workspace=…` fragment preserves the investigation's graph selection. The ID is an access capability, not production authentication, and can expire. Use the permanent [live portal](https://chronosgraph.onrender.com/database) root URL for submission; it offers **Create workspace** for an independent copy. Locally the portal is at `http://127.0.0.1:8000/database`; an existing ID can also be entered manually.
 
-Tables use compact previews; clicking a record exposes all decoded fields, native properties and paginated connections. Search returns exact filtered counts. Pages use 50 records in the UI and accept at most 100. Schema/indexes and integrity views show actual database state; observed fields are not all mandatory constraints. The portal excludes the session registry, credentials and other visitors' graphs.
+Tables use compact previews; clicking a record exposes all decoded fields, native properties and paginated connections. The catalog groups company knowledge, operations/finance, and investigation/setup records. Search returns exact filtered counts. Pages use 50 records in the UI and accept at most 100. Schema/indexes and integrity views show actual database state; observed fields are not all mandatory constraints. All eight integrity checks are structural checks, not an endorsement of generated answers. The portal excludes the session registry, credentials and other visitors' graphs.
 
 Fixed operations are `catalog`, `rows`, `relationships`, `record`, `audit` and `export`, through `POST /api/database/{operation}`. There is no arbitrary Cypher or edit/delete console. Reads use `GRAPH.RO_QUERY`; workspace creation uses the separate session API and reopening may apply non-destructive schema migration. JSON export assembles complete pages, including beyond the server's 10,000-row cap, and refuses more than 25,000 nodes or 50,000 relationships. The process lock covers this application's export, not writes from another process. Source hashes and structural checks do not prove factual truth.
 

@@ -107,7 +107,11 @@ WHERE a.id IN $ids AND b.id IN $ids
 RETURN a.id,type(r),b.id,coalesce(r.source_ids,[]) LIMIT 150
 ```
 
-This is why a graph item can be expanded and inspected: its edges come from stored relationships, including their source IDs. A missing edge is not filled in by the LLM or a layout algorithm.
+This is why a graph item can be expanded and inspected: its edges come from stored relationships, including their source IDs. A missing edge is not filled in by the LLM or a layout algorithm. FalkorDB's knowledge graph is the underlying stored data; the UI's **Map** and **Readable trail** are two renderings of a retrieved subgraph. They are not a visualization of the LLM's private reasoning, nor proof that every generated sentence is correct.
+
+Selecting **Ask about this** passes that record ID, the parent receipt and the selected dates into a new investigation. It runs fresh graph reads and creates a new evidence snapshot; it does not simply reuse the preceding answer. Explicit neighbor expansion can include historical records, whose dates remain inspectable.
+
+**Inspect retrieval trace** exposes executed read tools, row counts and elapsed tool durations. `server_policy_check` identifies the automatic policy refresh separately from model-selected reads. The approximately 7 ms policy read shown in the recording is one measured tool execution, including backend handling and database access; it is not an isolated FalkorDB benchmark or an end-to-end response-time promise. Provider synthesis contributes separately to the total investigation duration.
 
 ## Change comparison
 
@@ -122,7 +126,7 @@ WHERE s.scenario_cohort=$cohort AND ($client="all" OR c.id=$client)
 RETURN c.id,c.title,count(s) ORDER BY c.title
 ```
 
-The baseline scenario passes `cohort="bengaluru-scheduling"`. It does not claim to predict actual carrier outcomes or apply changes to a real company.
+The baseline scenario passes `cohort="bengaluru-scheduling"`, selecting 1,200 consignments across Havells, SUGAR and HPCL. For October 25, full Sunday closure conflicts with Havells' applicable rule; **Preserve commitments** keeps Havells processing and queues the other two clients for Monday. For November 8 after the approved amendment is recorded and effective, full closure has no modeled commitment conflict. The same copied-graph workflow reads each date's actual applicable rule versions; the frontend does not select a canned verdict. This does not claim to predict delivery outcomes, cover every client or apply changes to a real company. Preparing a human-review packet is a separate explicit operation.
 
 ## Structural verification
 
