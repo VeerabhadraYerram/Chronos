@@ -30,6 +30,7 @@ import {
   PanelRightClose,
 } from "lucide-react";
 import { api, ApiError, waitForBackend } from "./api";
+import { questionInputHint } from "./queryInput.mjs";
 import CompanyGraph, { relationLabel } from "./CompanyGraph";
 import type {
   CompanyEntity,
@@ -71,6 +72,8 @@ export default function CompanyWorkspace() {
   const [connectionMessage, setConnectionMessage] = useState("");
   const [waitingSeconds, setWaitingSeconds] = useState(0);
   const [error, setError] = useState("");
+  const [errorNeedsReconnect, setErrorNeedsReconnect] = useState(false);
+  const [questionHelp, setQuestionHelp] = useState("");
   const [receipt, setReceipt] = useState<CompanyReceipt | null>(null);
   const [trail, setTrail] = useState<CompanyReceipt[]>([]);
   const [selected, setSelected] = useState<CompanyEntity | null>(null);
@@ -128,6 +131,11 @@ export default function CompanyWorkspace() {
     try {
       await fn();
     } catch (e) {
+      if (name === "ask" && e instanceof ApiError && e.status === 422) {
+        setQuestionHelp(e.message);
+        return;
+      }
+      setErrorNeedsReconnect(name === "connect" || (e instanceof ApiError && [0, 502, 503, 504].includes(e.status)));
       setError(
         e instanceof Error ? e.message : "Unable to complete this request.",
       );
@@ -222,6 +230,13 @@ export default function CompanyWorkspace() {
   async function ask(text = question, focus = selected?.id) {
     if (!session || busy || !text.trim()) return;
     setQuestion(text);
+    setError("");
+    const hint = questionInputHint(text);
+    setQuestionHelp(hint);
+    if (hint) {
+      input.current?.focus();
+      return;
+    }
     setView("investigate");
     setEdge(null);
     await task("ask", async () => {
@@ -584,9 +599,11 @@ export default function CompanyWorkspace() {
                     ? " The free service may be restarting. Reconnect shortly, or create a new workspace if your link expired."
                     : " Start Docker and the API, then reconnect. If a saved workspace is missing, create a new one.")}
               </span>
-              <button onClick={() => void task("connect", () => load())}>
-                Reconnect
-              </button>
+              {errorNeedsReconnect && (
+                <button onClick={() => void task("connect", () => load())}>
+                  Reconnect
+                </button>
+              )}
               <button aria-label="Dismiss error" onClick={() => setError("")}>
                 <X size={15} />
               </button>
@@ -618,7 +635,11 @@ export default function CompanyWorkspace() {
                   ref={input}
                   aria-label="Ask ChronosGraph"
                   value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
+                  onChange={(e) => {
+                    setQuestion(e.target.value);
+                    setQuestionHelp("");
+                  }}
+                  aria-describedby={questionHelp ? "company-question-help" : undefined}
                   placeholder={initialQuestion}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
@@ -627,6 +648,12 @@ export default function CompanyWorkspace() {
                     }
                   }}
                 />
+                {questionHelp && (
+                  <div id="company-question-help" role="status" className="co-question-help">
+                    <Info size={18} aria-hidden="true" />
+                    <span>{questionHelp}</span>
+                  </div>
+                )}
                 <div className="co-query-bottom">
                   <span>
                     <kbd>↵</kbd> Ask a question · click a graph item to follow

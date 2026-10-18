@@ -916,6 +916,23 @@
   color: #8d5e47;
   border: 1px solid #efd8ca;
 }
+.co-question-help {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 14px 0;
+  padding: 14px 16px;
+  border: 1px solid #d4e1e8;
+  border-radius: 8px;
+  background: #eef4f8;
+  color: #34566d;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.co-question-help svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
 .co-error button,
 .co-notice button {
   margin-left: auto;

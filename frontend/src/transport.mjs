@@ -1,3 +1,5 @@
+import { COMPANY_QUESTION_GUIDANCE } from './queryInput.mjs';
+
 // Network recovery for read-only readiness checks. Business POSTs are never replayed.
 export class ApiError extends Error {
   constructor(message, status, retryAfter = 0) {
@@ -22,8 +24,21 @@ export async function fetchJson(url, options = {}, timeoutMs = 45000) {
       );
     }
     if (!response.ok) {
+      let message = typeof data.detail === 'string' ? data.detail : 'The request could not be completed. Please retry shortly.';
+      if (response.status === 422 && Array.isArray(data.detail)) {
+        const fields = data.detail.map((item) => item.loc?.[1]);
+        if (fields.every((field) => field === 'question') && fields.length) {
+          message = data.detail.some((item) => item.type === 'string_too_long')
+            ? 'Please keep your question under 1,500 characters.'
+            : COMPANY_QUESTION_GUIDANCE;
+        } else if (fields.some((field) => field === 'effective_at' || field === 'known_at')) {
+          message = 'Choose valid dates for “Effective on” and “Known by”, then try again.';
+        } else {
+          message = 'Some request details are missing or invalid. Review your question, dates, and workspace.';
+        }
+      }
       throw new ApiError(
-        typeof data.detail === 'string' ? data.detail : 'The request could not be completed. Please retry shortly.',
+        message,
         response.status,
         Number(response.headers.get('Retry-After')) || 0,
       );

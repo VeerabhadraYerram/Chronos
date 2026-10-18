@@ -18,6 +18,16 @@ test('provider admission errors retain Retry-After for the caller', async (t) =>
   await assert.rejects(fetchJson('/api/company/ask', { method: 'POST' }), (e) => e.status === 429 && e.retryAfter === 15);
 });
 
+test('short-question validation gives company guidance without exposing raw inputs', async (t) => {
+  t.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify({ detail: [{ loc: ['body', 'question'], type: 'string_too_short', input: 'private input' }] }), { status: 422 }));
+  await assert.rejects(fetchJson('/api/company/ask', { method: 'POST' }), (e) => e.status === 422 && /company knowledge/.test(e.message) && !e.message.includes('private input'));
+});
+
+test('date validation is not misreported as an irrelevant company question', async (t) => {
+  t.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify({ detail: [{ loc: ['body', 'known_at'], type: 'value_error' }] }), { status: 422 }));
+  await assert.rejects(fetchJson('/api/company/ask', { method: 'POST' }), (e) => e.status === 422 && /valid dates/.test(e.message) && !/company knowledge/.test(e.message));
+});
+
 test('readiness recovers across a cold start and stops when ready', async () => {
   let calls = 0;
   const states = [];
