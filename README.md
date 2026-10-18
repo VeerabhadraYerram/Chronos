@@ -2,11 +2,11 @@
   <img src="docs/assets/chronosgraph-banner.svg" alt="ChronosGraph — company decision memory" width="1200" />
 </p>
 
-**Ask why a company decision exists. Check whether it still applies. Follow the evidence.**
+**Find company answers. Understand what changed. Follow the evidence.**
 
 ChronosGraph is a **Company Brain** investigator powered by **FalkorDB**. An operations or account manager can ask about policies, incidents, commitments and ownership, inspect the records behind the answer, then investigate further by clicking the evidence graph.
 
-**[Live application](https://chronosgraph.onrender.com)** · **[Separate database inspection](https://chronosgraph.onrender.com/database)** · **[CI](https://github.com/VeerabhadraYerram/Chronos/actions/workflows/ci.yml)**
+**[Watch the three-minute demo](https://youtu.be/xJ_9QT_oZcM)** · **[Live application](https://chronosgraph.onrender.com)** · **[Separate database inspection](https://chronosgraph.onrender.com/database)** · **[CI](https://github.com/VeerabhadraYerram/Chronos/actions/workflows/ci.yml)**
 
 > **First visit may load slowly:** this application uses Render's free hosting. The server sleeps after 15 minutes without traffic and can take about a minute to wake. Keep the page open while it starts; the application then connects automatically. Database inspection and AI requests have their own loading time. [Render's cold-start documentation](https://render.com/docs/free#spinning-down-on-idle).
 
@@ -150,11 +150,11 @@ The public UI waits for readiness, displays actual elapsed waiting time and retr
 
 Agent schema discovery uses two live FalkorDB aggregation queries instead of exporting every record payload for each provider attempt. When retrieved records include policies, a server-controlled read refreshes the applicable accepted rule versions, including their actual values and dates, and prioritizes their supporting sources in the AI context. This check is identified separately in the retrieval trace. `CHRONOS_AI_BUDGET_SECONDS` defaults to 75: provider allowances are up to 15 seconds for Groq, 15 for Gemini and 45 for free OpenRouter, bounded by the remaining shared budget. Timeouts are checked between calls and database reads have separate limits; this is not a strict end-to-end response-time guarantee.
 
-The [judging uptime workflow](.github/workflows/judging-uptime.yml) checks `/readyz` approximately every five minutes with bounded retries. It creates no workspaces and makes no AI calls. It also runs when its own configuration is pushed. Standard GitHub-hosted runners are free for this public repository; scheduled runs can be delayed and do not guarantee uptime or AI availability. Set the repository variable `JUDGING_MONITOR_DISABLED=true` to stop scheduled probes.
-
 Free hosting sleeps after 15 idle minutes and can take about a minute to wake. Hosted visitor graphs are **temporary**: they reset on server restart and expire after an hour of inactivity. Capacity is six active workspaces; local defaults are 40 with persistent Docker storage. Submit the permanent `/database` link, not an expiring workspace fragment.
 
 Public admission limits are 90 API requests/minute/client, 12 session requests/minute/client, 8 AI requests/minute/client, 120 AI requests/hour globally, two simultaneous AI investigations and 64 KiB bodies. Counters reset on process restart; they are not a distributed abuse defense or billing cap. Use provider/hosting spend controls. Full scans may be slow and free quotas can interrupt answers.
+
+Multiple visitors can browse the app and database portal, but only **two AI investigations** are admitted at once. A third simultaneous AI request receives HTTP 429 with a retry message, rather than being queued. This is a bounded evaluation deployment, not a claim of load-tested production capacity.
 
 ## Testing and recorded validation
 
@@ -197,13 +197,15 @@ Implementation began October 15, 2026, using public libraries and AI coding assi
 | Public source repository | [Available](https://github.com/VeerabhadraYerram/Chronos) |
 | README setup and graph data model | Included above; [full schema](docs/DATABASE.md) |
 | Cypher queries / graph operations | [Dedicated source-linked guide](docs/GRAPH_QUERIES.md) |
-| Working demo video | Three-minute 1080p silent cut and narration script prepared locally; **narration, upload and accessible public video link still pending** |
+| Working demo video | [Final narrated demo — three minutes, 1080p](https://youtu.be/xJ_9QT_oZcM); accessible without signing in when checked |
 | Deployment or complete local setup | [Live app](https://chronosgraph.onrender.com) and setup above |
 | Track | Company Brain; also select it in the organizer form |
 
-The prepared recording shows the application from 00:15, evidence inspection and graph controls through 01:10, contextual follow-up through 01:30, amendment reassessment through 01:50, graph-copy rehearsal through 02:14, ticket/chat/ownership/knowledge exploration through 02:32, then the database inspector and closing. It uses working-product captures; the incident sequence uses direct graph exploration in an isolated local instance. Waits and unsuccessful takes were edited out, with explanatory architecture graphics and cursor emphasis added. It is not a continuous latency benchmark.
+The final video shows a warehouse manager's question, the answer and supporting agreement, the interactive evidence map and readable trail, the retrieval trace, and a contextual follow-up. Its central sequence explains **recorded October 15** versus **effective November 1**, marks an earlier answer stale, and reassesses it. The rehearsal then shows the October 25 commitment conflict, the **Preserve commitments** alternative, and the November 8 amended result. It ends with human review, ticket → supporting chat → responsible team/person exploration, and the separate database inspector. Cypher's role is explained alongside executed read tools, returned rows and timings; the video does not display the full query text. The [query guide](docs/GRAPH_QUERIES.md) provides the actual source-linked templates.
 
-Deadline: **October 18, 2026, 11:59 PM IST**, per the checked event brief. Add narration, watch and upload the final cut, add its accessible link here, recheck the live app and CI, then complete the organizer's team details and submission form. Repository readiness does not prove that the form was submitted. Confirm any additional signed-in panel requirements.
+The video uses working-product captures, explanatory graphics and cursor emphasis; the incident sequence uses direct graph exploration in an isolated local instance. It is edited for clarity and is not a continuous latency benchmark. The fictional-data disclaimer appears at the start.
+
+The published submission deadline was **October 18, 2026, 11:59 PM IST**, per the checked event brief. The repository, narrated video and deployment links are available above. Completing these artifacts does not establish that the organizer's team details and submission form were submitted; that account-level step must be confirmed separately.
 
 ## License
 
