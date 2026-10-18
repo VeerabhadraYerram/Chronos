@@ -17,7 +17,7 @@ There are two supporting guides: **[Database & schema](docs/DATABASE.md)** and *
 ## Try the product
 
 1. Open the live app. Free hosting can take about a minute to wake.
-2. Ask **How many external client companies are recorded?** The initial dataset has 12 Client records; the count is computed in FalkorDB.
+2. Ask **How many companies are we dealing with?** The initial dataset has 12 Client records; the count is computed in FalkorDB.
 3. Ask **Why is the SUGAR COD settlement mismatch being investigated, who owns it, and does it prove cash loss?** Inspect the records and source excerpts. A mismatch under Finance review is not proof of loss; an unknown outcome must remain unknown.
 4. Click a graph record or relationship, inspect its provenance, expand its connections and ask a follow-up. The evidence graph is specific to the investigation; aggregates may show a bounded sample of the counted population.
 5. Click **Explore database** in the top bar. A separate read-only portal opens automatically in a new tab for **the same workspace**, including its investigation history. While FalkorDB loads, a loading state replaces the workspace-ID form; workspace selection remains available for changing workspaces or recovering an expired link. Browse full fields, relationships, schema/indexes, eight structural checks or JSON export. The permanent [database link](https://chronosgraph.onrender.com/database) can also create a fresh workspace.
@@ -38,6 +38,8 @@ Use **Investigate** for these questions in the live workspace. Click returned re
 | Warehouse handling | Why does the Chennai return need inspection? | The return-quality ticket and procedure require inspection; they do not approve a refund or compensation. |
 
 The investigator discovers the workspace schema and can retrieve sources, traverse ownership, count records and calculate stored numeric values across departments. The hosted site contains the included reference workspace; it has no public document uploader or live company connectors. Developers can also [import the unrelated Atlas Studio fixture](docs/DATABASE.md#import-another-company), which exercises Finance and Marketing without the logistics schema. Generated answers depend on provider availability and still need source review; direct database inspection remains available independently.
+
+The first three rows were rechecked against the deployed graph on October 18: 12 clients, INR 300,150 in stored invoice amounts, and Operations ownership. These checks used the explicitly selected **Graph-only retrieval** mode, which is available by clearing **AI investigator**; they verify database calculations and relationships independently of provider availability, not the quality of an AI-generated explanation. The transport and warehouse incident states were also read directly from the deployed graph.
 
 <details>
   <summary>Actual investigation and comparison screenshots</summary>
