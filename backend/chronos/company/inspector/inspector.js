@@ -128,6 +128,25 @@ function link(id, title) {
   b.onclick = () => task(() => inspect(id));
   return b;
 }
+function showWorkspaceChooser() {
+  $("opening").hidden = true;
+  $("browser").hidden = true;
+  $("connect").hidden = false;
+  $("resume").hidden = !session || !catalog;
+}
+async function openWorkspace(fresh = false) {
+  $("connect").hidden = true;
+  $("browser").hidden = true;
+  $("opening").hidden = false;
+  try {
+    await connect(fresh);
+  } catch (error) {
+    showWorkspaceChooser();
+    throw error;
+  } finally {
+    $("opening").hidden = true;
+  }
+}
 async function connect(fresh = false) {
   const id = fresh ? "" : $("workspace").value.trim();
   if (!fresh && !/^[a-f0-9]{32}$/.test(id))
@@ -160,14 +179,17 @@ async function connect(fresh = false) {
   }
   const data = await r.json();
   session = data.session_id;
+  // A failed catalog request must not resume an old catalog in a new workspace.
+  catalog = null;
   view = "overview";
   offset = 0;
   label = "";
   $("workspace").value = session;
   localStorage.setItem("chronos-inspection-session", session);
   history.replaceState(null, "", "#workspace=" + session);
+  message("Loading record types and relationships…");
   await refresh();
-  if ($("message").textContent === "Opening your inspection workspace…") message("");
+  message("");
 }
 async function refresh() {
   catalog = await api("catalog");
@@ -557,9 +579,14 @@ async function detailEdges() {
 }
 $("connect-form").onsubmit = (e) => {
   e.preventDefault();
-  task(() => connect());
+  task(() => openWorkspace());
 };
-$("new").onclick = () => task(() => connect(true));
+$("new").onclick = () => task(() => openWorkspace(true));
+$("resume").onclick = () => {
+  $("connect").hidden = true;
+  $("browser").hidden = false;
+  message("");
+};
 $("refresh").onclick = () => task(refresh);
 $("search-form").onsubmit = (e) => {
   e.preventDefault();
@@ -612,10 +639,11 @@ const supplied =
   localStorage.getItem("chronos-inspection-session");
 if (supplied) {
   $("workspace").value = supplied;
-  task(() => connect());
-}
+  task(() => openWorkspace());
+} else showWorkspaceChooser();
 
 $("change").onclick = () => {
-  $("connect").hidden = false;
+  if (busy) return;
+  showWorkspaceChooser();
   $("workspace").focus();
 };

@@ -135,6 +135,32 @@ label small {
   max-width: 1000px;
   margin: 10px auto 32px;
 }
+#opening {
+  max-width: 760px;
+  margin: 48px auto;
+  padding: 36px;
+  border: 1px solid #d7e1d0;
+  border-radius: 12px;
+  background: #fff;
+}
+#opening p:last-child {
+  color: #53664f;
+}
+.opening-indicator {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 24px;
+  border: 3px solid #e2eade;
+  border-top-color: #31583f;
+  border-radius: 50%;
+  animation: opening-spin 1s linear infinite;
+}
+@keyframes opening-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .opening-indicator { animation: none; }
+}
 #message {
   color: #795518;
   margin: 15px 0;

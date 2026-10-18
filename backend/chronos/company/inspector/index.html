@@ -13,7 +13,13 @@
       ><span class="badge">READ ONLY · FALKORDB</span>
     </header>
     <main>
-      <section id="connect">
+      <section id="opening" aria-labelledby="opening-title" aria-busy="true">
+        <div class="opening-indicator" aria-hidden="true"></div>
+        <p class="eyebrow">DATABASE INSPECTION</p>
+        <h1 id="opening-title">Opening your company data</h1>
+        <p>Reading this workspace’s records, relationships and schema from FalkorDB.</p>
+      </section>
+      <section id="connect" hidden>
         <p class="eyebrow">OPEN THE DATA BEHIND THE ANSWER</p>
         <h1>Every record. Every relationship.</h1>
         <p>
@@ -39,6 +45,8 @@
             /><button type="submit">Open workspace</button
             ><button id="new" type="button" class="secondary">
               Create workspace
+            </button><button id="resume" type="button" class="secondary" hidden>
+              Back to inspection
             </button>
           </div>
         </form>
