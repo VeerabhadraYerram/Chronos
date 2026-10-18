@@ -167,6 +167,7 @@ async function connect(fresh = false) {
   localStorage.setItem("chronos-inspection-session", session);
   history.replaceState(null, "", "#workspace=" + session);
   await refresh();
+  if ($("message").textContent === "Opening your inspection workspace…") message("");
 }
 async function refresh() {
   catalog = await api("catalog");
