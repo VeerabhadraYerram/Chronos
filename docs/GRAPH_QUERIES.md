@@ -52,7 +52,7 @@ AND (size($ids)=0 OR r.id IN $ids OR r.subject_id IN $ids OR r.client IN $ids OR
 RETURN r.payload,s.payload ORDER BY r.id LIMIT 100
 ```
 
-A chat proposal or a handbook assertion cannot turn into an accepted rule through retrieval.
+A chat proposal or a handbook assertion cannot turn into an accepted rule through retrieval. When the initial evidence includes policy records, the server also runs this template before model planning. The AI receives the actual applicable rule values and time bounds, with their supporting sources prioritized over older excerpts. The automatic read is marked `server_policy_check` in the trace; it is not attributed to model tool selection. This context is bounded to 12 rule/source pairs and explicitly marks truncation.
 
 ## What an operating document says
 

@@ -58,10 +58,11 @@ export type CompanyReceipt = {
   stale: boolean;
   mode: string;
   followups: string[];
-  trace: { tool: string; rows: number; ms?: number }[];
+  trace: { tool: string; rows: number; ms?: number; phase?: string }[];
   total_ms: number;
   agent_error?: string;
   request: {
+    parent_receipt_id?: string | null;
     effective_at: string;
     known_at: string;
     focus_id?: string;

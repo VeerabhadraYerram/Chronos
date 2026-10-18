@@ -78,6 +78,8 @@ export default function CompanyWorkspace() {
   const [receipt, setReceipt] = useState<CompanyReceipt | null>(null);
   const [trail, setTrail] = useState<CompanyReceipt[]>([]);
   const [selected, setSelected] = useState<CompanyEntity | null>(null);
+  const [questionFocus, setQuestionFocus] = useState<CompanyEntity | null>(null);
+  const focusedRecord = selected || questionFocus;
   const [edge, setEdge] = useState<CompanyEdge | null>(null);
   const [view, setView] = useState<
     "investigate" | "compare" | "records" | "history"
@@ -195,6 +197,7 @@ export default function CompanyWorkspace() {
     setGraph(result.graph);
     setRecords(result.sources);
     setSelected(null);
+    setQuestionFocus(null);
     setReceipt(null);
     setTrail([]);
     setPreview(null);
@@ -221,6 +224,7 @@ export default function CompanyWorkspace() {
         else if (packet) setPacket(null);
         else {
           setSelected(null);
+          setQuestionFocus(null);
           setEdge(null);
         }
       }
@@ -228,7 +232,7 @@ export default function CompanyWorkspace() {
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
   }, [expanded, help, packet]);
-  async function ask(text = question, focus = selected?.id) {
+  async function ask(text = question, focus = focusedRecord?.id) {
     if (!session || busy || !text.trim()) return;
     setQuestion(text);
     setError("");
@@ -254,6 +258,7 @@ export default function CompanyWorkspace() {
       setFilters([]);
       setTrail((t) => [...t, r]);
       setSelected(null);
+      setQuestionFocus(null);
       setSession((s) =>
         s
           ? { ...s, receipts: [r, ...s.receipts.filter((x) => x.id !== r.id)] }
@@ -262,6 +267,19 @@ export default function CompanyWorkspace() {
     });
   }
   function restore(r: CompanyReceipt) {
+    const available = new Map(
+      [...(session?.receipts || []), ...trail, r].map((item) => [item.id, item]),
+    );
+    const path: CompanyReceipt[] = [];
+    const visited = new Set<string>();
+    let current: CompanyReceipt | undefined = r;
+    while (current && !visited.has(current.id) && path.length < 32) {
+      path.unshift(current);
+      visited.add(current.id);
+      current = available.get(current.request.parent_receipt_id || "");
+    }
+    setTrail(path);
+    setQuestionHelp("");
     setReceipt(r);
     setGraph(r.graph);
     setQuestion(r.title);
@@ -269,6 +287,7 @@ export default function CompanyWorkspace() {
     setKnown(r.request.known_at.slice(0, 10));
     setClient(r.request.client);
     setSelected(null);
+    setQuestionFocus(null);
     setEdge(null);
     setFilters([]);
     setView("investigate");
@@ -346,6 +365,7 @@ export default function CompanyWorkspace() {
         setExpanded(false);
         setEdge(e);
         setSelected(null);
+        setQuestionFocus(null);
       }}
       expanded={expanded}
     />
@@ -636,9 +656,14 @@ export default function CompanyWorkspace() {
                 <div className="co-query-label">
                   <Sparkles size={15} />
                   <span>ASK YOUR COMPANY MEMORY</span>
-                  {selected && (
-                    <button onClick={() => setSelected(null)}>
-                      About {selected.title}
+                  {focusedRecord && (
+                    <button
+                      onClick={() => {
+                        setSelected(null);
+                        setQuestionFocus(null);
+                      }}
+                    >
+                      About {focusedRecord.title}
                       <X size={12} />
                     </button>
                   )}
@@ -985,6 +1010,7 @@ export default function CompanyWorkspace() {
                         else if (session) setGraph(session.graph);
                         setFilters([]);
                         setSelected(null);
+                        setQuestionFocus(null);
                         setEdge(null);
                       }}
                     >
@@ -1093,6 +1119,7 @@ export default function CompanyWorkspace() {
                       <p key={i}>
                         <code>{t.tool}</code>
                         <span>
+                          {t.phase === "server_policy_check" ? "Server policy check · " : ""}
                           {t.rows} rows
                           {t.ms !== undefined ? ` · ${t.ms} ms` : ""}
                         </span>
@@ -1475,6 +1502,7 @@ export default function CompanyWorkspace() {
               aria-label="Close record inspector"
               onClick={() => {
                 setSelected(null);
+                setQuestionFocus(null);
                 setEdge(null);
               }}
             >
@@ -1550,6 +1578,8 @@ export default function CompanyWorkspace() {
                   className="co-primary"
                   disabled={!!busy}
                   onClick={() => {
+                    setQuestionFocus(selected);
+                    setSelected(null);
                     setQuestion(`Tell me more about ${selected.title}.`);
                     setView("investigate");
                     input.current?.focus();

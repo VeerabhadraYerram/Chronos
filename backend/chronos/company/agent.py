@@ -202,7 +202,7 @@ def investigate(store, request, receipt, provider="gemini"):
     previous_context = (
         dict(
             question=previous["title"],
-            answer=previous["summary"],
+            answer=None if previous["stale"] else previous["summary"][:750],
             stale=previous["stale"],
         )
         if previous and previous.get("domain") == "company"
@@ -230,15 +230,6 @@ def investigate(store, request, receipt, provider="gemini"):
             if isinstance(v, (str, int, float, bool))
             and k not in {"content_hash", "search_text"}
         }
-
-    context["sources"] = [compact(n) for n in sources.values()][:3]
-    context["initial_graph"] = {
-        **receipt["graph"],
-        "nodes": [
-            {k: n[k] for k in ["id", "kind", "title"]}
-            for n in receipt["graph"]["nodes"]
-        ],
-    }
 
     def tool_result(name, args):
         if name not in {t["name"] for t in tools}:
@@ -274,6 +265,44 @@ def investigate(store, request, receipt, provider="gemini"):
         if isinstance(result, dict) and "nodes" in result:
             return {**result, "nodes": [compact(n) for n in result["nodes"]]}
         return result
+
+    # Always refresh applicable policy when the retrieved graph contains policy
+    # records. Compacted node titles and old excerpts alone can hide an amendment.
+    applicable_rules = []
+    if any(n["kind"] in {"Rule", "Policy", "Claim"} for n in seen.values()):
+        policy_ids = [id for id, n in seen.items() if n["kind"] == "Rule"]
+        policy_rows = tool_result(
+            "read_applicable_rules", {"ids": (policy_ids or list(seen))[:20]}
+        )
+        applicable_rules = [
+            dict(rule=compact(pair["rule"]), source_id=pair["source"]["id"])
+            for pair in policy_rows[:12]
+        ]
+        context["applicable_rules_truncated"] = len(policy_rows) > 12
+        trace[-1]["phase"] = "server_policy_check"
+    context["applicable_rules"] = applicable_rules
+    policy_source_ids = {pair["source_id"] for pair in applicable_rules}
+    ordered_sources = sorted(
+        sources.values(), key=lambda n: n["id"] not in policy_source_ids
+    )
+    context["sources"] = [compact(n) for n in ordered_sources][:4]
+    context["initial_graph"] = {
+        **receipt["graph"],
+        "nodes": [
+            {k: n[k] for k in ["id", "kind", "title"]}
+            for n in receipt["graph"]["nodes"]
+        ],
+        "edges": [
+            {k: e[k] for k in ("source", "target", "relation", "source_ids")}
+            for e in receipt["graph"]["edges"]
+        ],
+    }
+    instruction += (
+        " The server's applicable_rules are accepted, source-supported policy versions for the selected effective and known times. "
+        "Read their actual field, value, and dates before stating a current obligation. "
+        "Their supporting amendments take precedence over conflicting old excerpts and prior answers. "
+        "If an original agreement has since been amended, distinguish its historical terms from the current applicable terms."
+    )
 
     def decode(text):
         return json.loads(
@@ -337,7 +366,12 @@ def investigate(store, request, receipt, provider="gemini"):
                     break
                 name, args = "describe_schema", {}
             else:
-                args = json.loads(plan.get("arguments", "{}"))
+                raw_arguments = plan.get("arguments", "{}")
+                args = (
+                    raw_arguments
+                    if isinstance(raw_arguments, dict)
+                    else json.loads(raw_arguments or "{}")
+                )
             if (
                 name == "aggregate_records"
                 and receipt.get("aggregates")
@@ -393,6 +427,7 @@ def investigate(store, request, receipt, provider="gemini"):
                         focus_id=request.focus_id,
                         effective_at=request.effective_at,
                         known_at=request.known_at,
+                        applicable_rule_ids=[p["rule"]["id"] for p in applicable_rules],
                         verified_calculations=calculations,
                         requested_calculation=receipt.get("aggregates", []),
                         task=(

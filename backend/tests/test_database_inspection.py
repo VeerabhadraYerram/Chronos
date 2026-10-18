@@ -487,6 +487,74 @@ def test_planner_can_finish_from_actual_initial_evidence(atlas, monkeypatch):
     assert result["graph"] == {"nodes": [], "edges": []}
 
 
+@pytest.mark.parametrize(
+    "effective,expected_rule,expected_value,expected_source",
+    [
+        (
+            "2026-10-25T12:00:00Z",
+            "rule-havells-history",
+            True,
+            "source-havells-agreement",
+        ),
+        ("2026-11-08T12:00:00Z", "rule-havells-amended", False, "source-amendment"),
+    ],
+)
+def test_agent_gets_applicable_rule_values_and_prioritized_sources(
+    reference, monkeypatch, effective, expected_rule, expected_value, expected_source
+):
+    from chronos.company import agent, providers
+
+    name = "chronos_policy_context_test_" + uuid.uuid4().hex
+    reference.copy_to(name)
+    store = CompanyStore(name)
+    try:
+        store.replay("amendment")
+        request = q(
+            "a" * 32,
+            "What does the Havells agreement require?",
+            effective_at=effective,
+            known_at="2026-10-16T12:00:00Z",
+        )
+        receipt = answer(store, request)
+        calls = []
+
+        def completion(messages, tools, **options):
+            initial = json.loads(messages[1]["content"])
+            applicable = {p["rule"]["id"]: p for p in initial["applicable_rules"]}
+            assert applicable[expected_rule]["rule"]["value"] is expected_value
+            assert applicable[expected_rule]["source_id"] == expected_source
+            assert expected_source in {s["id"] for s in initial["sources"]}
+            assert "rule-havells-original" not in applicable
+            final = "summary" in options["schema"]["properties"]
+            calls.append(final)
+            if final:
+                assert (
+                    expected_rule
+                    in json.loads(messages[-1]["content"])["applicable_rule_ids"]
+                )
+            return dict(
+                content=json.dumps(
+                    dict(
+                        summary="The answer uses the applicable supported policy version.",
+                        source_ids=[expected_source],
+                        graph_ids=[expected_rule],
+                        followups=[],
+                    )
+                    if final
+                    else dict(tool="finish", arguments="{}")
+                )
+            )
+
+        monkeypatch.setenv("GROQ_API_KEY", "test-placeholder-not-real")
+        monkeypatch.setattr(providers, "groq_completion", completion)
+        result = agent.investigate(store, request, receipt, "groq")
+        assert calls == [False, True]
+        assert result["citations"] == [expected_source]
+        assert any(t.get("phase") == "server_policy_check" for t in result["trace"])
+    finally:
+        store.graph.delete()
+
+
 def test_generated_count_contradiction_is_rejected(atlas, monkeypatch):
     from chronos.company import agent, providers
 
